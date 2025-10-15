@@ -21,13 +21,14 @@ extern "C" {
 
 /* Events to excite Task Light Sensor */
 typedef enum task_sensor_ev {
+	EV_LIGHT_IDLE,
 	EV_LIGHT_REQUEST
 } task_light_sensor_ev_t;
 
 /* States of Task Light Sensor */
 typedef enum task_sensor_st {
 	ST_LIGHT_MEASURING,
-	ST_LIGHT_READ
+	ST_LIGHT_WAITING
 } task_light_sensor_st_t;
 
 
@@ -40,6 +41,7 @@ typedef struct {
 	uint32_t				tick_cnt;
 	task_light_sensor_st_t	state;
 	task_light_sensor_ev_t	event;
+	float					measure;
 } task_light_sensor_dta_t;
 
 /********************** external data declaration ****************************/

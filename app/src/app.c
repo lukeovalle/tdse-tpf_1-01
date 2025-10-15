@@ -44,8 +44,9 @@
 #include "dwt.h"
 
 /* Application & Tasks includes */
+#include "app.h"
 #include "board.h"
-#include "task_sensor.h"
+#include "task_light_sensor.h"
 #include "task_menu.h"
 
 /********************** macros and definitions *******************************/
@@ -68,9 +69,11 @@ typedef struct {
 } task_dta_t;
 
 /********************** internal data declaration ****************************/
+
+shared_data_type shared_data;
+
 const task_cfg_t task_cfg_list[]	= {
-		{task_sensor_init,	task_sensor_update, 	NULL},
-		{task_menu_init,	task_menu_update, 		NULL}
+		{.task_init = task_light_sensor_init,	.task_update = task_light_sensor_update, 	.parameters= &shared_data}
 };
 
 #define TASK_QTY	(sizeof(task_cfg_list)/sizeof(task_cfg_t))
@@ -123,7 +126,7 @@ void app_init(void)
 	/* Init Tick Counter */
 	g_app_tick_cnt = G_APP_TICK_CNT_INI;
 
-	g_task_sensor_tick_cnt = G_APP_TICK_CNT_INI;
+	g_task_light_sensor_tick_cnt = G_APP_TICK_CNT_INI;
 	g_task_menu_tick_cnt = G_APP_TICK_CNT_INI;
     __asm("CPSIE i");	/* enable interrupts */
 }
@@ -191,7 +194,7 @@ void HAL_SYSTICK_Callback(void)
 	/* Update Tick Counter */
 	g_app_tick_cnt++;
 
-	g_task_sensor_tick_cnt++;
+	g_task_light_sensor_tick_cnt++;
 	g_task_menu_tick_cnt++;
 }
 

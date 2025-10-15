@@ -19,64 +19,62 @@
 #include "task_light_sensor_attribute.h"
 
 /********************** macros and definitions *******************************/
-#define G_TASK_LIGHT_SEN_CNT_INIT		0ul
-#define G_TASK_LIGHT_SEN_TICK_CNT_INI	0ul
+#define G_TASK_LIGHT_SEN_CNT_INIT           0ul
+#define G_TASK_LIGHT_SEN_TICK_CNT_INI  		0ul
 
+/* Number of ticks for the sensor measurement and the starting value */
 #define DEL_LIGHT_SEN_TICK_MAX			50ul
+#define DEL_LIGHT_SEN_TICK_INIT			0ul
+
+/********************** external data declaration ****************************/
+uint32_t g_task_light_sensor_cnt;
+volatile uint32_t g_task_light_sensor_tick_cnt;
+extern ADC_HandleTypeDef hadc1;
 
 /********************** internal data declaration ****************************/
-const task_light_sensor_cfg_t task_sensor_cfg_list[] = {
-	{.gpio_port = &hadc1, .tick_max = DEL_LIGHT_SEN_TICK_MAX }
+const task_light_sensor_cfg_t task_light_sensor_cfg_list[] = {
+	{.hadc = &hadc1, .tick_max = DEL_LIGHT_SEN_TICK_MAX }
 };
 
 #define LIGHT_SENSOR_CFG_QTY	(sizeof(task_light_sensor_cfg_list)/sizeof(task_light_sensor_cfg_t))
 
 task_light_sensor_dta_t task_light_sensor_dta_list[] = {
-	{DEL_BTN_XX_MIN, ST_LIGHT_READ, EV_LIGHT_}
+	{.tick_cnt = DEL_LIGHT_SEN_TICK_INIT, .state = ST_LIGHT_WAITING, .event = EV_LIGHT_IDLE,
+		.measure = 0.0}
 };
 
-#define SENSOR_DTA_QTY	(sizeof(task_sensor_dta_list)/sizeof(task_sensor_dta_t))
+#define SENSOR_DTA_QTY	(sizeof(task_light_sensor_dta_list)/sizeof(task_light_sensor_dta_t))
 
 /********************** internal functions declaration ***********************/
-void task_sensor_statechart(void);
+void task_sensor_statechart(shared_data_type * parameters);
 
 /********************** internal data definition *****************************/
-const char *p_task_sensor 		= "Task Sensor (Sensor Statechart)";
-const char *p_task_sensor_ 		= "Non-Blocking & Update By Time Code";
+const char *p_task_light_sensor 		= "Task Light Sensor (Sensor Statechart)";
+const char *p_task_light_sensor_ 		= "Non-Blocking & Update By Time Code";
 
-/********************** external data declaration ****************************/
-uint32_t g_task_sensor_cnt;
-volatile uint32_t g_task_sensor_tick_cnt;
-extern ADC_HandleTypeDef hadc1;
+
 
 /********************** external functions definition ************************/
-void task_sensor_init(void *parameters)
+void task_light_sensor_init(void *parameters)
 {
 	uint32_t index;
-	task_sensor_dta_t *p_task_sensor_dta;
-	task_sensor_st_t state;
-	task_sensor_ev_t event;
+	task_light_sensor_dta_t *p_task_sensor_dta;
+	task_light_sensor_st_t state;
+	task_light_sensor_ev_t event;
 
 	/* Print out: Task Initialized */
 	LOGGER_INFO(" ");
-	LOGGER_INFO("  %s is running - %s", GET_NAME(task_sensor_init), p_task_sensor);
-	LOGGER_INFO("  %s is a %s", GET_NAME(task_sensor), p_task_sensor_);
+	LOGGER_INFO("  %s is running - %s", GET_NAME(task_light_sensor_init), p_task_light_sensor);
+	LOGGER_INFO("  %s is a %s", GET_NAME(task_light_sensor), p_task_light_sensor_);
 
 	/* Init & Print out: Task execution counter */
-	g_task_sensor_cnt = G_TASK_SEN_CNT_INIT;
-	LOGGER_INFO("   %s = %lu", GET_NAME(g_task_sensor_cnt), g_task_sensor_cnt);
+	g_task_light_sensor_cnt = G_TASK_LIGHT_SEN_CNT_INIT;
+	LOGGER_INFO("   %s = %lu", GET_NAME(g_task_light_sensor_cnt), g_task_light_sensor_cnt);
 
 	for (index = 0; SENSOR_DTA_QTY > index; index++)
 	{
 		/* Update Task Sensor Data Pointer */
-		p_task_sensor_dta = &task_sensor_dta_list[index];
-
-		/* Init & Print out: Index & Task execution FSM */
-		state = ST_BTN_XX_UP;
-		p_task_sensor_dta->state = state;
-
-		event = EV_BTN_XX_UP;
-		p_task_sensor_dta->event = event;
+		p_task_sensor_dta = &task_light_sensor_dta_list[index];
 
 		LOGGER_INFO(" ");
 		LOGGER_INFO("   %s = %lu   %s = %lu   %s = %lu",
@@ -86,130 +84,84 @@ void task_sensor_init(void *parameters)
 	}
 }
 
-void task_sensor_update(void *parameters)
-{
+void task_light_sensor_update(void *parameters) {
 	bool b_time_update_required = false;
 
 	/* Protect shared resource */
 	__asm("CPSID i");	/* disable interrupts */
-    if (G_TASK_SEN_TICK_CNT_INI < g_task_sensor_tick_cnt)
-    {
+    if (g_task_light_sensor_tick_cnt > G_TASK_LIGHT_SEN_TICK_CNT_INI) {
 		/* Update Tick Counter */
-    	g_task_sensor_tick_cnt--;
+    	g_task_light_sensor_tick_cnt--;
     	b_time_update_required = true;
     }
     __asm("CPSIE i");	/* enable interrupts */
 
-    while (b_time_update_required)
-    {
+    while (b_time_update_required) {
 		/* Update Task Counter */
-		g_task_sensor_cnt++;
+		g_task_light_sensor_cnt++;
 
 		/* Run Task Sensor Statechart */
-    	task_sensor_statechart();
+    	task_sensor_statechart((shared_data_type *) parameters);
 
     	/* Protect shared resource */
 		__asm("CPSID i");	/* disable interrupts */
-		if (G_TASK_SEN_TICK_CNT_INI < g_task_sensor_tick_cnt)
-		{
+		if (g_task_light_sensor_tick_cnt > G_TASK_LIGHT_SEN_TICK_CNT_INI) {
 			/* Update Tick Counter */
-			g_task_sensor_tick_cnt--;
+			g_task_light_sensor_tick_cnt--;
 			b_time_update_required = true;
-		}
-		else
-		{
+		} else {
 			b_time_update_required = false;
 		}
 		__asm("CPSIE i");	/* enable interrupts */
     }
 }
 
-void task_sensor_statechart(void)
-{
+void task_sensor_statechart(shared_data_type * parameters) {
 	uint32_t index;
-	const task_sensor_cfg_t *p_task_sensor_cfg;
-	task_sensor_dta_t *p_task_sensor_dta;
+	const task_light_sensor_cfg_t * p_task_light_sensor_cfg;
+	task_light_sensor_dta_t * p_task_light_sensor_dta;
 
-	for (index = 0; SENSOR_DTA_QTY > index; index++)
-	{
+	for (index = 0; SENSOR_DTA_QTY > index; index++) {
 		/* Update Task Sensor Configuration & Data Pointer */
-		p_task_sensor_cfg = &task_sensor_cfg_list[index];
-		p_task_sensor_dta = &task_sensor_dta_list[index];
+		p_task_light_sensor_cfg = &task_light_sensor_cfg_list[index];
+		p_task_light_sensor_dta = &task_light_sensor_dta_list[index];
 
-		if (p_task_sensor_cfg->pressed == HAL_GPIO_ReadPin(p_task_sensor_cfg->gpio_port, p_task_sensor_cfg->pin))
-		{
-			p_task_sensor_dta->event =	EV_BTN_XX_DOWN;
-		}
+		if (parameters->needs_light_measure)
+			p_task_light_sensor_dta->event = EV_LIGHT_REQUEST;
 		else
-		{
-			p_task_sensor_dta->event =	EV_BTN_XX_UP;
-		}
+			p_task_light_sensor_dta->event = EV_LIGHT_IDLE;
 
-		switch (p_task_sensor_dta->state)
-		{
-			case ST_BTN_XX_UP:
+		switch (p_task_light_sensor_dta->state) {
+		case ST_LIGHT_WAITING:
+			if (p_task_light_sensor_dta->event == EV_LIGHT_IDLE)
+				p_task_light_sensor_dta->state = ST_LIGHT_WAITING;
+			else if (p_task_light_sensor_dta->event == EV_LIGHT_REQUEST)
+				p_task_light_sensor_dta->state = ST_LIGHT_MEASURING;
 
-				if (EV_BTN_XX_DOWN == p_task_sensor_dta->event)
-				{
-					p_task_sensor_dta->tick = p_task_sensor_cfg->tick_max;
-					p_task_sensor_dta->state = ST_BTN_XX_FALLING;
-				}
+			break;
 
-				break;
+		case ST_LIGHT_MEASURING:
+			p_task_light_sensor_dta->tick_cnt++;
 
-			case ST_BTN_XX_FALLING:
+			if(p_task_light_sensor_dta->tick_cnt < p_task_light_sensor_cfg->tick_max) {
+				/* ver como medir */
+				float val = 2e1;
+				p_task_light_sensor_dta->measure += val;
+			} else {
+				parameters->light_measure = p_task_light_sensor_dta->measure / p_task_light_sensor_dta->tick_cnt;
+				p_task_light_sensor_dta->measure = 0.0;
+				p_task_light_sensor_dta->tick_cnt = DEL_LIGHT_SEN_TICK_INIT;
+				p_task_light_sensor_dta->state = ST_LIGHT_WAITING;
+			}
 
-				p_task_sensor_dta->tick--;
-				if (DEL_BTN_XX_MIN == p_task_sensor_dta->tick)
-				{
-					if (EV_BTN_XX_DOWN == p_task_sensor_dta->event)
-					{
-						put_event_task_menu(p_task_sensor_cfg->signal_down);
-						p_task_sensor_dta->state = ST_BTN_XX_DOWN;
-					}
-					else
-					{
-						p_task_sensor_dta->state = ST_BTN_XX_UP;
-					}
-				}
+			break;
 
-				break;
-
-			case ST_BTN_XX_DOWN:
-
-				if (EV_BTN_XX_UP == p_task_sensor_dta->event)
-				{
-					p_task_sensor_dta->state = ST_BTN_XX_RISING;
-					p_task_sensor_dta->tick = p_task_sensor_cfg->tick_max;
-				}
-
-				break;
-
-			case ST_BTN_XX_RISING:
-
-				p_task_sensor_dta->tick--;
-				if (DEL_BTN_XX_MIN == p_task_sensor_dta->tick)
-				{
-					if (EV_BTN_XX_UP == p_task_sensor_dta->event)
-					{
-						put_event_task_menu(p_task_sensor_cfg->signal_up);
-						p_task_sensor_dta->state = ST_BTN_XX_UP;
-					}
-					else
-					{
-						p_task_sensor_dta->state = ST_BTN_XX_DOWN;
-					}
-				}
-
-				break;
-
-			default:
-
-				p_task_sensor_dta->tick  = DEL_BTN_XX_MIN;
-				p_task_sensor_dta->state = ST_BTN_XX_UP;
-				p_task_sensor_dta->event = EV_BTN_XX_UP;
-
-				break;
+		default:
+			p_task_light_sensor_dta->tick_cnt = DEL_LIGHT_SEN_TICK_INIT;
+			p_task_light_sensor_dta->event = EV_LIGHT_IDLE;
+			p_task_light_sensor_dta->state = ST_LIGHT_WAITING;
+			p_task_light_sensor_dta->measure = 0.0;
+			break;
 		}
 	}
 }
