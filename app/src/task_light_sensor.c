@@ -47,6 +47,7 @@ task_light_sensor_dta_t task_light_sensor_dta_list[] = {
 
 /********************** internal functions declaration ***********************/
 void task_sensor_statechart(shared_data_type * parameters);
+float read_light_sensor(void);
 
 /********************** internal data definition *****************************/
 const char *p_task_light_sensor 		= "Task Light Sensor (Sensor Statechart)";
@@ -144,8 +145,7 @@ void task_sensor_statechart(shared_data_type * parameters) {
 			p_task_light_sensor_dta->tick_cnt++;
 
 			if(p_task_light_sensor_dta->tick_cnt < p_task_light_sensor_cfg->tick_max) {
-				/* ver como medir */
-				float val = 2e1;
+				float val = read_light_sensor();
 				p_task_light_sensor_dta->measure += val;
 			} else {
 				parameters->light_measure = p_task_light_sensor_dta->measure / p_task_light_sensor_dta->tick_cnt;
@@ -165,5 +165,21 @@ void task_sensor_statechart(shared_data_type * parameters) {
 		}
 	}
 }
+
+float read_light_sensor(void) {
+	uint16_t measure;
+	float value;
+
+	if (ADC_Poll_Read(hadc1, &measure) != HAL_OK) {
+		LOGGER_LOG("Error measuring light sensor\tF%s L%D\n", __FILE__, __LINE__);
+		return 0.0;
+	}
+
+	float aux = (float) measure / (float) UINT16_MAX;
+	value = MIN_LIGHT * (1.0 - aux) + MAX_LIGHT * aux;
+
+	return value;
+}
+
 /********************** end of file ******************************************/
 
