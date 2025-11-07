@@ -48,6 +48,7 @@
 #include "board.h"
 #include "task_light_sensor.h"
 #include "task_menu.h"
+#include "task_print.h"
 
 /********************** macros and definitions *******************************/
 #define G_APP_CNT_INI		0ul
@@ -73,7 +74,12 @@ typedef struct {
 shared_data_type shared_data;
 
 const task_cfg_t task_cfg_list[]	= {
-		{.task_init = task_light_sensor_init,	.task_update = task_light_sensor_update, 	.parameters= &shared_data}
+		{ .task_init = task_light_sensor_init,
+				.task_update = task_light_sensor_update,
+				.parameters = &shared_data },
+		{ .task_init = task_light_print_init,
+				.task_update = task_light_print_update,
+				.parameters = &shared_data }
 };
 
 #define TASK_QTY	(sizeof(task_cfg_list)/sizeof(task_cfg_t))
@@ -128,6 +134,7 @@ void app_init(void)
 
 	g_task_light_sensor_tick_cnt = G_APP_TICK_CNT_INI;
 	g_task_menu_tick_cnt = G_APP_TICK_CNT_INI;
+	g_task_print_tick_cnt = G_APP_TICK_CNT_INI;
     __asm("CPSIE i");	/* enable interrupts */
 }
 
@@ -195,6 +202,7 @@ void HAL_SYSTICK_Callback(void)
 	g_app_tick_cnt++;
 
 	g_task_light_sensor_tick_cnt++;
+	g_task_print_tick_cnt++;
 	g_task_menu_tick_cnt++;
 }
 

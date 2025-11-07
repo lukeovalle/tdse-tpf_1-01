@@ -17,6 +17,7 @@
 #include "board.h"
 #include "app.h"
 #include "task_light_sensor_attribute.h"
+#include "adc.h"
 
 /********************** macros and definitions *******************************/
 #define G_TASK_LIGHT_SEN_CNT_INIT           0ul
@@ -47,7 +48,7 @@ task_light_sensor_dta_t task_light_sensor_dta_list[] = {
 
 /********************** internal functions declaration ***********************/
 void task_sensor_statechart(shared_data_type * parameters);
-float read_light_sensor(void);
+float read_light_sensor(ADC_HandleTypeDef * hadc);
 
 /********************** internal data definition *****************************/
 const char *p_task_light_sensor 		= "Task Light Sensor (Sensor Statechart)";
@@ -145,7 +146,7 @@ void task_sensor_statechart(shared_data_type * parameters) {
 			p_task_light_sensor_dta->tick_cnt++;
 
 			if(p_task_light_sensor_dta->tick_cnt < p_task_light_sensor_cfg->tick_max) {
-				float val = read_light_sensor();
+				float val = read_light_sensor(p_task_light_sensor_cfg->hadc);
 				p_task_light_sensor_dta->measure += val;
 			} else {
 				parameters->light_measure = p_task_light_sensor_dta->measure / p_task_light_sensor_dta->tick_cnt;
@@ -166,11 +167,11 @@ void task_sensor_statechart(shared_data_type * parameters) {
 	}
 }
 
-float read_light_sensor(void) {
+float read_light_sensor(ADC_HandleTypeDef * hadc) {
 	uint16_t measure;
 	float value;
 
-	if (ADC_Poll_Read(hadc1, &measure) != HAL_OK) {
+	if (ADC_Poll_Read(hadc, &measure) != HAL_OK) {
 		LOGGER_LOG("Error measuring light sensor\tF%s L%D\n", __FILE__, __LINE__);
 		return 0.0;
 	}
