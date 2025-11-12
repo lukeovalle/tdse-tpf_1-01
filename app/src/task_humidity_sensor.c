@@ -120,7 +120,7 @@ void task_humidity_sensor_update(void *parameters) {
     }
 }
 
-void task_sensor_statechart(shared_data_type * parameters) {
+void task_hsensor_statechart(shared_data_type * parameters) {
 	uint32_t index;
 	const task_humidity_sensor_cfg_t * p_task_humidity_sensor_cfg;
 	task_humidity_sensor_dta_t * p_task_humidity_sensor_dta;
@@ -150,7 +150,7 @@ void task_sensor_statechart(shared_data_type * parameters) {
 			if(p_task_humidity_sensor_dta->tick_cnt < p_task_humidity_sensor_cfg->tick_max) {
 				// TODO leer sensor humedad
 				//float val = read_humidity_sensor(p_task_humidity_sensor_cfg->hadc);
-				p_task_humidity_sensor_dta->measure += val;
+				//p_task_humidity_sensor_dta->measure += val;
 			} else {
 				parameters->humidity_measure = p_task_humidity_sensor_dta->measure / p_task_humidity_sensor_dta->tick_cnt;
 				p_task_humidity_sensor_dta->measure = 0.0;
