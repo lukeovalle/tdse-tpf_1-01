@@ -76,9 +76,6 @@ shared_data_type shared_data;
 const task_cfg_t task_cfg_list[]	= {
 		{ .task_init = task_sensor_init,
 				.task_update = task_sensor_update,
-				.parameters = &shared_data },
-		{ .task_init = task_light_print_init,
-				.task_update = task_light_print_update,
 				.parameters = &shared_data }
 };
 

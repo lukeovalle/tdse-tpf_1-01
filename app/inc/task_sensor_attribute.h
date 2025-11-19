@@ -17,8 +17,13 @@ extern "C" {
 
 /********************** macros ***********************************************/
 /* TODO definir valores límite de luminiscencia */
-#define MIN_LIGHT 1e0
+#define MIN_LIGHT 1e0  // lux estimado para tomates
 #define MAX_LIGHT 30e3
+#define MIN_HUMIDITY 0 // porcentaje
+#define MAX_HUMIDITY 100
+#define MIN_TEMP -55 // valores de datasheet
+#define MAX_TEMP 125
+// TODO: revisar valores de temperatura y humedad
 
 /********************** typedef **********************************************/
 

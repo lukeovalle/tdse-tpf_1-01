@@ -34,9 +34,9 @@ extern ADC_HandleTypeDef hadc1;
 
 /********************** internal data declaration ****************************/
 const task_sensor_cfg_t task_sensor_cfg_list[] = {
-	{ .name = SENSOR_LIGHT,		.tick_max = DEL_SEN_TICK_MAX, .min_val = MIN_LIGHT, .max_val = MAX_LIGHT },
-	{ .name = SENSOR_TEMP,		.tick_max = DEL_SEN_TICK_MAX, .min_val = 1, .max_val = 11 },
-	{ .name = SENSOR_HUMIDITY,	.tick_max = DEL_SEN_TICK_MAX, .min_val = 1, .max_val = 11 }
+	{ .name = SENSOR_LIGHT,		.tick_max = DEL_SEN_TICK_MAX, .min_val = MIN_LIGHT,		.max_val = MAX_LIGHT },
+	{ .name = SENSOR_TEMP,		.tick_max = DEL_SEN_TICK_MAX, .min_val = MIN_TEMP,		.max_val = MAX_TEMP },
+	{ .name = SENSOR_HUMIDITY,	.tick_max = DEL_SEN_TICK_MAX, .min_val = MIN_HUMIDITY,	.max_val = MAX_HUMIDITY }
 };
 
 #define SENSOR_CFG_QTY	(sizeof(task_sensor_cfg_list)/sizeof(task_sensor_cfg_t))
@@ -52,7 +52,7 @@ task_sensor_dta_t task_sensor_dta_list[] = {
 
 #define SENSOR_DTA_QTY	(sizeof(task_sensor_dta_list)/sizeof(task_sensor_dta_t))
 
-uint16_t ADC_vals[SENSOR_DTA_QTY];
+uint32_t ADC_vals[SENSOR_DTA_QTY];
 bool is_ADC_reading = false;
 bool is_ADC_finished = false;
 uint16_t adc_counter;
@@ -60,8 +60,8 @@ uint16_t adc_counter;
 /********************** internal functions declaration ***********************/
 void task_sensor_statechart(shared_data_type * parameters);
 HAL_StatusTypeDef read_sensors(void);
-float take_sensor_value(task_sensor_cfg_t * cfg);
-void assign_read_value(shared_data_type * parameters, task_sensor_cfg_t * cfg, task_sensor_dta_t * data);
+float take_sensor_value(const task_sensor_cfg_t * cfg);
+void assign_read_value(shared_data_type * parameters, const task_sensor_cfg_t * cfg, task_sensor_dta_t * data);
 
 /********************** internal data definition *****************************/
 const char *p_task_sensor 		= "Task Sensor (Sensor Statechart)";
@@ -120,10 +120,14 @@ void task_sensor_update(void *parameters) {
 
 		if (shared_data->needs_light_measure)
 			task_sensor_dta_list[SENSOR_LIGHT].event = EV_SENSOR_REQUEST;
-		else if (shared_data->needs_temp_measure)
+		if (shared_data->needs_temp_measure)
 			task_sensor_dta_list[SENSOR_TEMP].event = EV_SENSOR_REQUEST;
-		else if (shared_data->needs_humidity_measure)
+		if (shared_data->needs_humidity_measure)
 			task_sensor_dta_list[SENSOR_HUMIDITY].event = EV_SENSOR_REQUEST;
+
+		shared_data->needs_light_measure = false;
+		shared_data->needs_temp_measure = false;
+		shared_data->needs_humidity_measure = false;
 
     	task_sensor_statechart(shared_data);
 
@@ -150,7 +154,8 @@ void task_sensor_statechart(shared_data_type * parameters) {
 		p_task_sensor_cfg = &task_sensor_cfg_list[index];
 		p_task_sensor_dta = &task_sensor_dta_list[index];
 
-		switch (p_task_sensor_dta->state) {
+		task_sensor_st_t state = p_task_sensor_dta->state;
+		switch (state) {
 		case ST_SENSOR_IDLE:
 			if (p_task_sensor_dta->event == EV_SENSOR_IDLE)
 				p_task_sensor_dta->state = ST_SENSOR_IDLE;
@@ -181,7 +186,7 @@ void task_sensor_statechart(shared_data_type * parameters) {
 			is_ADC_reading = false;
 			p_task_sensor_dta->tick_cnt++;
 
-			if (p_task_sensor_dta->tick_cnt < p_task_sensor_cfg->tick_max) {
+			if (p_task_sensor_dta->tick_cnt <= p_task_sensor_cfg->tick_max) {
 				float val = take_sensor_value(p_task_sensor_cfg);
 				p_task_sensor_dta->measure += val;
 				p_task_sensor_dta->state = ST_SENSOR_REQUEST;
@@ -206,30 +211,30 @@ void task_sensor_statechart(shared_data_type * parameters) {
 }
 
 HAL_StatusTypeDef read_sensors(void) {
-	return HAL_ADC_Start_DMA(&hadc1, ADC_vals, SENSOR_DTA_QTY);
+	return HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_vals, SENSOR_DTA_QTY);
 }
 
-float take_sensor_value(task_sensor_cfg_t * cfg) {
-	uint16_t measure = ADC_vals[cfg->name];
+float take_sensor_value(const task_sensor_cfg_t * cfg) {
+	uint32_t measure = ADC_vals[cfg->name];
 	float value;
 
-	float aux = (float) measure / (float) UINT16_MAX;
+	float aux = (float) measure / (float) 0x0FFF; // 12 bits como máximo
 	value = cfg->min_val * (1.0 - aux) + cfg->max_val * aux;
 
 	return value;
 }
 
-void assign_read_value(shared_data_type * parameters, task_sensor_cfg_t * cfg, task_sensor_dta_t * data) {
-	 // TODO: dividir por la cantidad de muestras
+void assign_read_value(shared_data_type * parameters, const task_sensor_cfg_t * cfg, task_sensor_dta_t * data) {
+	float val = data->measure / (float) data->tick_cnt;
 	switch (cfg->name) {
 	case SENSOR_LIGHT:
-		parameters->light_measure = data->measure;
+		parameters->light_measure = val;
 		break;
 	case SENSOR_TEMP:
-		parameters->temp_measure = data->measure;
+		parameters->temp_measure = val;
 		break;
 	case SENSOR_HUMIDITY:
-		parameters->humidity_measure = data->measure;
+		parameters->humidity_measure = val;
 		break;
 	default:
 		break;
