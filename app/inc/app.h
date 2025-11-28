@@ -46,13 +46,15 @@ extern "C" {
 /********************** inclusions *******************************************/
 
 /********************** macros ***********************************************/
-#define TEST_0 (0)
-#define TEST_1 (1)
-#define TEST_2 (2)
 
-#define TEST_X (TEST_0)
 
 /********************** typedef **********************************************/
+typedef struct{
+	bool needs_light_measure;
+	bool needs_temp_measure;
+	bool needs_humidity_measure;
+	float light_measure, temp_measure, humidity_measure;
+} shared_data_type;
 
 /********************** external data declaration ****************************/
 extern uint32_t g_app_cnt;
