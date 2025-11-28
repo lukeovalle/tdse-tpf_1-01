@@ -52,7 +52,7 @@ task_sensor_dta_t task_sensor_dta_list[] = {
 
 #define SENSOR_DTA_QTY	(sizeof(task_sensor_dta_list)/sizeof(task_sensor_dta_t))
 
-uint32_t ADC_vals[SENSOR_DTA_QTY];
+volatile uint16_t ADC_vals[SENSOR_DTA_QTY];
 bool is_ADC_reading = false;
 bool is_ADC_finished = false;
 uint16_t adc_counter;
@@ -215,7 +215,7 @@ HAL_StatusTypeDef read_sensors(void) {
 }
 
 float take_sensor_value(const task_sensor_cfg_t * cfg) {
-	uint32_t measure = ADC_vals[cfg->name];
+	uint16_t measure = ADC_vals[cfg->name];
 	float value;
 
 	float aux = (float) measure / (float) 0x0FFF; // 12 bits como máximo
