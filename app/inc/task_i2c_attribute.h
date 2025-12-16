@@ -22,14 +22,14 @@ extern "C" {
 
 /* Events to excite Task Light Sensor */
 typedef enum task_i2c_ev {
-	EV_I2C_IDLE,
+	EV_I2C_IDLE = 0,
 	EV_I2C_WRITE,
 	EV_I2C_READ
 } task_i2c_ev_t;
 
 /* States of Task Sensor */
 typedef enum task_i2c_st {
-	ST_I2C_IDLE,
+	ST_I2C_IDLE = 0,
 	ST_I2C_SENDING,
 	ST_I2C_RECEIVING
 } task_i2c_st_t;
