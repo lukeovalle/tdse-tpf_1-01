@@ -16,7 +16,7 @@ extern "C" {
 /********************** inclusions *******************************************/
 
 /********************** macros ***********************************************/
-
+#define MEM_PAGE_SIZE_BYTES	16u
 
 /********************** typedef **********************************************/
 
@@ -30,8 +30,10 @@ typedef enum task_i2c_ev {
 /* States of Task Sensor */
 typedef enum task_i2c_st {
 	ST_I2C_IDLE = 0,
-	ST_I2C_SENDING,
-	ST_I2C_RECEIVING
+	ST_I2C_WRITING,
+	ST_I2C_READING,
+	ST_I2C_WAITING_WRITE,
+	ST_I2C_WAITING_READ
 } task_i2c_st_t;
 
 
@@ -41,9 +43,12 @@ typedef struct {
 typedef struct {
 	task_i2c_st_t	state;
 	task_i2c_ev_t	event;
-	uint16_t		addr;
-	uint8_t			* data;
-	uint16_t		data_size;
+	uint16_t		dev_addr;	// Dirección del dispositivo I2C (7 bits)
+	uint16_t		mem_add_size; // I2C_MEMADD_SIZE_8BIT o I2C_MEMADD_SIZE_16BIT
+	uint16_t		mem_addr;	// Dirección de memoria
+	uint8_t			* data;		// Puntero a los datos
+	uint16_t		data_size;	// Tamaño de los datos (en bytes creo??)
+	uint16_t		offset;		// Tamaño de datos ya escritos/leidos
 } task_i2c_dta_t;
 
 
