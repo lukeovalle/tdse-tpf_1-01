@@ -43,11 +43,6 @@ typedef struct {
 typedef struct {
 	task_i2c_st_t	state;
 	task_i2c_ev_t	event;
-	uint16_t		dev_addr;	// Dirección del dispositivo I2C (7 bits)
-	uint16_t		mem_add_size; // I2C_MEMADD_SIZE_8BIT o I2C_MEMADD_SIZE_16BIT
-	uint16_t		mem_addr;	// Dirección de memoria
-	uint8_t			* data;		// Puntero a los datos
-	uint16_t		data_size;	// Tamaño de los datos (en bytes creo??)
 	uint16_t		offset;		// Tamaño de datos ya escritos/leidos
 } task_i2c_dta_t;
 
