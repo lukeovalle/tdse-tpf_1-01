@@ -20,8 +20,8 @@
 #include "task_i2c_attribute.h"
 
 /********************** macros and definitions *******************************/
-#define G_TASK_I2C_CNT_INIT           0ul
-#define G_TASK_I2C_TICK_CNT_INI  		0ul
+#define G_TASK_I2C_CNT_INIT			0ul
+#define G_TASK_I2C_TICK_CNT_INI		0ul
 
 /* Number of ticks for the i2c measurement and the starting value */
 #define DEL_I2C_TICK_MAX			50ul
@@ -51,7 +51,7 @@ shared_i2c_data_t shared_i2c_data = {
 	.request_write = false,
 	.request_read = false,
 	.dev_addr = 0x00,
-	.mem_add_size = I2C_MEMADD_SIZE_16BIT,
+	.mem_addr_size = I2C_MEMADD_SIZE_16BIT,
 	.mem_addr = 0x00,
 	.data = 0x00,
 	.data_size = 0
@@ -234,7 +234,7 @@ HAL_StatusTypeDef start_page_write(task_i2c_dta_t * data) {
 	uint16_t dev_addr = shared_i2c_data.dev_addr << 1;
 	data->offset += data_size;
 
-	return HAL_I2C_Mem_Write_IT(&hi2c1, dev_addr, mem_addr, shared_i2c_data.mem_add_size, data_ptr, data_size);
+	return HAL_I2C_Mem_Write_IT(&hi2c1, dev_addr, mem_addr, shared_i2c_data.mem_addr_size, data_ptr, data_size);
 }
 
 HAL_StatusTypeDef start_page_read(task_i2c_dta_t * data) {
@@ -246,7 +246,7 @@ HAL_StatusTypeDef start_page_read(task_i2c_dta_t * data) {
 	uint16_t dev_addr = shared_i2c_data.dev_addr << 1;
 	data->offset += data_size;
 
-	return HAL_I2C_Mem_Read_IT(&hi2c1, dev_addr, mem_addr, shared_i2c_data.mem_add_size, data_ptr, data_size);
+	return HAL_I2C_Mem_Read_IT(&hi2c1, dev_addr, mem_addr, shared_i2c_data.mem_addr_size, data_ptr, data_size);
 }
 
 /********************** end of file ******************************************/

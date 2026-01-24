@@ -25,7 +25,7 @@ typedef struct {
 	bool		request_write;	// Para solicitar escritura
 	bool		request_read;	// Para solicitar lectura
 	uint16_t	dev_addr;		// Dirección del dispositivo I2C (7 bits)
-	uint16_t	mem_add_size; 	// I2C_MEMADD_SIZE_8BIT o I2C_MEMADD_SIZE_16BIT
+	uint16_t	mem_addr_size; 	// I2C_MEMADD_SIZE_8BIT o I2C_MEMADD_SIZE_16BIT
 	uint16_t	mem_addr;		// Dirección de memoria
 	uint8_t		* data;			// Puntero a los datos
 	uint16_t	data_size;		// Tamaño de los datos (en bytes creo??)
