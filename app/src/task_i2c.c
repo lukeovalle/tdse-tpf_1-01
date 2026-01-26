@@ -23,6 +23,7 @@
 #define G_TASK_I2C_CNT_INIT			0ul
 #define G_TASK_I2C_TICK_CNT_INI		0ul
 
+
 /* Number of ticks for the i2c measurement and the starting value */
 #define DEL_I2C_TICK_MAX			50ul
 #define DEL_I2C_TICK_INIT			0ul
@@ -116,7 +117,7 @@ void task_i2c_update(void *parameters) {
 		/* Run Task I2C Statechart */
 		shared_data_type * shared_data = (shared_data_type *) parameters;
 
-		if (shared_i2c_data.request_write)
+		if (shared_i2c_data.request_write)		// TODO: este evento se crea con memory_buffer_size > 0
 			task_i2c_dta_list[0].event = EV_I2C_WRITE;
 		if (shared_i2c_data.request_read)
 			task_i2c_dta_list[0].event = EV_I2C_READ;
@@ -168,7 +169,7 @@ void task_i2c_statechart(shared_data_type * parameters) {
 			break;//HAL_I2C_Mem_Read_IT(hi2c, DevAddress, MemAddress, MemAddSize, pData, Size);
 
 		case ST_I2C_WRITING:
-			if (p_task_i2c_dta->offset < shared_i2c_data.data_size) {
+			if (p_task_i2c_dta->offset < shared_i2c_data.data_size) { // TODO: si memory_queue_size > 0
 				status = start_page_write(p_task_i2c_dta);
 				if (status == HAL_OK) {
 					p_task_i2c_dta->state = ST_I2C_WAITING_WRITE;
@@ -226,6 +227,7 @@ void HAL_I2C_MasterTxCpltCallback (I2C_HandleTypeDef * hi2c) {
 }
 
 HAL_StatusTypeDef start_page_write(task_i2c_dta_t * data) {
+	// TODO: memory_buffer_dequeue() y escribir esto en memoria
 	uint16_t mem_addr = (shared_i2c_data.mem_addr + data->offset) & 0xFF;
 	uint16_t remaining_data_size = shared_i2c_data.data_size - data->offset;
 	uint16_t space_in_page = MEM_PAGE_SIZE_BYTES - (mem_addr % MEM_PAGE_SIZE_BYTES);	// ej. si mem_addr = 17, space_in_page = 15

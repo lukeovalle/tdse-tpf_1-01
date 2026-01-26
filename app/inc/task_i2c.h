@@ -22,7 +22,7 @@ extern "C" {
 /********************** typedef **********************************************/
 typedef struct {
 	bool 		is_i2c_finished;
-	bool		request_write;	// Para solicitar escritura
+	bool		request_write;	// Para solicitar escritura		// TODO: borrar el request_write
 	bool		request_read;	// Para solicitar lectura
 	uint16_t	dev_addr;		// Dirección del dispositivo I2C (7 bits)
 	uint16_t	mem_addr_size; 	// I2C_MEMADD_SIZE_8BIT o I2C_MEMADD_SIZE_16BIT
