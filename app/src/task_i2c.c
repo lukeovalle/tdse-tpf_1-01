@@ -232,7 +232,7 @@ void task_i2c_statechart(shared_data_type * parameters) {
 	}
 }
 
-bool task_i2c_request_read(uint16_t dev_addr,		// Dirección del dispositivo I2C (7 bits)
+bool task_i2c_request_read(uint16_t dev_addr,				// Dirección del dispositivo I2C (7 bits)
 								  uint16_t mem_addr_size,	// I2C_MEMADD_SIZE_8BIT o I2C_MEMADD_SIZE_16BIT
 								  uint16_t mem_addr,		// Dirección de memoria
 								  uint8_t * data,			// Puntero a los datos

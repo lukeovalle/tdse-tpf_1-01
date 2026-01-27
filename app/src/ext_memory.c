@@ -17,7 +17,7 @@
 
 /* macros and definitions */
 #define MEMORY_CONFIG_ADDR		0x01
-#define	MEMORY_CONFIG_SIZE		sizeof(mem_type_cfg_t)
+#define	MEMORY_CONFIG_SIZE		sizeof(mem_cfg_t)
 #define	MEMORY_LOG_COUNT_ADDR	(MEMORY_CONFIG_ADDR + MEMORY_CONFIG_SIZE)
 #define	MEMORY_LOG_COUNT_SIZE	sizeof(uint16_t)
 #define	MEMORY_LOG_DATA_ADDR	(MEMORY_LOG_COUNT_ADDR + MEMORY_LOG_COUNT_SIZE)
@@ -144,7 +144,7 @@ mem_buffer_status_t append_to_buffer(uint16_t data_size, uint16_t mem_addr, uint
 
 		mem_addr += data_size;
 		data_ptr += data_size;
-		remaining_data_size =- data_size;
+		remaining_data_size -= data_size;
 	}
 
 	return ST_MEM_BUF_OK;
