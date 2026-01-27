@@ -18,10 +18,22 @@
 #include "app.h"
 #include "task_i2c.h"
 #include "task_i2c_attribute.h"
+#include "memory_buffer.h"
 
 /********************** macros and definitions *******************************/
 #define G_TASK_I2C_CNT_INIT			0ul
 #define G_TASK_I2C_TICK_CNT_INI		0ul
+
+typedef struct {
+	bool 		is_i2c_finished;
+	bool		request_read;	// Para solicitar lectura
+	uint16_t	dev_addr;
+	uint16_t	mem_addr_size;
+	uint16_t	mem_addr;
+	uint8_t		* data;
+	uint16_t	data_size;
+	uint16_t	offset;
+} reading_data_t;
 
 
 /* Number of ticks for the i2c measurement and the starting value */
@@ -35,32 +47,32 @@ extern I2C_HandleTypeDef hi2c1;
 
 /********************** internal data declaration ****************************/
 const task_i2c_cfg_t task_i2c_cfg_list[] = {
-		{ }	// 1010 0000: primer nibble 1010 hardcodeado, segundo nibble 0ABC, AB = dir_página, C = R/W
+		{ }
 };
 
 #define I2C_CFG_QTY	(sizeof(task_i2c_cfg_list)/sizeof(task_i2c_cfg_t))
 
 task_i2c_dta_t task_i2c_dta_list[] = {
-	{ .state = ST_I2C_IDLE, .event = EV_I2C_IDLE, .offset = 0 }
+	{ .state = ST_I2C_IDLE, .event = EV_I2C_IDLE }
 };
 
 #define I2C_DTA_QTY	(sizeof(task_i2c_dta_list)/sizeof(task_i2c_dta_t))
 
-bool tr_finished = false;
-shared_i2c_data_t shared_i2c_data = {
+static bool tr_finished = false;
+static reading_data_t reading_data = {
 	.is_i2c_finished = true,
-	.request_write = false,
 	.request_read = false,
 	.dev_addr = 0x00,
 	.mem_addr_size = I2C_MEMADD_SIZE_16BIT,
 	.mem_addr = 0x00,
 	.data = 0x00,
-	.data_size = 0
+	.data_size = 0,
+	.offset = 0
 };
 
 /********************** internal functions declaration ***********************/
 void task_i2c_statechart(shared_data_type * parameters);
-HAL_StatusTypeDef start_page_write(task_i2c_dta_t * data);
+HAL_StatusTypeDef start_page_write(mem_data_t * data);
 HAL_StatusTypeDef start_page_read(task_i2c_dta_t * data);
 /********************** internal data definition *****************************/
 const char *p_task_i2c 		= "Task I2C (I2C Statechart)";
@@ -117,12 +129,12 @@ void task_i2c_update(void *parameters) {
 		/* Run Task I2C Statechart */
 		shared_data_type * shared_data = (shared_data_type *) parameters;
 
-		if (shared_i2c_data.request_write)		// TODO: este evento se crea con memory_buffer_size > 0
+		if (mem_buffer_size())		// Vemos si hay escrituras encoladas
 			task_i2c_dta_list[0].event = EV_I2C_WRITE;
-		if (shared_i2c_data.request_read)
+		if (reading_data.request_read) {
 			task_i2c_dta_list[0].event = EV_I2C_READ;
-		shared_i2c_data.request_write = false;
-		shared_i2c_data.request_read = false;
+			reading_data.request_read = false;
+		}
 
     	task_i2c_statechart(shared_data);
 
@@ -153,24 +165,27 @@ void task_i2c_statechart(shared_data_type * parameters) {
 		task_i2c_st_t state = p_task_i2c_dta->state;
 		switch (state) {
 		case ST_I2C_IDLE:
-			if (p_task_i2c_dta->event == EV_I2C_IDLE)
+			switch (p_task_i2c_dta->event) {
+			case EV_I2C_IDLE:
 				p_task_i2c_dta->state = ST_I2C_IDLE;
-			else if (p_task_i2c_dta->event == EV_I2C_WRITE) {
-				p_task_i2c_dta->offset = 0;
+				break;
+			case EV_I2C_WRITE:
 				p_task_i2c_dta->state = ST_I2C_WRITING;
 				p_task_i2c_dta->event = EV_I2C_IDLE;
-				shared_i2c_data.is_i2c_finished = false;
-			} else if (p_task_i2c_dta->event == EV_I2C_READ) {
-				p_task_i2c_dta->offset = 0;
+				break;
+			case EV_I2C_READ:
 				p_task_i2c_dta->state = ST_I2C_READING;
 				p_task_i2c_dta->event = EV_I2C_IDLE;
-				shared_i2c_data.is_i2c_finished = false;
+				break;
+			default:
+				break;
 			}
-			break;//HAL_I2C_Mem_Read_IT(hi2c, DevAddress, MemAddress, MemAddSize, pData, Size);
+			break;
 
 		case ST_I2C_WRITING:
-			if (p_task_i2c_dta->offset < shared_i2c_data.data_size) { // TODO: si memory_queue_size > 0
-				status = start_page_write(p_task_i2c_dta);
+			mem_data_t data = mem_buffer_dequeue();
+			if (data.size) { // Si el data es válido
+				status = start_page_write(&data);
 				if (status == HAL_OK) {
 					p_task_i2c_dta->state = ST_I2C_WAITING_WRITE;
 				} else {
@@ -178,12 +193,11 @@ void task_i2c_statechart(shared_data_type * parameters) {
 				}
 			} else {
 				p_task_i2c_dta->event = ST_I2C_IDLE;
-				shared_i2c_data.is_i2c_finished = true;
 			}
 			break;
 
 		case ST_I2C_READING:
-			if (p_task_i2c_dta->offset < shared_i2c_data.data_size) {
+			if (reading_data.offset < reading_data.data_size) {
 				status = start_page_read(p_task_i2c_dta);
 				if (status == HAL_OK) {
 					p_task_i2c_dta->state = ST_I2C_WAITING_READ;
@@ -192,7 +206,7 @@ void task_i2c_statechart(shared_data_type * parameters) {
 				}
 			} else {
 				p_task_i2c_dta->event = ST_I2C_IDLE;
-				shared_i2c_data.is_i2c_finished = true;
+				reading_data.is_i2c_finished = true;
 			}
 			break;
 
@@ -218,6 +232,36 @@ void task_i2c_statechart(shared_data_type * parameters) {
 	}
 }
 
+bool task_i2c_request_read(uint16_t dev_addr,		// Dirección del dispositivo I2C (7 bits)
+								  uint16_t mem_addr_size,	// I2C_MEMADD_SIZE_8BIT o I2C_MEMADD_SIZE_16BIT
+								  uint16_t mem_addr,		// Dirección de memoria
+								  uint8_t * data,			// Puntero a los datos
+								  uint16_t data_size) {		// Tamaño de los datos (en bytes)
+	if (reading_data.request_read || !reading_data.is_i2c_finished)
+		return false;
+
+	reading_data.is_i2c_finished 	= false;
+	reading_data.request_read		= true;
+	reading_data.dev_addr			= dev_addr;
+	reading_data.mem_addr_size		= mem_addr_size;
+	reading_data.mem_addr			= mem_addr;
+	reading_data.data				= data;
+	reading_data.data_size			= data_size;
+	reading_data.offset				= 0;
+
+	return true;
+}
+
+bool task_i2c_finished_reading(void) {
+	return reading_data.is_i2c_finished;
+}
+inline bool	task_i2c_finished_writing(void) {
+	return mem_buffer_size() ? true : false;
+}
+
+
+/********************** internal functions definition ************************/
+
 void HAL_I2C_MasterRxCpltCallback (I2C_HandleTypeDef * hi2c) {
 	tr_finished = true;
 }
@@ -226,29 +270,20 @@ void HAL_I2C_MasterTxCpltCallback (I2C_HandleTypeDef * hi2c) {
 	tr_finished = true;
 }
 
-HAL_StatusTypeDef start_page_write(task_i2c_dta_t * data) {
-	// TODO: memory_buffer_dequeue() y escribir esto en memoria
-	uint16_t mem_addr = (shared_i2c_data.mem_addr + data->offset) & 0xFF;
-	uint16_t remaining_data_size = shared_i2c_data.data_size - data->offset;
-	uint16_t space_in_page = MEM_PAGE_SIZE_BYTES - (mem_addr % MEM_PAGE_SIZE_BYTES);	// ej. si mem_addr = 17, space_in_page = 15
-	uint16_t data_size = (remaining_data_size < space_in_page) ? remaining_data_size : space_in_page; // menor entre remaining_data_size y space_in_page
-	uint8_t * data_ptr = shared_i2c_data.data + data->offset;
-	uint16_t dev_addr = shared_i2c_data.dev_addr << 1;
-	data->offset += data_size;
-
-	return HAL_I2C_Mem_Write_IT(&hi2c1, dev_addr, mem_addr, shared_i2c_data.mem_addr_size, data_ptr, data_size);
+HAL_StatusTypeDef start_page_write(mem_data_t * data) {
+	return HAL_I2C_Mem_Write_IT(&hi2c1, data->dev_addr, data->dir, data->mem_addr_size, data->data, data->size);
 }
 
 HAL_StatusTypeDef start_page_read(task_i2c_dta_t * data) {
-	uint16_t mem_addr = (shared_i2c_data.mem_addr + data->offset) & 0xFF;
-	uint16_t remaining_data_size = shared_i2c_data.data_size - data->offset;
+	uint16_t mem_addr = (reading_data.mem_addr + reading_data.offset) & 0xFF;
+	uint16_t remaining_data_size = reading_data.data_size - reading_data.offset;
 	uint16_t space_in_page = MEM_PAGE_SIZE_BYTES - (mem_addr % MEM_PAGE_SIZE_BYTES);	// ej. si mem_addr = 17, space_in_page = 15
 	uint16_t data_size = (remaining_data_size < space_in_page) ? remaining_data_size : space_in_page; // menor entre remaining_data_size y space_in_page
-	uint8_t * data_ptr = shared_i2c_data.data + data->offset;
-	uint16_t dev_addr = shared_i2c_data.dev_addr << 1;
-	data->offset += data_size;
+	uint8_t * data_ptr = reading_data.data + reading_data.offset;
+	uint16_t dev_addr = reading_data.dev_addr << 1;
+	reading_data.offset += data_size;
 
-	return HAL_I2C_Mem_Read_IT(&hi2c1, dev_addr, mem_addr, shared_i2c_data.mem_addr_size, data_ptr, data_size);
+	return HAL_I2C_Mem_Read_IT(&hi2c1, dev_addr, mem_addr, reading_data.mem_addr_size, data_ptr, data_size);
 }
 
 /********************** end of file ******************************************/

@@ -43,7 +43,6 @@ typedef struct {
 typedef struct {
 	task_i2c_st_t	state;
 	task_i2c_ev_t	event;
-	uint16_t		offset;		// Tamaño de datos ya escritos/leidos
 } task_i2c_dta_t;
 
 

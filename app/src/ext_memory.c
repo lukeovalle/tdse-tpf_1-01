@@ -25,27 +25,21 @@
 #define	DEVICE_ADDRESS_7BIT		0x50 /* AT24C08A 0101 000x primeros 7 bits */
 
 /* External data declaration */
-extern shared_i2c_data_t shared_i2c_data;
+
 
 static uint32_t log_size;
 
 /* Internal function declarations */
-mem_status_t memory_get_log_size(uint32_t * size, bool * is_finished);
+mem_status_t memory_get_log_size(uint32_t * size);
 mem_buffer_status_t append_to_buffer(uint16_t data_size, uint16_t mem_addr, uint8_t * data_ptr);
 
 /* Function definitions */
-void ext_memory_init(bool * is_finished) {
-	memory_get_log_size(&log_size, is_finished);
+void ext_memory_init() {
+	memory_get_log_size(&log_size);
 }
 
-mem_status_t memory_write_config_field(mem_type_cfg_t type, float * value, bool * is_finished) {
+mem_status_t memory_write_config_field(mem_type_cfg_t type, float * value) {
 	mem_buffer_status_t error;
-
-	if (!is_finished)
-		return ST_MEM_NULL_PTR;
-
-	if (!*is_finished || !shared_i2c_data.is_i2c_finished)
-		return ST_MEM_BUSY;
 
 	error = append_to_buffer(sizeof(float), MEMORY_CONFIG_ADDR + sizeof(float) * type, (uint8_t *)value);
 	if (error)
@@ -54,29 +48,22 @@ mem_status_t memory_write_config_field(mem_type_cfg_t type, float * value, bool 
 	return ST_MEM_OK;
 }
 
-mem_status_t memory_read_config(mem_cfg_t * config, bool * is_finished) {
-	if(!config || !is_finished)
+mem_status_t memory_read_config(mem_cfg_t * config) {
+	if(!config)
 		return ST_MEM_NULL_PTR;
 
-	if(!*is_finished || !shared_i2c_data.is_i2c_finished)
-		return ST_MEM_BUSY;
+	bool can_read = task_i2c_request_read(DEVICE_ADDRESS_7BIT, I2C_MEMADD_SIZE_16BIT, MEMORY_CONFIG_ADDR,
+			(uint8_t *)config, MEMORY_CONFIG_SIZE);
 
-	shared_i2c_data.request_read = true;
-	shared_i2c_data.dev_addr = DEVICE_ADDRESS_7BIT;
-	shared_i2c_data.mem_addr = MEMORY_CONFIG_ADDR;
-	shared_i2c_data.mem_addr_size = I2C_MEMADD_SIZE_16BIT;
-	shared_i2c_data.data = (uint8_t *)config;
-	shared_i2c_data.data_size = MEMORY_CONFIG_SIZE;
+	if (can_read)
+		return ST_MEM_OK;
 
-	return ST_MEM_OK;
+	return ST_MEM_BUSY;
 }
 
-mem_status_t memory_append_log(mem_type_log_t type, float * value, bool * is_finished) {
-	if(!value || !is_finished)
+mem_status_t memory_append_log(mem_type_log_t type, float * value) {
+	if(!value)
 		return ST_MEM_NULL_PTR;
-
-	if (!*is_finished || !shared_i2c_data.is_i2c_finished)
-		return ST_MEM_BUSY;
 
 	/* Escribimos datos al final del log */
 	mem_log_t log_aux = {.type = type, .value = *value } ;
@@ -100,47 +87,47 @@ mem_status_t memory_append_log(mem_type_log_t type, float * value, bool * is_fin
 	return ST_MEM_OK;
 }
 
-mem_status_t memory_read_log_range(uint32_t start, uint32_t size, mem_log_t * data, bool * is_finished) {
-	if (!data || !is_finished)
+mem_status_t memory_read_log_range(uint32_t start, uint32_t size, mem_log_t * data) {
+	if (!data)
 		return ST_MEM_NULL_PTR;
-
-	if (!*is_finished || !shared_i2c_data.is_i2c_finished)
-		return ST_MEM_BUSY;
 
 	if (start + size > memory_log_size())
 		return ST_MEM_FAIL;
 
-	shared_i2c_data.request_read = true;
-	shared_i2c_data.dev_addr = DEVICE_ADDRESS_7BIT;
-	shared_i2c_data.mem_addr = MEMORY_LOG_DATA_ADDR + start * sizeof(mem_log_t);
-	shared_i2c_data.mem_addr_size = I2C_MEMADD_SIZE_16BIT;
-	shared_i2c_data.data = (uint8_t *)data;
-	shared_i2c_data.data_size = size * sizeof(mem_log_t);
+	bool can_read = task_i2c_request_read(DEVICE_ADDRESS_7BIT, I2C_MEMADD_SIZE_16BIT, MEMORY_LOG_DATA_ADDR + start * sizeof(mem_log_t),
+			(uint8_t *)data, size * sizeof(mem_log_t));
 
-	return ST_MEM_OK;
+	if (can_read)
+		return ST_MEM_OK;
+
+	return ST_MEM_BUSY;
 }
 
 uint32_t memory_log_size(void) {
 	return log_size;
 }
 
+inline bool memory_finished_reading(void) {
+	return task_i2c_finished_reading();
+}
+
+inline bool memory_finished_writing(void) {
+	return task_i2c_finished_writing();
+}
+
 /* Funciones internas  */
 
-mem_status_t memory_get_log_size(uint32_t * size, bool * is_finished) {
-	if (!size || !is_finished)
+mem_status_t memory_get_log_size(uint32_t * size) {
+	if (!size)
 		return ST_MEM_NULL_PTR;
 
-	if (!*is_finished || !shared_i2c_data.is_i2c_finished)
-		return ST_MEM_BUSY;
+	bool can_read = task_i2c_request_read(DEVICE_ADDRESS_7BIT, I2C_MEMADD_SIZE_16BIT, MEMORY_LOG_COUNT_ADDR,
+			(uint8_t *)size, MEMORY_LOG_COUNT_SIZE);
 
-	shared_i2c_data.request_read = true;
-	shared_i2c_data.dev_addr = DEVICE_ADDRESS_7BIT;
-	shared_i2c_data.mem_addr = MEMORY_LOG_COUNT_ADDR;
-	shared_i2c_data.mem_addr_size = I2C_MEMADD_SIZE_16BIT;
-	shared_i2c_data.data = (uint8_t *)size;
-	shared_i2c_data.data_size = MEMORY_LOG_COUNT_SIZE;
+	if (can_read)
+		return ST_MEM_OK;
 
-	return ST_MEM_OK;
+	return ST_MEM_BUSY;
 }
 
 mem_buffer_status_t append_to_buffer(uint16_t data_size, uint16_t mem_addr, uint8_t * data_ptr) {
