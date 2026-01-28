@@ -22,7 +22,7 @@
 #define	MEMORY_LOG_COUNT_SIZE	sizeof(uint16_t)
 #define	MEMORY_LOG_DATA_ADDR	(MEMORY_LOG_COUNT_ADDR + MEMORY_LOG_COUNT_SIZE)
 
-#define	DEVICE_ADDRESS_7BIT		0x50 /* AT24C08A 0101 000x primeros 7 bits */
+#define	DEVICE_ADDRESS_8BIT		0xA0 /* AT24C08A 1010 0xxx */
 
 /* External data declaration */
 
@@ -52,7 +52,7 @@ mem_status_t memory_read_config(mem_cfg_t * config) {
 	if(!config)
 		return ST_MEM_NULL_PTR;
 
-	bool can_read = task_i2c_request_read(DEVICE_ADDRESS_7BIT, I2C_MEMADD_SIZE_16BIT, MEMORY_CONFIG_ADDR,
+	bool can_read = task_i2c_request_read(DEVICE_ADDRESS_8BIT, I2C_MEMADD_SIZE_8BIT, MEMORY_CONFIG_ADDR,
 			(uint8_t *)config, MEMORY_CONFIG_SIZE);
 
 	if (can_read)
@@ -94,7 +94,11 @@ mem_status_t memory_read_log_range(uint32_t start, uint32_t size, mem_log_t * da
 	if (start + size > memory_log_size())
 		return ST_MEM_FAIL;
 
-	bool can_read = task_i2c_request_read(DEVICE_ADDRESS_7BIT, I2C_MEMADD_SIZE_16BIT, MEMORY_LOG_DATA_ADDR + start * sizeof(mem_log_t),
+	uint16_t mem_addr = MEMORY_LOG_DATA_ADDR + start * sizeof(mem_log_t);
+	uint8_t mem_addr_high_bits = (mem_addr >> 8) & 0x03;
+	uint8_t dev_addr = DEVICE_ADDRESS_8BIT | (mem_addr_high_bits << 1);
+
+	bool can_read = task_i2c_request_read(dev_addr, I2C_MEMADD_SIZE_8BIT, mem_addr && 0xFF,
 			(uint8_t *)data, size * sizeof(mem_log_t));
 
 	if (can_read)
@@ -107,11 +111,11 @@ uint32_t memory_log_size(void) {
 	return log_size;
 }
 
-inline bool memory_finished_reading(void) {
+bool memory_finished_reading(void) {
 	return task_i2c_finished_reading();
 }
 
-inline bool memory_finished_writing(void) {
+bool memory_finished_writing(void) {
 	return task_i2c_finished_writing();
 }
 
@@ -121,7 +125,7 @@ mem_status_t memory_get_log_size(uint32_t * size) {
 	if (!size)
 		return ST_MEM_NULL_PTR;
 
-	bool can_read = task_i2c_request_read(DEVICE_ADDRESS_7BIT, I2C_MEMADD_SIZE_16BIT, MEMORY_LOG_COUNT_ADDR,
+	bool can_read = task_i2c_request_read(DEVICE_ADDRESS_8BIT, I2C_MEMADD_SIZE_8BIT, MEMORY_LOG_COUNT_ADDR,
 			(uint8_t *)size, MEMORY_LOG_COUNT_SIZE);
 
 	if (can_read)
@@ -138,7 +142,9 @@ mem_buffer_status_t append_to_buffer(uint16_t data_size, uint16_t mem_addr, uint
 		uint16_t space_in_page = MEM_PAGE_SIZE_BYTES - (mem_addr % MEM_PAGE_SIZE_BYTES);	// ej. si mem_addr = 17, space_in_page = 15
 		data_size = (remaining_data_size < space_in_page) ? remaining_data_size : space_in_page; // menor entre remaining_data_size y space_in_page
 
-		error = mem_buffer_queue(mem_addr, data_ptr, data_size, DEVICE_ADDRESS_7BIT, I2C_MEMADD_SIZE_16BIT);
+		uint8_t mem_addr_high_bits = (mem_addr >> 8) & 0x03;
+		uint8_t dev_addr = DEVICE_ADDRESS_8BIT | (mem_addr_high_bits << 1);
+		error = mem_buffer_queue(mem_addr & 0xFF, data_ptr, data_size, dev_addr, I2C_MEMADD_SIZE_8BIT);
 		if (error)
 			return error;
 

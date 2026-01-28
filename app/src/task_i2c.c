@@ -255,8 +255,8 @@ bool task_i2c_request_read(uint16_t dev_addr,				// Dirección del dispositivo I
 bool task_i2c_finished_reading(void) {
 	return reading_data.is_i2c_finished;
 }
-inline bool	task_i2c_finished_writing(void) {
-	return mem_buffer_size() ? true : false;
+bool task_i2c_finished_writing(void) {
+	return mem_buffer_size() == 0;
 }
 
 
@@ -280,7 +280,7 @@ HAL_StatusTypeDef start_page_read(task_i2c_dta_t * data) {
 	uint16_t space_in_page = MEM_PAGE_SIZE_BYTES - (mem_addr % MEM_PAGE_SIZE_BYTES);	// ej. si mem_addr = 17, space_in_page = 15
 	uint16_t data_size = (remaining_data_size < space_in_page) ? remaining_data_size : space_in_page; // menor entre remaining_data_size y space_in_page
 	uint8_t * data_ptr = reading_data.data + reading_data.offset;
-	uint16_t dev_addr = reading_data.dev_addr << 1;
+	uint16_t dev_addr = reading_data.dev_addr;
 	reading_data.offset += data_size;
 
 	return HAL_I2C_Mem_Read_IT(&hi2c1, dev_addr, mem_addr, reading_data.mem_addr_size, data_ptr, data_size);

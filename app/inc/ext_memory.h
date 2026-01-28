@@ -47,7 +47,7 @@ mem_status_t memory_read_config(mem_cfg_t * config);
 mem_status_t memory_append_log(mem_type_log_t type, float * value);
 mem_status_t memory_read_log_range(uint32_t start, uint32_t size, mem_log_t * data);
 uint32_t memory_log_size(void);
-inline bool memory_finished_reading(void);
-inline bool memory_finished_writing(void);
+bool memory_finished_reading(void);
+bool memory_finished_writing(void);
 
 #endif /* INC_EXT_MEMORY_H_ */

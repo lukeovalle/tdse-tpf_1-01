@@ -36,8 +36,9 @@ bool		task_i2c_request_read(uint16_t dev_addr,		// Dirección del dispositivo I2
 								  uint16_t mem_addr,		// Dirección de memoria
 								  uint8_t * data,			// Puntero a los datos
 								  uint16_t data_size);		// Tamaño de los datos (en bytes)
-bool		task_i2c_finished_reading(void);
-inline bool	task_i2c_finished_writing(void);
+bool	task_i2c_finished_reading(void);
+bool	task_i2c_finished_writing(void);
+
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
 }
