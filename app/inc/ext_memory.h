@@ -8,6 +8,8 @@
 #ifndef INC_EXT_MEMORY_H_
 #define INC_EXT_MEMORY_H_
 
+#define	DEVICE_ADDRESS_8BIT		0xA0 /* AT24C08A 1010 0xxx */
+
 typedef enum {
 	ST_MEM_OK,
 	ST_MEM_FAIL,

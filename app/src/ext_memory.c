@@ -22,8 +22,6 @@
 #define	MEMORY_LOG_COUNT_SIZE	sizeof(uint16_t)
 #define	MEMORY_LOG_DATA_ADDR	(MEMORY_LOG_COUNT_ADDR + MEMORY_LOG_COUNT_SIZE)
 
-#define	DEVICE_ADDRESS_8BIT		0xA0 /* AT24C08A 1010 0xxx */
-
 /* External data declaration */
 
 
@@ -80,7 +78,7 @@ mem_status_t memory_append_log(mem_type_log_t type, float * value) {
 	/* Aumentamos el tamaño del log */
 	log_size++;
 
-	error = append_to_buffer(sizeof(log_size), MEMORY_LOG_COUNT_ADDR, (uint8_t *)log_size);
+	error = append_to_buffer(sizeof(log_size), MEMORY_LOG_COUNT_ADDR, (uint8_t *)&log_size);
 	if (error)
 		return ST_MEM_FAIL;
 
@@ -98,7 +96,7 @@ mem_status_t memory_read_log_range(uint32_t start, uint32_t size, mem_log_t * da
 	uint8_t mem_addr_high_bits = (mem_addr >> 8) & 0x03;
 	uint8_t dev_addr = DEVICE_ADDRESS_8BIT | (mem_addr_high_bits << 1);
 
-	bool can_read = task_i2c_request_read(dev_addr, I2C_MEMADD_SIZE_8BIT, mem_addr && 0xFF,
+	bool can_read = task_i2c_request_read(dev_addr, I2C_MEMADD_SIZE_8BIT, mem_addr & 0xFF,
 			(uint8_t *)data, size * sizeof(mem_log_t));
 
 	if (can_read)

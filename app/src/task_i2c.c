@@ -19,6 +19,7 @@
 #include "task_i2c.h"
 #include "task_i2c_attribute.h"
 #include "memory_buffer.h"
+#include "ext_memory.h"
 
 /********************** macros and definitions *******************************/
 #define G_TASK_I2C_CNT_INIT			0ul
@@ -96,6 +97,13 @@ void task_i2c_init(void *parameters)
 	/* Init & Print out: Task execution counter */
 	g_task_i2c_cnt = G_TASK_I2C_CNT_INIT;
 	LOGGER_INFO("   %s = %lu", GET_NAME(g_task_i2c_cnt), g_task_i2c_cnt);
+
+	HAL_StatusTypeDef status = HAL_I2C_IsDeviceReady(&hi2c1, DEVICE_ADDRESS_8BIT, 3, 3);
+	if (status == HAL_OK) {
+		LOGGER_INFO("   I2C preparado\n");
+	} else {
+		LOGGER_INFO("   Error en I2C\n");
+	}
 
 	for (index = 0; I2C_DTA_QTY > index; index++)
 	{
@@ -212,6 +220,7 @@ void task_i2c_statechart(shared_data_type * parameters) {
 
 		case ST_I2C_WAITING_WRITE:
 			if (tr_finished) {
+				while (HAL_I2C_IsDeviceReady(&hi2c1, DEVICE_ADDRESS_8BIT, 10, 5) != HAL_OK);
 				p_task_i2c_dta->state = ST_I2C_WRITING;
 				tr_finished = false;
 			}
@@ -219,6 +228,7 @@ void task_i2c_statechart(shared_data_type * parameters) {
 
 		case ST_I2C_WAITING_READ:
 			if (tr_finished) {
+				while (HAL_I2C_IsDeviceReady(&hi2c1, DEVICE_ADDRESS_8BIT, 10, 5) != HAL_OK);
 				p_task_i2c_dta->state = ST_I2C_READING;
 				tr_finished = false;
 			}
@@ -232,7 +242,7 @@ void task_i2c_statechart(shared_data_type * parameters) {
 	}
 }
 
-bool task_i2c_request_read(uint16_t dev_addr,				// Dirección del dispositivo I2C (7 bits)
+bool task_i2c_request_read(uint16_t dev_addr,				// Dirección del dispositivo I2C (8 bits)
 								  uint16_t mem_addr_size,	// I2C_MEMADD_SIZE_8BIT o I2C_MEMADD_SIZE_16BIT
 								  uint16_t mem_addr,		// Dirección de memoria
 								  uint8_t * data,			// Puntero a los datos
