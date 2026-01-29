@@ -1,0 +1,20 @@
+Mini invernadero portátil
+
+descripción:
+Es un dispositivo que controla diferentes sensores y actuadores en un invernadero portátil, controlando la temperatura y humedada del ambiente contenido, y así asegurando un correcto crecimiento de su contenido.
+
+Sensores:
+- Termómetro interno del STM32F103RB
+- Sensor de humedad de suelo (analógico)
+- LDR para medir luz ambiental
+
+Actuadores:
+- Bomba de agua (controlada por un driver tipo MOSFET/PWM)
+- Ventilador o mini servo para apertura de ventilación
+
+Interacción:
+- Display 16×2 para mostrar temperatura, humedad y nivel de luz
+- Teclado matricial 4×4 para configurar umbrales (ej. “regar cuando humedad < X%”)
+
+Comunicación I²C/SPI:
+- Módulo EEPROM I²C para loguear datos históricos (hasta N lecturas)
