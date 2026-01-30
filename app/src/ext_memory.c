@@ -16,7 +16,7 @@
 #include "task_i2c_attribute.h"
 
 /* macros and definitions */
-#define MEMORY_CONFIG_ADDR		0x01
+#define MEMORY_CONFIG_ADDR		0x00
 #define	MEMORY_CONFIG_SIZE		sizeof(mem_cfg_t)
 #define	MEMORY_LOG_COUNT_ADDR	(MEMORY_CONFIG_ADDR + MEMORY_CONFIG_SIZE)
 #define	MEMORY_LOG_COUNT_SIZE	sizeof(uint16_t)

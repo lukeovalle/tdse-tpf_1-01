@@ -77,7 +77,7 @@ shared_data_type shared_data;
 const task_cfg_t task_cfg_list[]	= {
 		{ .task_init = task_sensor_init, .task_update = task_sensor_update, .parameters = &shared_data },
 		{ .task_init = task_i2c_init, .task_update = task_i2c_update, .parameters = &shared_data },
-		{ .task_init = task_print_init, .task_update = task_print_update, .parameters = &shared_data }
+//		{ .task_init = task_print_init, .task_update = task_print_update, .parameters = &shared_data }
 };
 
 #define TASK_QTY	(sizeof(task_cfg_list)/sizeof(task_cfg_t))
@@ -86,7 +86,7 @@ const task_cfg_t task_cfg_list[]	= {
 
 /********************** internal data definition *****************************/
 const char *p_sys	= " Bare Metal - Event-Triggered Systems (ETS)";
-const char *p_app	= " App - Interactive Menu";
+const char *p_app	= " App - Invernaderito";
 
 /********************** external data declaration ****************************/
 uint32_t g_app_cnt;

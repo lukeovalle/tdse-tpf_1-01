@@ -286,12 +286,7 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
 }
 
 HAL_StatusTypeDef start_page_write(mem_data_t * data) {
-    LOGGER_LOG("start_page_write dev: 0x%02x dir: 0x%02x size: %u data:", data->dev_addr, data->dir, data->size);
-    for (int i = 0; i < data->size; ++i) { LOGGER_LOG(" %02x", data->data[i]); }
-    LOGGER_LOG("\n");
-    HAL_StatusTypeDef st = HAL_I2C_Mem_Write_IT(&hi2c1, data->dev_addr, data->dir, data->mem_addr_size, data->data, data->size);
-    LOGGER_LOG("HAL_I2C_Mem_Write_IT returned %d\n", (int)st);
-    return st;
+    return HAL_I2C_Mem_Write_IT(&hi2c1, data->dev_addr, data->dir, data->mem_addr_size, data->data, data->size);
 }
 
 HAL_StatusTypeDef start_page_read(task_i2c_dta_t * data) {
