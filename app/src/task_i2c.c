@@ -200,7 +200,7 @@ void task_i2c_statechart(shared_data_type * parameters) {
 					LOGGER_LOG("Error en escritura de datos: %u\n", status);
 				}
 			} else {
-				p_task_i2c_dta->event = ST_I2C_IDLE;
+				p_task_i2c_dta->state = ST_I2C_IDLE;
 			}
 			break;
 
@@ -213,7 +213,7 @@ void task_i2c_statechart(shared_data_type * parameters) {
 					LOGGER_LOG("Error en lectura de datos: %u\n", status);
 				}
 			} else {
-				p_task_i2c_dta->event = ST_I2C_IDLE;
+				p_task_i2c_dta->state = ST_I2C_IDLE;
 				reading_data.is_i2c_finished = true;
 			}
 			break;
@@ -272,16 +272,26 @@ bool task_i2c_finished_writing(void) {
 
 /********************** internal functions definition ************************/
 
-void HAL_I2C_MasterRxCpltCallback (I2C_HandleTypeDef * hi2c) {
+void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef * hi2c) {
 	tr_finished = true;
 }
 
-void HAL_I2C_MasterTxCpltCallback (I2C_HandleTypeDef * hi2c) {
+void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef * hi2c) {
 	tr_finished = true;
+}
+
+void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
+    tr_finished = true; // para no quedar colgado
+    LOGGER_LOG("HAL_I2C_ErrorCallback: sr = %08lx\n", hi2c->ErrorCode);
 }
 
 HAL_StatusTypeDef start_page_write(mem_data_t * data) {
-	return HAL_I2C_Mem_Write_IT(&hi2c1, data->dev_addr, data->dir, data->mem_addr_size, data->data, data->size);
+    LOGGER_LOG("start_page_write dev: 0x%02x dir: 0x%02x size: %u data:", data->dev_addr, data->dir, data->size);
+    for (int i = 0; i < data->size; ++i) { LOGGER_LOG(" %02x", data->data[i]); }
+    LOGGER_LOG("\n");
+    HAL_StatusTypeDef st = HAL_I2C_Mem_Write_IT(&hi2c1, data->dev_addr, data->dir, data->mem_addr_size, data->data, data->size);
+    LOGGER_LOG("HAL_I2C_Mem_Write_IT returned %d\n", (int)st);
+    return st;
 }
 
 HAL_StatusTypeDef start_page_read(task_i2c_dta_t * data) {

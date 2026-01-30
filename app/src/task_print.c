@@ -53,6 +53,31 @@ const char *p_task_print_ 		= "Non-Blocking & Update By Time Code";
 extern void task_print_init(void *parameters) {
 	return;
 }
+
+// TEST: leer 64 bytes en bloque de la EEPROM (bloqueante)
+void eeprom_dump_blocking(void) {
+    uint8_t buf[64];
+    uint16_t start = 0x00; // o 0x01 si usás config en 0x01
+    uint16_t dev8 = 0xA0;  // vuestra convención 8-bit
+
+    // esperar que la cola se procese (no haya escrituras pendientes)
+    while (mem_buffer_size() > 0) {
+        task_i2c_update(NULL);
+        HAL_Delay(1);
+    }
+
+    // ack-polling por si el chip todavía está escribiendo
+    while (HAL_I2C_IsDeviceReady(&hi2c1, dev8, 5, 5) != HAL_OK) { HAL_Delay(1); }
+
+    HAL_StatusTypeDef st = HAL_I2C_Mem_Read(&hi2c1, dev8, start, I2C_MEMADD_SIZE_8BIT, buf, sizeof(buf), 1000);
+    LOGGER_LOG("EEPROM read status: %d\n", (int)st);
+    if (st == HAL_OK) {
+        for (int i = 0; i < 64; ++i) {
+            LOGGER_LOG("0x%02X: %02X\n", start + i, buf[i]);
+        }
+    }
+}
+
 extern void task_print_update(void *parameters) {
 	bool b_time_update_required = false;
 
@@ -93,6 +118,7 @@ extern void task_print_update(void *parameters) {
 			memory_write_config_field(MEM_CFG_SAVE_FREQ, &config.save_freq);
 
 			saved = true;
+			LOGGER_LOG("mem_buffer_size = %u\n", mem_buffer_size());
 		}
 
 		contador++;
@@ -100,13 +126,39 @@ extern void task_print_update(void *parameters) {
 		if (contador >= 5000 && !is_read) {
 			LOGGER_LOG("va a leer memoria\n");
 
+			eeprom_dump_blocking();
+			is_read = true;
+			break;
+
+			// pedir lectura al task i2c (usa la cola y no pelea con task_i2c)
+			if (memory_read_config(&read) == ST_MEM_OK) {
+			    // esperar no-bloqueante: dejá que el scheduler/ticks corran
+			    while (!memory_finished_reading()) {
+			        task_i2c_update(NULL); // si necesitás forzar procesado en tests
+			        HAL_Delay(1);
+			    }
+			    // ahora 'read' contiene los floats
+			    uint8_t * p = (uint8_t *)&read;
+			    for (uint16_t i = 0; i < sizeof(read); ++i) {
+			        LOGGER_LOG("mem_cfg_t offset %2u:\t%02x\n", i, p[i]);
+			    }
+			}
+
+			is_read = true;
+			break;
+
 			for (uint16_t i = 0; i < 16; i++) {
 				uint8_t byte_leido = 0;
 				HAL_I2C_Mem_Read_IT(&hi2c1, 0xA0, i+1, I2C_MEMADD_SIZE_8BIT, &byte_leido, 1);
 				HAL_Delay(40);
 
-				LOGGER_LOG("byte %u:\t%x\n", i+1, byte_leido);
+				LOGGER_LOG("byte %2u:\t%2x\n", i+1, byte_leido);
+			}
 
+			for (uint16_t i = 0; i < sizeof(read); i++) {
+				uint8_t * inicio = (uint8_t *)&read;
+
+				LOGGER_LOG("mem_cfg_t offset %2u:\t%2x\n", i, *(inicio + i));
 			}
 
 			is_read = true;
