@@ -1,55 +1,52 @@
-# Prerequisites
-*.d
-
-# Object files
+# ----------------------------
+# Archivos compilados / binarios
+# ----------------------------
 *.o
-*.ko
 *.obj
 *.elf
-
-# Linker output
-*.ilk
+*.hex
+*.bin
 *.map
-*.exp
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
+*.ilk
 *.lib
 *.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
 *.so
-*.so.*
-*.dylib
-
-# Executables
+*.dll
 *.exe
 *.out
-*.app
-*.i*86
-*.x86_64
-*.hex
 
-# Debug files
+# ----------------------------
+# Archivos de depuración
+# ----------------------------
+*.d
 *.dSYM/
-*.su
-*.idb
 *.pdb
+*.idb
+*.su
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
-
+# ----------------------------
+# Archivos temporales / de workspace
+# ----------------------------
 /Debug/
+/Release/
 /*.launch
+/.settings/
+/.cproject
+/.mxproject
+/.project
+/*.log
+
+# ----------------------------
+# STM32CubeIDE y herramientas relacionadas
+# ----------------------------
+/Core/Inc/*.d
+/Core/Src/*.d
+/Drivers/**/*.d
+/STM32F103RBTX_FLASH.ld
+
+# ----------------------------
+# Otros temporales
+# ----------------------------
+*.bak
+*.swp
+*~ 

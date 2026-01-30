@@ -5,6 +5,7 @@
 /* ===================== CONFIGURACION ===================== */
 #define TASK_KEYPAD_DEBOUNCE_TICKS   20
 #define TASK_KEYPAD_KEYS_QTY         16
+#define KEYPAD_SCAN_SAMPLES  10
 /* ========================================================= */
 
 /* ===================== CONTADORES ======================== */
@@ -56,10 +57,14 @@ void task_keypad_update(void *parameters)
     (void) parameters;
 
     keypad_key_t key_read = keypad_scan();
-    g_task_keypad_cnt++;
+    for (uint8_t i = 0; i < KEYPAD_SCAN_SAMPLES; i++)
+    {
+    	keypad_key_t key_read_next = keypad_scan();
+    	if (key_read_next == KEY_NONE) break;
+    	key_read = key_read_next;
+    }
 
-    /*De ser necesario, meter en un bucle con freno en ninguna tecla y dejar la tecla
-     * mayoritaria de las anteriores como la presionada */
+    g_task_keypad_cnt++;
 
     for (uint8_t i = 0; i < TASK_KEYPAD_KEYS_QTY; i++)
     {

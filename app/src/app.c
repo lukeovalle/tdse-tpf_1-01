@@ -37,7 +37,7 @@
 
 /********************** inclusions *******************************************/
 /* Project includes */
-#include <task_sensor.h>
+#include <task_keypad.h>
 #include "main.h"
 
 /* Demo includes */
