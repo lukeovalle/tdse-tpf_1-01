@@ -58,6 +58,9 @@ void task_keypad_update(void *parameters)
     keypad_key_t key_read = keypad_scan();
     g_task_keypad_cnt++;
 
+    /*De ser necesario, meter en un bucle con freno en ninguna tecla y dejar la tecla
+     * mayoritaria de las anteriores como la presionada */
+
     for (uint8_t i = 0; i < TASK_KEYPAD_KEYS_QTY; i++)
     {
         keypad_ctrl_t *s = &keypad_ctrl[i];
