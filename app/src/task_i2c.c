@@ -70,6 +70,7 @@ static reading_data_t reading_data = {
 	.data_size = 0,
 	.offset = 0
 };
+static mem_data_t data_aux;
 
 /********************** internal functions declaration ***********************/
 void task_i2c_statechart(shared_data_type * parameters);
@@ -100,9 +101,9 @@ void task_i2c_init(void *parameters)
 
 	HAL_StatusTypeDef status = HAL_I2C_IsDeviceReady(&hi2c1, DEVICE_ADDRESS_8BIT, 3, 3);
 	if (status == HAL_OK) {
-		LOGGER_INFO("   I2C preparado\n");
+		LOGGER_INFO("   I2C preparado");
 	} else {
-		LOGGER_INFO("   Error en I2C\n");
+		LOGGER_INFO("   Error en I2C");
 	}
 
 	for (index = 0; I2C_DTA_QTY > index; index++)
@@ -191,9 +192,9 @@ void task_i2c_statechart(shared_data_type * parameters) {
 			break;
 
 		case ST_I2C_WRITING:
-			mem_data_t data = mem_buffer_dequeue();
-			if (data.size) { // Si el data es válido
-				status = start_page_write(&data);
+			data_aux = mem_buffer_dequeue();
+			if (data_aux.size) { // Si el data es válido
+				status = start_page_write(&data_aux);
 				if (status == HAL_OK) {
 					p_task_i2c_dta->state = ST_I2C_WAITING_WRITE;
 				} else {
@@ -228,7 +229,6 @@ void task_i2c_statechart(shared_data_type * parameters) {
 
 		case ST_I2C_WAITING_READ:
 			if (tr_finished) {
-				while (HAL_I2C_IsDeviceReady(&hi2c1, DEVICE_ADDRESS_8BIT, 10, 5) != HAL_OK);
 				p_task_i2c_dta->state = ST_I2C_READING;
 				tr_finished = false;
 			}
@@ -300,7 +300,9 @@ HAL_StatusTypeDef start_page_read(task_i2c_dta_t * data) {
 	uint16_t space_in_page = MEM_PAGE_SIZE_BYTES - (mem_addr % MEM_PAGE_SIZE_BYTES);	// ej. si mem_addr = 17, space_in_page = 15
 	uint16_t data_size = (remaining_data_size < space_in_page) ? remaining_data_size : space_in_page; // menor entre remaining_data_size y space_in_page
 	uint8_t * data_ptr = reading_data.data + reading_data.offset;
-	uint16_t dev_addr = reading_data.dev_addr;
+
+	uint8_t mem_addr_high_bits = (mem_addr >> 8) & 0x03;
+	uint16_t dev_addr = reading_data.dev_addr | (mem_addr_high_bits << 1);
 	reading_data.offset += data_size;
 
 	return HAL_I2C_Mem_Read_IT(&hi2c1, dev_addr, mem_addr, reading_data.mem_addr_size, data_ptr, data_size);
