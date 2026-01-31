@@ -124,6 +124,26 @@ void task_clock_update(void *parameters) {
     }
 }
 
+void clock_config_set_year(uint16_t year) {
+}
+
+void clock_config_set_month(uint8_t month) {
+}
+
+void clock_config_set_day(uint8_t day) {
+}
+
+void clock_config_set_hour(uint8_t hour) {
+}
+
+void clock_config_set_minute(uint8_t minute) {
+}
+
+date_time_t clock_get_time(void) {
+	date_time_t aux = { .year = 2000, .month = 1, .day = 1, .hour = 0, .minute = 0 };
+	return aux;
+}
+
 /********************** internal functions definition ************************/
 void task_clock_statechart(shared_data_type * parameters) {
 	uint32_t index;

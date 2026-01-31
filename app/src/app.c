@@ -171,7 +171,7 @@ void app_update(void)
 			uint32_t curr_time = cycle_counter_get_time_us(); // tiempo después de la tarea
 
 			// tiempo de ejecución de la tarea
-			if (curr_time < prev_time)  { // en case de overflow
+			if (curr_time < prev_time)  { // en caso de overflow
 				cycle_counter_time_us =  UINT32_MAX - prev_time + curr_time + 1;
 			} else {
 				cycle_counter_time_us = curr_time - prev_time;
