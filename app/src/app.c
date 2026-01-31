@@ -162,20 +162,25 @@ void app_update(void)
     	g_app_runtime_us = 0;
 
 		/* Go through the task arrays */
-		for (index = 0; TASK_QTY > index; index++)
-		{
-			cycle_counter_reset();
+		for (index = 0; TASK_QTY > index; index++) {
+			uint32_t prev_time = cycle_counter_get_time_us(); // tiempo previo a la tarea
 
     		/* Run task_x_update */
 			(*task_cfg_list[index].task_update)(task_cfg_list[index].parameters);
 
-			cycle_counter_time_us = cycle_counter_get_time_us();
+			uint32_t curr_time = cycle_counter_get_time_us(); // tiempo después de la tarea
+
+			// tiempo de ejecución de la tarea
+			if (curr_time < prev_time)  { // en case de overflow
+				cycle_counter_time_us =  UINT32_MAX - prev_time + curr_time + 1;
+			} else {
+				cycle_counter_time_us = curr_time - prev_time;
+			}
 
 			/* Update variables */
 			g_app_runtime_us += cycle_counter_time_us;
 
-			if (task_dta_list[index].WCET < cycle_counter_time_us)
-			{
+			if (task_dta_list[index].WCET < cycle_counter_time_us) {
 				task_dta_list[index].WCET = cycle_counter_time_us;
 			}
 		}
