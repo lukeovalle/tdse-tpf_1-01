@@ -48,7 +48,6 @@
 #include "app.h"
 #include "task_menu_attribute.h"
 #include "task_menu_interface.h"
-#include "display.h"
 
 /********************** macros and definitions *******************************/
 #define G_TASK_MEN_CNT_INI			0ul
@@ -114,13 +113,14 @@ void task_menu_init(void *parameters)
 				 GET_NAME(b_event), (b_event ? "true" : "false"));
 
 	/* Init & Print out: LCD Display */
-	displayInit( DISPLAY_CONNECTION_GPIO_4BITS );
-
+	//displayInit( DISPLAY_CONNECTION_GPIO_4BITS );
+/*
     displayCharPositionWrite(0, 0);
 	displayStringWrite("TdSE Bienvenidos");
 
 	displayCharPositionWrite(0, 1);
 	displayStringWrite("Test Nro: ");
+	*/
 }
 
 void task_menu_update(void *parameters)

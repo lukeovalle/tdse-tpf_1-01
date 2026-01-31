@@ -49,7 +49,7 @@ extern "C" {
 
 
 /********************** typedef **********************************************/
-typedef struct{
+typedef struct {
 	bool needs_light_measure;
 	bool needs_temp_measure;
 	bool needs_humidity_measure;
