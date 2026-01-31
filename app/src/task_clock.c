@@ -45,8 +45,13 @@ task_clock_dta_t task_clock_dta_list[] = {
 
 #define CLOCK_DTA_QTY	(sizeof(task_clock_dta_list)/sizeof(task_clock_dta_t))
 
+static uint32_t clock = 0;		// segundos que pasaron desde 01/01/2000 00:00:00
+static uint32_t us_counter = 0;	// contador de microsegundos para ver cuándo pasa un segundo
+static uint32_t prev_time = 0;	// última medición del clock del microcontrolador
+
 /********************** internal functions declaration ***********************/
 void task_clock_statechart(shared_data_type * parameters);
+bool second_elapsed(void);
 
 /********************** internal data definition *****************************/
 const char *p_task_clock 	= "Task Clock (Clock Statechart)";
@@ -101,6 +106,8 @@ void task_clock_update(void *parameters) {
 		/* Run Task CLOCK Statechart */
 		shared_data_type * shared_data = (shared_data_type *) parameters;
 
+		if (second_elapsed())
+			task_clock_dta_list[0].event = EV_CLOCK_SECOND_ELAPSED;
 
     	task_clock_statechart(shared_data);
 
@@ -117,6 +124,7 @@ void task_clock_update(void *parameters) {
     }
 }
 
+/********************** internal functions definition ************************/
 void task_clock_statechart(shared_data_type * parameters) {
 	uint32_t index;
 	const task_clock_cfg_t * p_task_clock_cfg;
@@ -134,19 +142,25 @@ void task_clock_statechart(shared_data_type * parameters) {
 			case EV_CLOCK_IDLE:
 				p_task_clock_dta->state = ST_CLOCK_IDLE;
 				break;
-			case EV_CLOCK_WRITE:
-				p_task_clock_dta->state = ST_CLOCK_WRITING;
-				p_task_clock_dta->event = EV_CLOCK_IDLE;
-				break;
-			case EV_CLOCK_READ:
-				p_task_clock_dta->state = ST_CLOCK_READING;
+			case EV_CLOCK_SECOND_ELAPSED:
+				p_task_clock_dta->state = ST_CLOCK_INCREASE_SECOND;
 				p_task_clock_dta->event = EV_CLOCK_IDLE;
 				break;
 			default:
 				break;
 			}
 			break;
+		case ST_CLOCK_INCREASE_SECOND:
+			clock++;
 
+			switch (p_task_clock_dta->event) {
+			case EV_CLOCK_IDLE:
+				p_task_clock_dta->state = ST_CLOCK_IDLE;
+				break;
+			case EV_CLOCK_SECOND_ELAPSED:
+				p_task_clock_dta->state = ST_CLOCK_INCREASE_SECOND;
+				p_task_clock_dta->event = EV_CLOCK_IDLE;
+			}
 		default:
 			p_task_clock_dta->event = EV_CLOCK_IDLE;
 			p_task_clock_dta->state = ST_CLOCK_IDLE;
@@ -155,7 +169,24 @@ void task_clock_statechart(shared_data_type * parameters) {
 	}
 }
 
-/********************** internal functions definition ************************/
+#define MICROSECONDS_IN_1_SECOND	1000000u
+bool second_elapsed(void) {
+	uint32_t curr_time = cycle_counter_get_time_us();
+	uint32_t elapsed;
 
+	if (curr_time < prev_time) { // overflow
+		elapsed = UINT32_MAX - prev_time + curr_time + 1;
+	} else {
+		elapsed = curr_time - prev_time;
+	}
+	prev_time = curr_time;
+
+	us_counter += elapsed;
+	if (us_counter < MICROSECONDS_IN_1_SECOND)
+		return false;
+
+	us_counter -= MICROSECONDS_IN_1_SECOND;
+	return true;
+}
 
 /********************** end of file ******************************************/

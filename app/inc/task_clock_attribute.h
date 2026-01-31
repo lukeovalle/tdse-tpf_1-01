@@ -21,10 +21,14 @@ extern "C" {
 
 /* Events to excite Task Light Sensor */
 typedef enum task_i2c_ev {
+	EV_CLOCK_IDLE,
+	EV_CLOCK_SECOND_ELAPSED
 } task_clock_ev_t;
 
 /* States of Task Sensor */
 typedef enum task_i2c_st {
+	ST_CLOCK_IDLE,
+	ST_CLOCK_INCREASE_SECOND
 } task_clock_st_t;
 
 

@@ -46,10 +46,11 @@
 /* Application & Tasks includes */
 #include "app.h"
 #include "board.h"
-#include "task_sensor.h"
+#include "task_clock.h"
+#include "task_i2c.h"
 #include "task_menu.h"
 #include "task_print.h"
-#include "task_i2c.h"
+#include "task_sensor.h"
 
 /********************** macros and definitions *******************************/
 #define G_APP_CNT_INI		0ul
@@ -199,7 +200,7 @@ void HAL_SYSTICK_Callback(void)
 {
 	/* Update Tick Counter */
 	g_app_tick_cnt++;
-
+	g_task_clock_tick_cnt++;
 	g_task_sensor_tick_cnt++;
 	g_task_print_tick_cnt++;
 	g_task_menu_tick_cnt++;
