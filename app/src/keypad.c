@@ -1,13 +1,13 @@
 #include "keypad.h"
-#include "stm32fxxx_hal.h"
+#include "stm32f1xx_hal.h"
 #include "dwt.h"
 
 /* === CONFIGURACION HARDWARE === */
-GPIO_TypeDef* ROW_PORT[4] = {GPIOA,         GPIOA,      GPIOA,      GPIOA};
-uint16_t ROW_PIN[4]       = {GPIO_PIN_0,    GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3};
+GPIO_TypeDef* ROW_PORT[4] = {GPIOC,			GPIOC,			GPIOC,			GPIOD};
+uint16_t ROW_PIN[4]       = {GPIO_PIN_12,	GPIO_PIN_10,	GPIO_PIN_11,	GPIO_PIN_2};
 
-GPIO_TypeDef* COL_PORT[4] = {GPIOB,         GPIOB,      GPIOB,      GPIOB};
-uint16_t COL_PIN[4]       = {GPIO_PIN_0,    GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3};
+GPIO_TypeDef* COL_PORT[4] = {GPIOC,			GPIOC,			GPIOC,			GPIOC};
+uint16_t COL_PIN[4]       = {GPIO_PIN_0,	GPIO_PIN_1,		GPIO_PIN_3,		GPIO_PIN_2};
 /* ============================== */
 
 static const keypad_key_t key_map[4][4] = {
