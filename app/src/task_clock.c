@@ -164,7 +164,7 @@ void clock_config_set_month(month_t month) {
 
 void clock_config_set_day(uint8_t day) {
 	uint8_t max_day = last_day(clock.year, clock.month);
-	clock.day = CLAMP(day, 0, max_day);
+	clock.day = CLAMP(day, 1, max_day);
 }
 
 void clock_config_set_hour(uint8_t hour) {
@@ -244,7 +244,7 @@ bool second_elapsed(void) {
 }
 
 uint8_t last_day(uint16_t year, month_t month) {
-	return days_in_month[month] + (month == FEBRUARY && is_leap_year(year)) ? 1 : 0;
+	return days_in_month[month] + (month == FEBRUARY && is_leap_year(year) ? 1 : 0);
 }
 
 
