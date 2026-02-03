@@ -19,10 +19,26 @@ extern "C" {
 /********************** macros ***********************************************/
 
 /********************** typedef **********************************************/
+typedef enum {
+	JANUARY = 0,
+	FEBRUARY,
+	MARCH,
+	APRIL,
+	MAY,
+	JUNE,
+	JULY,
+	AUGUST,
+	SEPTEMBER,
+	OCTOBER,
+	NOVEMBER,
+	DECEMBER
+} month_t;
+
 typedef struct {
 	uint16_t	year;
-	uint8_t		month, day;
-	uint8_t		hour, minute;
+	month_t		month;
+	uint8_t		day;
+	uint8_t		hour, minutes, seconds;
 } date_time_t;
 
 /********************** external data declaration ****************************/
@@ -34,7 +50,7 @@ extern void task_clock_init(void *parameters);
 extern void task_clock_update(void *parameters);
 
 void clock_config_set_year(uint16_t year);
-void clock_config_set_month(uint8_t month);
+void clock_config_set_month(month_t month);
 void clock_config_set_day(uint8_t day);
 void clock_config_set_hour(uint8_t hour);
 void clock_config_set_minute(uint8_t minute);

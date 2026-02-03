@@ -53,3 +53,5 @@ dkms.conf
 
 /Debug/
 /*.launch
+
+.settings/language.settings.xml

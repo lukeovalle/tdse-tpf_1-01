@@ -79,7 +79,7 @@ const task_cfg_t task_cfg_list[]	= {
 		{ .task_init = task_clock_init, .task_update = task_clock_update, .parameters = &shared_data },
 		{ .task_init = task_sensor_init, .task_update = task_sensor_update, .parameters = &shared_data },
 		{ .task_init = task_i2c_init, .task_update = task_i2c_update, .parameters = &shared_data },
-//		{ .task_init = task_print_init, .task_update = task_print_update, .parameters = &shared_data }
+		{ .task_init = task_print_init, .task_update = task_print_update, .parameters = &shared_data }
 };
 
 #define TASK_QTY	(sizeof(task_cfg_list)/sizeof(task_cfg_t))

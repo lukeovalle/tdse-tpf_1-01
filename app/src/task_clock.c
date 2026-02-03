@@ -16,6 +16,7 @@
 /* Application & Tasks includes */
 #include "board.h"
 #include "app.h"
+#include "utils.h"
 #include "task_clock.h"
 #include "task_clock_attribute.h"
 
@@ -27,6 +28,8 @@
 /* Number of ticks for the clock measurement and the starting value */
 #define DEL_CLOCK_TICK_MAX			50ul
 #define DEL_CLOCK_TICK_INIT			0ul
+
+#define MICROSECONDS_IN_1_SECOND	1000000u
 
 /********************** external data declaration ****************************/
 uint32_t g_task_clock_cnt;
@@ -45,13 +48,40 @@ task_clock_dta_t task_clock_dta_list[] = {
 
 #define CLOCK_DTA_QTY	(sizeof(task_clock_dta_list)/sizeof(task_clock_dta_t))
 
-static uint32_t clock = 0;		// segundos que pasaron desde 01/01/2000 00:00:00
+
+static uint8_t days_in_month[] = {
+		31, // jan
+		28,	// feb
+		31,	// mar
+		30,	// apr
+		31,	// may
+		30,	// jun
+		31,	// jul
+		31,	// aug
+		30,	// sep
+		31,	// oct
+		30,	// nov
+		31	// dec
+};
+
+static date_time_t clock = {
+		.year		= 2026,
+		.month		= JANUARY,
+		.day		= 1,
+		.hour		= 0,
+		.minutes	= 0,
+		.seconds	= 0
+};
+
 static uint32_t us_counter = 0;	// contador de microsegundos para ver cuándo pasa un segundo
 static uint32_t prev_time = 0;	// última medición del clock del microcontrolador
 
 /********************** internal functions declaration ***********************/
 void task_clock_statechart(shared_data_type * parameters);
 bool second_elapsed(void);
+uint8_t last_day(uint16_t year, month_t month);
+bool is_leap_year(uint16_t year);
+void increase_second(void);
 
 /********************** internal data definition *****************************/
 const char *p_task_clock 	= "Task Clock (Clock Statechart)";
@@ -125,23 +155,28 @@ void task_clock_update(void *parameters) {
 }
 
 void clock_config_set_year(uint16_t year) {
+	clock.year = year;
 }
 
-void clock_config_set_month(uint8_t month) {
+void clock_config_set_month(month_t month) {
+	clock.month = CLAMP(month, 0, 11);
 }
 
 void clock_config_set_day(uint8_t day) {
+	uint8_t max_day = last_day(clock.year, clock.month);
+	clock.day = CLAMP(day, 0, max_day);
 }
 
 void clock_config_set_hour(uint8_t hour) {
+	clock.hour = CLAMP(hour, 0, 23);
 }
 
 void clock_config_set_minute(uint8_t minute) {
+	clock.minutes = CLAMP(minute, 0, 59);
 }
 
 date_time_t clock_get_time(void) {
-	date_time_t aux = { .year = 2000, .month = 1, .day = 1, .hour = 0, .minute = 0 };
-	return aux;
+	return clock;
 }
 
 /********************** internal functions definition ************************/
@@ -171,7 +206,7 @@ void task_clock_statechart(shared_data_type * parameters) {
 			}
 			break;
 		case ST_CLOCK_INCREASE_SECOND:
-			clock++;
+			increase_second();
 
 			switch (p_task_clock_dta->event) {
 			case EV_CLOCK_IDLE:
@@ -189,7 +224,6 @@ void task_clock_statechart(shared_data_type * parameters) {
 	}
 }
 
-#define MICROSECONDS_IN_1_SECOND	1000000u
 bool second_elapsed(void) {
 	uint32_t curr_time = cycle_counter_get_time_us();
 	uint32_t elapsed;
@@ -207,6 +241,54 @@ bool second_elapsed(void) {
 
 	us_counter -= MICROSECONDS_IN_1_SECOND;
 	return true;
+}
+
+uint8_t last_day(uint16_t year, month_t month) {
+	return days_in_month[month] + (month == FEBRUARY && is_leap_year(year)) ? 1 : 0;
+}
+
+
+bool is_leap_year(uint16_t year) {
+	if (year % 4 != 0)
+		return false;
+
+	if (year % 100 == 0 && year % 400 != 0)
+		return false;
+
+	return true;
+}
+
+void increase_second(void) {
+	clock.seconds++;
+	if (clock.seconds < 60)
+		return;
+
+	clock.seconds = 0;
+	clock.minutes++;
+	if (clock.minutes < 60)
+		return;
+
+	clock.minutes = 0;
+	clock.hour++;
+	if (clock.hour < 24)
+		return;
+
+	clock.hour = 0;
+	clock.day++;
+
+	if (clock.day <= last_day(clock.year, clock.month))
+		return;
+
+	clock.day = 1;
+	clock.month++;
+
+	if (clock.month <= DECEMBER)
+		return;
+
+	clock.month = JANUARY;
+	clock.year++;
+
+	return;
 }
 
 /********************** end of file ******************************************/
