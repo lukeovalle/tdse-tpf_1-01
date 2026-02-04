@@ -6474,6 +6474,16 @@
 	)
 	(wire
 		(pts
+			(xy 227.33 158.75) (xy 229.87 158.75)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8e276717-8f89-4208-8957-5539678696be")
+	)
+	(wire
+		(pts
 			(xy 124.46 140.97) (xy 128.27 140.97)
 		)
 		(stroke
@@ -6571,6 +6581,16 @@
 			(type default)
 		)
 		(uuid "a63ea23f-1c4c-4814-88bb-19797337d4aa")
+	)
+	(wire
+		(pts
+			(xy 227.33 156.21) (xy 229.87 156.21)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a6c66c87-4a0c-4b76-b2e6-55fc8b8dcd87")
 	)
 	(wire
 		(pts
@@ -7778,6 +7798,76 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector:Conn_01x02_Socket")
+		(at 234.95 156.21 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "202d50b3-5f91-453f-8d7d-bd560d3ca203")
+		(property "Reference" "J10"
+			(at 235.6612 156.2678 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Conn_01x02_Socket"
+			(at 235.6612 158.6921 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "TerminalBlock_CUI:TerminalBlock_CUI_TB007-508-02_1x02_P5.08mm_Horizontal"
+			(at 234.95 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 234.95 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x02, script generated"
+			(at 234.95 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "00016594-bdac-4089-8353-5a6536bcee55")
+		)
+		(pin "1"
+			(uuid "02f80bad-4c0d-4e45-85fd-d4cfe76605ac")
+		)
+		(instances
+			(project ""
+				(path "/aeacc457-9040-4f3b-92d7-10d03e7d1e75"
+					(reference "J10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R")
 		(at 177.8 137.16 0)
 		(unit 1)
@@ -8116,6 +8206,72 @@
 			(project ""
 				(path "/aeacc457-9040-4f3b-92d7-10d03e7d1e75"
 					(reference "R4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+12V")
+		(at 227.33 156.21 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "367da90b-7854-40ee-95b4-c0ce3c85f4dd")
+		(property "Reference" "#PWR025"
+			(at 227.33 160.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+12V"
+			(at 227.33 152.0769 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 227.33 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 227.33 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+12V\""
+			(at 227.33 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "97fbb18f-716e-47a8-a077-39feba9cffef")
+		)
+		(instances
+			(project "invernadero"
+				(path "/aeacc457-9040-4f3b-92d7-10d03e7d1e75"
+					(reference "#PWR025")
 					(unit 1)
 				)
 			)
@@ -9401,6 +9557,72 @@
 			(project "invernadero"
 				(path "/aeacc457-9040-4f3b-92d7-10d03e7d1e75"
 					(reference "J7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 227.33 158.75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "865317e2-01fb-4464-8604-973f2b6f6414")
+		(property "Reference" "#PWR026"
+			(at 227.33 165.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 227.33 162.8831 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 227.33 158.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 227.33 158.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 227.33 158.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "a8e26ad6-a575-4399-8a64-fa5eb7f506fc")
+		)
+		(instances
+			(project "invernadero"
+				(path "/aeacc457-9040-4f3b-92d7-10d03e7d1e75"
+					(reference "#PWR026")
 					(unit 1)
 				)
 			)
