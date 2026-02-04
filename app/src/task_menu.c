@@ -49,6 +49,7 @@
 #include "task_menu_attribute.h"
 #include "task_menu_interface.h"
 #include "display.h"
+#include "memory_buffer.h"
 
 /********************** macros and definitions *******************************/
 #define G_TASK_MEN_CNT_INI			0ul
@@ -60,7 +61,7 @@
 
 /********************** internal data declaration ****************************/
 task_menu_dta_t task_menu_dta =
-	{DEL_MEN_XX_MIN, ST_MENU_XX_MAIN, EV_MEN_ENT_IDLE, false};
+	{DEL_MEN_XX_MIN, ST_MENU_INIT, EV_PRESS_BACK, false};
 
 #define MENU_DTA_QTY	(sizeof(task_menu_dta)/sizeof(task_menu_dta_t))
 
@@ -83,6 +84,7 @@ void text_select_motor(char str[], uint8_t index);
 void text_select_config(char str[], motor_cfg_type_t type);
 void text_select_value(char str[],motor_cfg_t * cfg, motor_cfg_type_t type);
 void print_text_in_row(const char str[], uint8_t row);
+void task_menu_statechart(void);
 
 /********************** internal data definition *****************************/
 const char *p_task_menu 		= "Task Menu (Interactive Menu)";
@@ -144,6 +146,53 @@ void task_menu_init(void *parameters)
     temp_motor_cfg = motor_cfg[0];
 
 	g_task_menu_tick_cnt = G_TASK_MEN_TICK_CNT_INI;
+}
+
+void task_menu_init(void *parameters)
+{
+	task_menu_dta_t *p_task_menu_dta;
+	task_menu_st_t	state;
+	task_menu_ev_t	event;
+	bool b_event;
+
+	/* Print out: Task Initialized */
+	LOGGER_INFO(" ");
+	LOGGER_INFO("  %s is running - %s", GET_NAME(task_menu_init), p_task_menu);
+	LOGGER_INFO("  %s is a %s", GET_NAME(task_menu), p_task_menu_);
+
+	/* Init & Print out: Task execution counter */
+	g_task_menu_cnt = G_TASK_MEN_CNT_INI;
+	LOGGER_INFO("   %s = %lu", GET_NAME(g_task_menu_cnt), g_task_menu_cnt);
+
+	init_queue_event_task_menu();
+
+	/* Update Task Actuator Configuration & Data Pointer */
+	p_task_menu_dta = &task_menu_dta;
+
+	/* Init & Print out: Task execution FSM */
+	state = ST_MEN_XX_IDLE;
+	p_task_menu_dta->state = state;
+
+	event = EV_MEN_ENT_IDLE;
+	p_task_menu_dta->event = event;
+
+	b_event = false;
+	p_task_menu_dta->flag = b_event;
+
+	LOGGER_INFO(" ");
+	LOGGER_INFO("   %s = %lu   %s = %lu   %s = %s",
+				 GET_NAME(state), (uint32_t)state,
+				 GET_NAME(event), (uint32_t)event,
+				 GET_NAME(b_event), (b_event ? "true" : "false"));
+
+	/* Init & Print out: LCD Display */
+	displayInit( DISPLAY_CONNECTION_GPIO_4BITS );
+
+    displayCharPositionWrite(0, 0);
+	displayStringWrite("TdSE Bienvenidos");
+
+	displayCharPositionWrite(0, 1);
+	displayStringWrite("Test Nro: ");
 }
 
 void task_menu_update(void *parameters)
@@ -345,6 +394,44 @@ void task_menu_update(void *parameters)
 		}
 	}
 }
+
+
+void task_menu_update(void *parameters)
+{
+	bool b_time_update_required = false;
+
+	/* Protect shared resource */
+	__asm("CPSID i");	/* disable interrupts */
+    if (G_TASK_MEN_TICK_CNT_INI < g_task_menu_tick_cnt)
+    {
+		/* Update Tick Counter */
+    	g_task_menu_tick_cnt--;
+    	b_time_update_required = true;
+    }
+    __asm("CPSIE i");	/* enable interrupts */
+
+    while (b_time_update_required)
+    {
+		/* Update Task Counter */
+		g_task_menu_cnt++;
+
+		/* Run Task Menu Statechart */
+    	task_menu_statechart();
+
+    	/* Protect shared resource */
+		__asm("CPSID i");	/* disable interrupts */
+		if (G_TASK_MEN_TICK_CNT_INI < g_task_menu_tick_cnt)
+		{
+			/* Update Tick Counter */
+			g_task_menu_tick_cnt--;
+			b_time_update_required = true;
+		}
+		else
+		{
+			b_time_update_required = false;
+		}
+		__asm("CPSIE i");	/* enable interrupts */
+	}
 
 motor_cfg_type_t next_motor_cfg(motor_cfg_type_t current) {
     switch (current) {
