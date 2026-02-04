@@ -99,19 +99,19 @@ volatile uint32_t g_task_menu_tick_cnt;
 /********************** external functions definition ************************/
 void task_menu_init(void *parameters)
 {
+	char menu_str[DISPLAY_CHAR_WIDTH + 1];
 	task_menu_dta_t *p_task_menu_dta;
-	task_menu_ST_MENU_t	state;
+	task_menu_st_t	state;
 	task_menu_ev_t	event;
 	bool b_event;
-	char menu_str[DISPLAY_CHAR_WIDTH + 1];
 
 	/* Print out: Task Initialized */
-	LOGGER_LOG("  %s is running - %s\r\n", GET_NAME(task_menu_init), p_task_menu);
-	LOGGER_LOG("  %s is a %s\r\n", GET_NAME(task_menu), p_task_menu_);
+	LOGGER_INFO(" ");
+	LOGGER_INFO("  %s is running - %s", GET_NAME(task_menu_init), p_task_menu);
+	LOGGER_INFO("  %s is a %s", GET_NAME(task_menu), p_task_menu_);
 
+	/* Init & Print out: Task execution counter */
 	g_task_menu_cnt = G_TASK_MEN_CNT_INI;
-
-	/* Print out: Task execution counter */
 	LOGGER_LOG("   %s = %lu\r\n", GET_NAME(g_task_menu_cnt), g_task_menu_cnt);
 
 	init_queue_event_task_menu();
@@ -119,20 +119,33 @@ void task_menu_init(void *parameters)
 	/* Update Task Actuator Configuration & Data Pointer */
 	p_task_menu_dta = &task_menu_dta;
 
-	/* Print out: Task execution FSM */
-	state = p_task_menu_dta->state;
-	LOGGER_LOG("   %s = %lu", GET_NAME(state), (uint32_t)state);
+	/* Init & Print out: Task execution FSM */
+	state = ST_MENU_INIT;
+	p_task_menu_dta->state = state;
 
-	event = p_task_menu_dta->event;
-	LOGGER_LOG("   %s = %lu", GET_NAME(event), (uint32_t)event);
+	event = EV_PRESS_BACK;
+	p_task_menu_dta->event = event;
 
-	b_event = p_task_menu_dta->flag;
-	LOGGER_LOG("   %s = %s\r\n", GET_NAME(b_event), (b_event ? "true" : "false"));
+	b_event = false;
+	p_task_menu_dta->flag = b_event;
+
+	LOGGER_INFO(" ");
+	LOGGER_INFO("   %s = %lu   %s = %lu   %s = %s",
+				 GET_NAME(state), (uint32_t)state,
+				 GET_NAME(event), (uint32_t)event,
+				 GET_NAME(b_event), (b_event ? "true" : "false"));
 
 	cycle_counter_init();
 	cycle_counter_reset();
 
+	/* Init & Print out: LCD Display */
 	displayInit( DISPLAY_CONNECTION_GPIO_4BITS );
+
+    displayCharPositionWrite(0, 0);
+	displayStringWrite("TdSE Bienvenidos");
+
+	displayCharPositionWrite(0, 1);
+	displayStringWrite("Test Nro: ");
 
     // Imprime el texto del menú principal, en dos filas
 
@@ -146,53 +159,6 @@ void task_menu_init(void *parameters)
     temp_motor_cfg = motor_cfg[0];
 
 	g_task_menu_tick_cnt = G_TASK_MEN_TICK_CNT_INI;
-}
-
-void task_menu_init(void *parameters)
-{
-	task_menu_dta_t *p_task_menu_dta;
-	task_menu_st_t	state;
-	task_menu_ev_t	event;
-	bool b_event;
-
-	/* Print out: Task Initialized */
-	LOGGER_INFO(" ");
-	LOGGER_INFO("  %s is running - %s", GET_NAME(task_menu_init), p_task_menu);
-	LOGGER_INFO("  %s is a %s", GET_NAME(task_menu), p_task_menu_);
-
-	/* Init & Print out: Task execution counter */
-	g_task_menu_cnt = G_TASK_MEN_CNT_INI;
-	LOGGER_INFO("   %s = %lu", GET_NAME(g_task_menu_cnt), g_task_menu_cnt);
-
-	init_queue_event_task_menu();
-
-	/* Update Task Actuator Configuration & Data Pointer */
-	p_task_menu_dta = &task_menu_dta;
-
-	/* Init & Print out: Task execution FSM */
-	state = ST_MEN_XX_IDLE;
-	p_task_menu_dta->state = state;
-
-	event = EV_MEN_ENT_IDLE;
-	p_task_menu_dta->event = event;
-
-	b_event = false;
-	p_task_menu_dta->flag = b_event;
-
-	LOGGER_INFO(" ");
-	LOGGER_INFO("   %s = %lu   %s = %lu   %s = %s",
-				 GET_NAME(state), (uint32_t)state,
-				 GET_NAME(event), (uint32_t)event,
-				 GET_NAME(b_event), (b_event ? "true" : "false"));
-
-	/* Init & Print out: LCD Display */
-	displayInit( DISPLAY_CONNECTION_GPIO_4BITS );
-
-    displayCharPositionWrite(0, 0);
-	displayStringWrite("TdSE Bienvenidos");
-
-	displayCharPositionWrite(0, 1);
-	displayStringWrite("Test Nro: ");
 }
 
 void task_menu_update(void *parameters)
@@ -244,194 +210,10 @@ void task_menu_update(void *parameters)
             p_task_menu_dta->event = get_event_task_menu();
         }
 
-        switch (p_task_menu_dta->state) {
-            case ST_MENU_XX_MAIN:
-                if (!p_task_menu_dta->flag)
-                    break;
-
-                p_task_menu_dta->flag = false;
-
-                // Imprime el texto del menú principal, en dos filas
-                text_info_motor_in_row(menu_str, 0, motor_cfg + 0);
-                print_text_in_row(menu_str, 0);
-
-                text_info_motor_in_row(menu_str, 1, motor_cfg + 1);
-                print_text_in_row(menu_str, 1);
-
-
-                switch (p_task_menu_dta->event) {
-                    case EV_MEN_ENT_ACTIVE:
-                        p_task_menu_dta->state = ST_MENU_XX_SELECT_MOTOR;
-                        break;
-
-                    default:
-                        break;
-                }
-
-                break;
-
-            case ST_MENU_XX_SELECT_MOTOR:
-                if (!p_task_menu_dta->flag)
-                    break;
-
-                p_task_menu_dta->flag = false;
-
-                print_text_in_row(header_text, 0);
-
-                text_select_motor(menu_str, current_motor);
-                print_text_in_row(menu_str, 1);
-
-                switch (p_task_menu_dta->event) {
-                    case EV_MEN_ENT_ACTIVE:
-                        p_task_menu_dta->state = ST_MENU_XX_SELECT_CONFIG;
-                        break;
-
-                    case EV_MEN_NEX_ACTIVE:
-                        // cambiar entre motores
-                        current_motor++;
-                        if (current_motor >= MOTOR_CFG_QTY)
-                            current_motor = 0;
-
-                        temp_motor_cfg = motor_cfg[current_motor];
-                        break;
-
-                    case EV_MEN_ESC_ACTIVE:
-                    	// devuelve el motor seleccionado al por defecto
-                    	current_motor = 0;
-                    	temp_motor_cfg = motor_cfg[0];
-
-                        p_task_menu_dta->state = ST_MENU_XX_MAIN;
-                        break;
-
-                    default:
-                        break;
-                }
-
-                break;
-
-            case ST_MENU_XX_SELECT_CONFIG:
-                if (!p_task_menu_dta->flag)
-                    break;
-
-                p_task_menu_dta->flag = false;
-
-                print_text_in_row(header_text, 0);
-
-                text_select_config(menu_str, current_motor_cfg_type);
-                print_text_in_row(menu_str, 1);
-
-                switch (p_task_menu_dta->event) {
-                    case EV_MEN_ENT_ACTIVE:
-                        p_task_menu_dta->state = ST_MENU_XX_SELECT_VALUE;
-                        break;
-
-                    case EV_MEN_NEX_ACTIVE:
-                        // cambia entre power, speed y spin
-                        current_motor_cfg_type = next_motor_cfg(current_motor_cfg_type);
-                        break;
-
-                    case EV_MEN_ESC_ACTIVE:
-                    	// devuelve la selección de configuración a por defecto
-                    	current_motor_cfg_type = POWER;
-
-                        p_task_menu_dta->state = ST_MENU_XX_SELECT_MOTOR;
-                        break;
-
-                    default:
-                        break;
-                }
-
-                break;
-
-            case ST_MENU_XX_SELECT_VALUE:
-                if (!p_task_menu_dta->flag)
-                    break;
-
-                p_task_menu_dta->flag = false;
-
-                print_text_in_row(header_text, 0);
-
-                text_select_value(menu_str, &temp_motor_cfg, current_motor_cfg_type);
-                print_text_in_row(menu_str, 1);
-
-                switch (p_task_menu_dta->event) {
-                    case EV_MEN_ENT_ACTIVE:
-                        // guardar valor seleccionado
-                        motor_cfg[current_motor] = temp_motor_cfg;
-
-                        // reinicia las variables de selección de configuración
-                        current_motor = 0;
-                        current_motor_cfg_type = POWER;
-                        temp_motor_cfg = motor_cfg[0];
-
-                        p_task_menu_dta->state = ST_MENU_XX_MAIN;
-
-                        break;
-
-                    case EV_MEN_NEX_ACTIVE:
-                        // cambia el valor de la configuración selecionada
-                        change_current_cfg(&temp_motor_cfg, current_motor_cfg_type);
-                        break;
-
-                    case EV_MEN_ESC_ACTIVE:
-                        p_task_menu_dta->state = ST_MENU_XX_SELECT_CONFIG;
-                        break;
-
-                    default:
-                        break;
-                }
-
-                break;
-
-            default:
-
-                p_task_menu_dta->tick  = DEL_MEN_XX_MIN;
-                p_task_menu_dta->state = ST_MENU_XX_MAIN;
-                p_task_menu_dta->event = EV_MEN_ENT_IDLE;
-                p_task_menu_dta->flag  = false;
-
-                break;
-		}
+        /* Run Task Menu Statechart */
+        task_menu_statechart()
 	}
 }
-
-
-void task_menu_update(void *parameters)
-{
-	bool b_time_update_required = false;
-
-	/* Protect shared resource */
-	__asm("CPSID i");	/* disable interrupts */
-    if (G_TASK_MEN_TICK_CNT_INI < g_task_menu_tick_cnt)
-    {
-		/* Update Tick Counter */
-    	g_task_menu_tick_cnt--;
-    	b_time_update_required = true;
-    }
-    __asm("CPSIE i");	/* enable interrupts */
-
-    while (b_time_update_required)
-    {
-		/* Update Task Counter */
-		g_task_menu_cnt++;
-
-		/* Run Task Menu Statechart */
-    	task_menu_statechart();
-
-    	/* Protect shared resource */
-		__asm("CPSID i");	/* disable interrupts */
-		if (G_TASK_MEN_TICK_CNT_INI < g_task_menu_tick_cnt)
-		{
-			/* Update Tick Counter */
-			g_task_menu_tick_cnt--;
-			b_time_update_required = true;
-		}
-		else
-		{
-			b_time_update_required = false;
-		}
-		__asm("CPSIE i");	/* enable interrupts */
-	}
 
 motor_cfg_type_t next_motor_cfg(motor_cfg_type_t current) {
     switch (current) {
@@ -527,7 +309,7 @@ void print_text_in_row(const char str[], uint8_t row) {
     displayStringWrite(str);
 }
 
-
+/*Falta crear funciones de acciones y agregarlas (condicional cambiar los elif por switch anidados) */
 void task_menu_statechart(void)
 {
 	task_menu_dta_t *p_task_menu_dta;
