@@ -515,6 +515,10 @@
       {
         "netclass": "alimentación",
         "pattern": "GND"
+      },
+      {
+        "netclass": "alimentación",
+        "pattern": "\\+12V"
       }
     ]
   },
