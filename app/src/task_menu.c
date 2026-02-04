@@ -60,7 +60,7 @@
 
 /********************** internal data declaration ****************************/
 task_menu_dta_t task_menu_dta =
-	{DEL_MEN_XX_MIN, ST_MEN_XX_MAIN, EV_MEN_ENT_IDLE, false};
+	{DEL_MEN_XX_MIN, ST_MENU_XX_MAIN, EV_MEN_ENT_IDLE, false};
 
 #define MENU_DTA_QTY	(sizeof(task_menu_dta)/sizeof(task_menu_dta_t))
 
@@ -98,7 +98,7 @@ volatile uint32_t g_task_menu_tick_cnt;
 void task_menu_init(void *parameters)
 {
 	task_menu_dta_t *p_task_menu_dta;
-	task_menu_st_t	state;
+	task_menu_ST_MENU_t	state;
 	task_menu_ev_t	event;
 	bool b_event;
 	char menu_str[DISPLAY_CHAR_WIDTH + 1];
@@ -196,7 +196,7 @@ void task_menu_update(void *parameters)
         }
 
         switch (p_task_menu_dta->state) {
-            case ST_MEN_XX_MAIN:
+            case ST_MENU_XX_MAIN:
                 if (!p_task_menu_dta->flag)
                     break;
 
@@ -212,7 +212,7 @@ void task_menu_update(void *parameters)
 
                 switch (p_task_menu_dta->event) {
                     case EV_MEN_ENT_ACTIVE:
-                        p_task_menu_dta->state = ST_MEN_XX_SELECT_MOTOR;
+                        p_task_menu_dta->state = ST_MENU_XX_SELECT_MOTOR;
                         break;
 
                     default:
@@ -221,7 +221,7 @@ void task_menu_update(void *parameters)
 
                 break;
 
-            case ST_MEN_XX_SELECT_MOTOR:
+            case ST_MENU_XX_SELECT_MOTOR:
                 if (!p_task_menu_dta->flag)
                     break;
 
@@ -234,7 +234,7 @@ void task_menu_update(void *parameters)
 
                 switch (p_task_menu_dta->event) {
                     case EV_MEN_ENT_ACTIVE:
-                        p_task_menu_dta->state = ST_MEN_XX_SELECT_CONFIG;
+                        p_task_menu_dta->state = ST_MENU_XX_SELECT_CONFIG;
                         break;
 
                     case EV_MEN_NEX_ACTIVE:
@@ -251,7 +251,7 @@ void task_menu_update(void *parameters)
                     	current_motor = 0;
                     	temp_motor_cfg = motor_cfg[0];
 
-                        p_task_menu_dta->state = ST_MEN_XX_MAIN;
+                        p_task_menu_dta->state = ST_MENU_XX_MAIN;
                         break;
 
                     default:
@@ -260,7 +260,7 @@ void task_menu_update(void *parameters)
 
                 break;
 
-            case ST_MEN_XX_SELECT_CONFIG:
+            case ST_MENU_XX_SELECT_CONFIG:
                 if (!p_task_menu_dta->flag)
                     break;
 
@@ -273,7 +273,7 @@ void task_menu_update(void *parameters)
 
                 switch (p_task_menu_dta->event) {
                     case EV_MEN_ENT_ACTIVE:
-                        p_task_menu_dta->state = ST_MEN_XX_SELECT_VALUE;
+                        p_task_menu_dta->state = ST_MENU_XX_SELECT_VALUE;
                         break;
 
                     case EV_MEN_NEX_ACTIVE:
@@ -285,7 +285,7 @@ void task_menu_update(void *parameters)
                     	// devuelve la selección de configuración a por defecto
                     	current_motor_cfg_type = POWER;
 
-                        p_task_menu_dta->state = ST_MEN_XX_SELECT_MOTOR;
+                        p_task_menu_dta->state = ST_MENU_XX_SELECT_MOTOR;
                         break;
 
                     default:
@@ -294,7 +294,7 @@ void task_menu_update(void *parameters)
 
                 break;
 
-            case ST_MEN_XX_SELECT_VALUE:
+            case ST_MENU_XX_SELECT_VALUE:
                 if (!p_task_menu_dta->flag)
                     break;
 
@@ -315,7 +315,7 @@ void task_menu_update(void *parameters)
                         current_motor_cfg_type = POWER;
                         temp_motor_cfg = motor_cfg[0];
 
-                        p_task_menu_dta->state = ST_MEN_XX_MAIN;
+                        p_task_menu_dta->state = ST_MENU_XX_MAIN;
 
                         break;
 
@@ -325,7 +325,7 @@ void task_menu_update(void *parameters)
                         break;
 
                     case EV_MEN_ESC_ACTIVE:
-                        p_task_menu_dta->state = ST_MEN_XX_SELECT_CONFIG;
+                        p_task_menu_dta->state = ST_MENU_XX_SELECT_CONFIG;
                         break;
 
                     default:
@@ -337,7 +337,7 @@ void task_menu_update(void *parameters)
             default:
 
                 p_task_menu_dta->tick  = DEL_MEN_XX_MIN;
-                p_task_menu_dta->state = ST_MEN_XX_MAIN;
+                p_task_menu_dta->state = ST_MENU_XX_MAIN;
                 p_task_menu_dta->event = EV_MEN_ENT_IDLE;
                 p_task_menu_dta->flag  = false;
 
@@ -444,7 +444,6 @@ void print_text_in_row(const char str[], uint8_t row) {
 void task_menu_statechart(void)
 {
 	task_menu_dta_t *p_task_menu_dta;
-	char menu_str[8];
 
     /* Update Task Menu Data Pointer */
 	p_task_menu_dta = &task_menu_dta;
@@ -457,48 +456,140 @@ void task_menu_statechart(void)
 
 	switch (p_task_menu_dta->state)
 	{
-		case ST_MEN_INIT:
+		case ST_MENU_INIT:
 
-			if ((true == p_task_menu_dta->flag) && (EV_MEN_ENT_ACTIVE == p_task_menu_dta->event))
-			{
-				p_task_menu_dta->tick = DEL_MEN_XX_MAX;
-				p_task_menu_dta->flag = false;
-				p_task_menu_dta->state = ST_MEN_XX_ACTIVE;
-			}
+	    	if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_HASH)
+	            {
+	    			/* Selección*/
+	    			p_task_menu_dta->flag = false;
+	            }
+	        else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_NEXT)
+	            {
+	        		if (config_selected())
+	        			p_task_menu_dta->state = ST_MENU_CONFIG;
+	                else if (!config_selected() && fecha_valida())
+	                	p_task_menu_dta->state = ST_MENU_READ;
 
+	        		p_task_menu_dta->flag = false;
+	            }
+	    	break;
+
+		case ST_MENU_CONFIG:
+
+			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_HASH)
+	            {
+	                /* Selección*/
+					p_task_menu_dta->flag = false;
+	            }
+	        else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_BACK)
+	            {
+	                p_task_menu_dta->state = ST_MENU_INIT;
+	                p_task_menu_dta->flag = false;
+	            }
+	        else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_NEXT)
+	            {
+	                if (cfg_time_selected())      p_task_menu_dta->state = ST_MENU_CONFIG_TIME;
+	                else if (cfg_temp_selected()) p_task_menu_dta->state = ST_MENU_CONFIG_TEMP;
+	                else if (cfg_hum_selected())  p_task_menu_dta->state = ST_MENU_CONFIG_HUM;
+	                else if (cfg_lig_selected())  p_task_menu_dta->state = ST_MENU_CONFIG_LIG;
+
+	                p_task_menu_dta->flag = false;
+	            }
+	        break;
+
+	        /* ===================== CONFIG TIME ===================== */
+		case ST_MENU_CONFIG_TIME:
+
+			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_HASH)
+	            {
+					/* Selección*/
+	                p_task_menu_dta->flag = false;
+	            }
+	        else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_ENTER)
+	            {
+	                if (fecha_valida())
+	                    guardar_fecha();
+
+	                p_task_menu_dta->flag = false;
+	            }
+	        else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_BACK)
+	            {
+	                p_task_menu_dta->state = ST_MENU_CONFIG;
+	                p_task_menu_dta->flag = false;
+	            }
+	        break;
+
+	        /* ===================== CONFIG TEMP ===================== */
+		case ST_MENU_CONFIG_TEMP:
+
+			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_HASH)
+	            {
+					/* Selección*/
+	                p_task_menu_dta->flag = false;
+	            }
+			else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_ENTER)
+	            {
+	                if (temp_valida())
+	                    guardar_temp();
+
+	                p_task_menu_dta->flag = false;
+	            }
+			else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_BACK)
+	            {
+	                p_task_menu_dta->state = ST_MENU_CONFIG;
+	                p_task_menu_dta->flag = false;
+	            }
 			break;
 
-		case ST_MEN_XX_ACTIVE:
+	        /* ===================== READ ===================== */
+		case ST_MENU_READ:
 
-			if ((true == p_task_menu_dta->flag) && (EV_MEN_ENT_IDLE == p_task_menu_dta->event))
-			{
-				p_task_menu_dta->flag = false;
-				p_task_menu_dta->state = ST_MEN_XX_IDLE;
-			}
-			else
-			{
-				p_task_menu_dta->tick--;
-				if (DEL_MEN_XX_MIN == p_task_menu_dta->tick)
-				{
-					p_task_menu_dta->tick = DEL_MEN_XX_MAX;
+			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_HASH)
+	            {
+	            	/* Selección*/
+	                p_task_menu_dta->flag = false;
+	            }
+			else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_BACK)
+	            {
+	                p_task_menu_dta->state = ST_MENU_INIT;
+	                p_task_menu_dta->flag = false;
+	            }
+			else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_NEXT)
+	            {
+	                if (read_time_selected()) p_task_menu_dta->state = ST_MENU_READ_TIME;
+	                else if (read_temp_selected()) p_task_menu_dta->state = ST_MENU_READ_TEMP;
+	                else if (read_hum_selected())  p_task_menu_dta->state = ST_MENU_READ_HUM;
+	                else if (read_lig_selected())  p_task_menu_dta->state = ST_MENU_READ_LIG;
 
-					/* Print out: LCD Display */
-					snprintf(menu_str, sizeof(menu_str), "%lu", (g_task_menu_cnt/1000ul));
-					displayCharPositionWrite(10, 1);
-					displayStringWrite(menu_str);
-				}
-			}
-
+	                p_task_menu_dta->flag = false;
+	            }
 			break;
 
+	        /* ===================== READ TEMP ===================== */
+		case ST_MENU_READ_TEMP:
+
+			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_HASH)
+	            {
+					/* Selección*/
+	                p_task_menu_dta->flag = false;
+	            }
+			else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_NEXT)
+	            {
+	                if (temp_config_selected())
+	                    p_task_menu_dta->state = ST_MENU_READ_TEMP_CON;
+	                else
+	                    p_task_menu_dta->state = ST_MENU_READ_TEMP_HIS;
+
+	                p_task_menu_dta->flag = false;
+	            }
+			break;
+
+	        /* ===================== DEFAULT ===================== */
 		default:
-
-			p_task_menu_dta->tick  = DEL_MEN_XX_MIN;
-			p_task_menu_dta->state = ST_MEN_XX_IDLE;
-			p_task_menu_dta->event = EV_MEN_ENT_IDLE;
+			p_task_menu_dta->state = ST_MENU_INIT;
 			p_task_menu_dta->flag  = false;
-
 			break;
-	}
+	    }
 }
+
 
