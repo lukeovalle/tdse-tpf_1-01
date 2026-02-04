@@ -18,6 +18,7 @@
 #include "app.h"
 #include "ext_memory.h"
 #include "memory_buffer.h"
+#include "task_clock.h"
 #include <stdbool.h>
 
 /********************** macros and definitions *******************************/
@@ -39,10 +40,17 @@ volatile uint32_t g_task_print_tick_cnt;
 const char *p_task_print 		= "Task Light Sensor (Sensor Statechart)";
 const char *p_task_print_ 		= "Non-Blocking & Update By Time Code";
 
-
+bool read = false;
 
 /********************** external functions definition ************************/
 extern void task_print_init(void *parameters) {
+
+	clock_config_set_year(2067);
+	clock_config_set_month(AUGUST);
+	clock_config_set_day(80);
+	clock_config_set_hour(16);
+	clock_config_set_minute(20);
+
 	return;
 }
 
@@ -62,6 +70,12 @@ extern void task_print_update(void *parameters) {
     while (b_time_update_required) {
 		/* Update Task Counter */
 		g_task_print_cnt++;
+
+		if (!read) {
+			date_time_t reloj = clock_get_time();
+			LOGGER_LOG("%4u/%02u/%02u %02u:%02u:%02u", reloj.year, reloj.month, reloj.day, reloj.hour, reloj.minutes, reloj.seconds);
+			read = true;
+		}
 
     	/* Protect shared resource */
 		__asm("CPSID i");	/* disable interrupts */

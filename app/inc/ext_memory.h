@@ -14,7 +14,8 @@ typedef enum {
 	ST_MEM_OK,
 	ST_MEM_FAIL,
 	ST_MEM_NULL_PTR,
-	ST_MEM_BUSY
+	ST_MEM_BUSY,
+	ST_MEM_FULL
 } mem_status_t;
 
 typedef enum {

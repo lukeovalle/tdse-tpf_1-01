@@ -21,10 +21,9 @@
 #define	MEMORY_LOG_COUNT_ADDR	(MEMORY_CONFIG_ADDR + MEMORY_CONFIG_SIZE)
 #define	MEMORY_LOG_COUNT_SIZE	sizeof(uint16_t)
 #define	MEMORY_LOG_DATA_ADDR	(MEMORY_LOG_COUNT_ADDR + MEMORY_LOG_COUNT_SIZE)
+#define MEMORY_MAX_BYTES		1024
 
 /* External data declaration */
-
-
 static uint32_t log_size;
 
 /* Internal function declarations */
@@ -62,6 +61,9 @@ mem_status_t memory_read_config(mem_cfg_t * config) {
 mem_status_t memory_append_log(mem_type_log_t type, float * value) {
 	if(!value)
 		return ST_MEM_NULL_PTR;
+
+	if (MEMORY_LOG_DATA_ADDR + log_size * sizeof(mem_log_t) >= 1024)
+		return ST_MEM_FULL;
 
 	/* Escribimos datos al final del log */
 	mem_log_t log_aux = {.type = type, .value = *value } ;
