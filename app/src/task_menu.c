@@ -145,18 +145,9 @@ void task_menu_init(void *parameters)
 	displayStringWrite("TdSE Bienvenidos");
 
 	displayCharPositionWrite(0, 1);
-	displayStringWrite("Test Nro: ");
+	displayStringWrite("TPF integrador");
 
-    // Imprime el texto del menú principal, en dos filas
-
-    text_info_motor_in_row(menu_str, 0, motor_cfg + 0);
-    print_text_in_row(menu_str, 0);
-
-    text_info_motor_in_row(menu_str, 1, motor_cfg + 1);
-    print_text_in_row(menu_str, 1);
-
-    // pongo el motor 0 a configurar por defecto.
-    temp_motor_cfg = motor_cfg[0];
+	text_config(p_task_menu_dta);
 
 	g_task_menu_tick_cnt = G_TASK_MEN_TICK_CNT_INI;
 }
@@ -252,6 +243,22 @@ void change_current_cfg(motor_cfg_t * cfg, motor_cfg_type_t type) {
     }
 }
 
+
+void text_conf(task_menu_dta_t *p) {
+	if (p->state == ST_INIT && p->event == EV_PRESS_SCROLL) {
+		displayCharPositionWrite(0, 0);
+		displayStringWrite("Lectura de");
+		displayCharPositionWrite(0, 1);
+		displayStringWrite("datos");
+	}
+	else  {
+		displayCharPositionWrite(0, 0);
+		displayStringWrite("Configurar");
+		displayCharPositionWrite(0, 1);
+		displayStringWrite("parametros");
+	}
+}
+
 void text_info_motor_in_row(char str[], uint8_t index, motor_cfg_t * cfg) {
     snprintf(str, DISPLAY_CHAR_WIDTH + 1, "Motor %1.1d %s %1.1d %c",
             index,
@@ -327,7 +334,7 @@ void task_menu_statechart(void)
 	{
 		case ST_MENU_INIT:
 
-	    	if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_HASH)
+	    	if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
 	            {
 	    			/* Selección*/
 	    			p_task_menu_dta->flag = false;
@@ -345,7 +352,7 @@ void task_menu_statechart(void)
 
 		case ST_MENU_CONFIG:
 
-			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_HASH)
+			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
 	            {
 	                /* Selección*/
 					p_task_menu_dta->flag = false;
@@ -369,7 +376,7 @@ void task_menu_statechart(void)
 	        /* ===================== CONFIG TIME ===================== */
 		case ST_MENU_CONFIG_TIME:
 
-			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_HASH)
+			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
 	            {
 					/* Selección*/
 	                p_task_menu_dta->flag = false;
@@ -391,7 +398,7 @@ void task_menu_statechart(void)
 	        /* ===================== CONFIG TEMP ===================== */
 		case ST_MENU_CONFIG_TEMP:
 
-			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_HASH)
+			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
 	            {
 					/* Selección*/
 	                p_task_menu_dta->flag = false;
@@ -413,7 +420,7 @@ void task_menu_statechart(void)
 	        /* ===================== READ ===================== */
 		case ST_MENU_READ:
 
-			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_HASH)
+			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
 	            {
 	            	/* Selección*/
 	                p_task_menu_dta->flag = false;
@@ -437,7 +444,7 @@ void task_menu_statechart(void)
 	        /* ===================== READ TEMP ===================== */
 		case ST_MENU_READ_TEMP:
 
-			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_HASH)
+			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
 	            {
 					/* Selección*/
 	                p_task_menu_dta->flag = false;

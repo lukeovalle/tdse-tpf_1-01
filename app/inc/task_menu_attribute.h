@@ -44,7 +44,7 @@ extern "C" {
 #endif
 
 /********************** inclusions *******************************************/
-
+#include "display.h"
 /********************** macros ***********************************************/
 
 /********************** typedef **********************************************/
@@ -106,8 +106,8 @@ extern "C" {
 typedef enum task_menu_ev {EV_PRESS_BACK,
 						   EV_PRESS_ENTER,
 						   EV_PRESS_NEXT,
-						   EV_PRESS_HASH,
-						   EV_PRESS_ASTK} task_menu_ev_t;
+						   EV_PRESS_SCROLL,
+						   EV_PRESS_NUM} task_menu_ev_t;
 
 /* State of Task Menu */
 typedef enum task_menu_st {ST_MENU_INIT,
@@ -140,7 +140,7 @@ typedef struct
 extern task_menu_dta_t task_menu_dta;
 
 /********************** external functions declaration ***********************/
-
+void key_to_event(bool btn_pressed, keypad_key_t key);
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
 }
