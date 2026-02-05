@@ -83,15 +83,27 @@ void init_queue_event_task_menu(void)
 
 void put_event_task_menu(task_menu_ev_t event)
 {
-	queue_task_a.count++;
 	queue_task_a.queue[queue_task_a.head++] = event;
 
 	if (MAX_EVENTS == queue_task_a.head)
 		queue_task_a.head = 0;
+
+	if (queue_task_a.count == MAX_EVENTS) {
+	    queue_task_a.tail++;
+
+	    if (queue_task_a.tail == MAX_EVENTS)
+	    	queue_task_a.tail = 0;
+	}
+	else
+		queue_task_a.count++;
 }
 
 task_menu_ev_t get_event_task_menu(void)
 {
+	/* Void queue early return */
+	if (!any_event_task_menu())
+		return EVENT_UNDEFINED;
+
 	task_menu_ev_t event;
 
 	queue_task_a.count--;
@@ -106,7 +118,7 @@ task_menu_ev_t get_event_task_menu(void)
 
 bool any_event_task_menu(void)
 {
-  return (queue_task_a.head != queue_task_a.tail);
+  return (queue_task_a.count > 0);
 }
 
 /********************** end of file ******************************************/
