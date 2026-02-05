@@ -57,12 +57,21 @@ void task_keypad_update(void *parameters)
 {
     (void) parameters;
 
+    /* Botonera matricial clásica unibotón */
     keypad_key_t key_read = keypad_scan();
     for (uint8_t i = 0; i < KEYPAD_SCAN_SAMPLES; i++)
     {
     	keypad_key_t key_read_next = keypad_scan();
     	if (key_read_next == KEY_NONE) break;
     	key_read = key_read_next;
+    }
+
+    for (uint8_t i = 0; i < KEYPAD_SCAN_SAMPLES; i++) {
+        keypad_key_t key_read_next = keypad_scan();
+        if (key_read_next == KEY_NONE)
+            break;
+
+        key_read = key_read_next;
     }
 
     g_task_keypad_cnt++;
