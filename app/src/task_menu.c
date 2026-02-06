@@ -62,7 +62,7 @@
 
 /********************** internal data declaration ****************************/
 task_menu_dta_t task_menu_dta =
-	{DEL_MEN_XX_MIN, ST_MENU_INIT, EV_PRESS_BACK, false};
+	{DEL_MEN_XX_MIN, ST_MENU_INIT, EV_PRESS_BACK, EVENT_UNDEFINED, false};
 
 #define MENU_DTA_QTY	(sizeof(task_menu_dta)/sizeof(task_menu_dta_t))
 
@@ -326,11 +326,19 @@ void task_menu_statechart(void)
     /* Update Task Menu Data Pointer */
 	p_task_menu_dta = &task_menu_dta;
 
+	/*Use for numerical values and scroll identification */
+	uint32_t value = KEY_VALUE_INVALID;
+
 	if (true == any_event_task_menu())
 	{
 		p_task_menu_dta->flag = true;
-		p_task_menu_dta->event = get_event_task_menu();
+		p_task_menu_dta->event = get_event_task_menu(&value);
+		/*Codificar acciones con EV_PRESS_NUM mas adelante*/
 	}
+	else return;
+
+	/*El flasg se vuelve redundante para la maquina de estados*/
+	p_task_menu_dta->flag = false;
 
 	switch (p_task_menu_dta->state)
 	{
@@ -338,125 +346,98 @@ void task_menu_statechart(void)
 			/*Mejorar dysplay para que se altere con cada scroll*/
 			text_config(p_task_menu_dta);
 
-	    	if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
+	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL)
 	            {
 	    			/* Selección*/
-	    			p_task_menu_dta->flag = false;
 	            }
-	        else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_NEXT)
+	        else if (p_task_menu_dta->event == EV_PRESS_NEXT)
 	            {
 	        		if (config_selected())
 	        			p_task_menu_dta->state = ST_MENU_CONFIG;
 	                else if (!config_selected() && fecha_valida())
 	                	p_task_menu_dta->state = ST_MENU_READ;
-
-	        		p_task_menu_dta->flag = false;
 	            }
 	    	break;
 
 		case ST_MENU_CONFIG:
-
-			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL)
 	            {
 	                /* Selección*/
-					p_task_menu_dta->flag = false;
 	            }
-	        else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_BACK)
+	        else if (p_task_menu_dta->event == EV_PRESS_BACK)
 	            {
 	                p_task_menu_dta->state = ST_MENU_INIT;
-	                p_task_menu_dta->flag = false;
 	            }
-	        else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_NEXT)
+	        else if (p_task_menu_dta->event == EV_PRESS_NEXT)
 	            {
 	                if (cfg_time_selected())      p_task_menu_dta->state = ST_MENU_CONFIG_TIME;
 	                else if (cfg_temp_selected()) p_task_menu_dta->state = ST_MENU_CONFIG_TEMP;
 	                else if (cfg_hum_selected())  p_task_menu_dta->state = ST_MENU_CONFIG_HUM;
 	                else if (cfg_lig_selected())  p_task_menu_dta->state = ST_MENU_CONFIG_LIG;
-
-	                p_task_menu_dta->flag = false;
 	            }
 	        break;
 
 		case ST_MENU_CONFIG_TIME:
-
-			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL)
 	            {
 					/* Selección*/
-	                p_task_menu_dta->flag = false;
 	            }
-	        else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_ENTER)
+	        else if (p_task_menu_dta->event == EV_PRESS_ENTER)
 	            {
 	                if (fecha_valida())
 	                    guardar_fecha();
-
-	                p_task_menu_dta->flag = false;
 	            }
-	        else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_BACK)
+	        else if (p_task_menu_dta->event == EV_PRESS_BACK)
 	            {
 	                p_task_menu_dta->state = ST_MENU_CONFIG;
-	                p_task_menu_dta->flag = false;
 	            }
 	        break;
 
 		case ST_MENU_CONFIG_TEMP:
-
-			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL)
 	            {
 					/* Selección*/
-	                p_task_menu_dta->flag = false;
 	            }
-			else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_ENTER)
+			else if (p_task_menu_dta->event == EV_PRESS_ENTER)
 	            {
 	                if (temp_valida())
 	                    guardar_temp();
-
-	                p_task_menu_dta->flag = false;
 	            }
-			else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_BACK)
+			else if (p_task_menu_dta->event == EV_PRESS_BACK)
 	            {
 	                p_task_menu_dta->state = ST_MENU_CONFIG;
-	                p_task_menu_dta->flag = false;
 	            }
 			break;
 
 		case ST_MENU_READ:
-
-			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL)
 	            {
 	            	/* Selección*/
-	                p_task_menu_dta->flag = false;
 	            }
-			else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_BACK)
+			else if (p_task_menu_dta->event == EV_PRESS_BACK)
 	            {
 	                p_task_menu_dta->state = ST_MENU_INIT;
-	                p_task_menu_dta->flag = false;
 	            }
-			else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_NEXT)
+			else if (p_task_menu_dta->event == EV_PRESS_NEXT)
 	            {
 	                if (read_time_selected()) p_task_menu_dta->state = ST_MENU_READ_TIME;
 	                else if (read_temp_selected()) p_task_menu_dta->state = ST_MENU_READ_TEMP;
 	                else if (read_hum_selected())  p_task_menu_dta->state = ST_MENU_READ_HUM;
 	                else if (read_lig_selected())  p_task_menu_dta->state = ST_MENU_READ_LIG;
-
-	                p_task_menu_dta->flag = false;
 	            }
 			break;
 
 		case ST_MENU_READ_TEMP:
-
-			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL)
 	            {
 					/* Selección*/
-	                p_task_menu_dta->flag = false;
 	            }
-			else if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_NEXT)
+			else if (p_task_menu_dta->event == EV_PRESS_NEXT)
 	            {
 	                if (temp_config_selected())
 	                    p_task_menu_dta->state = ST_MENU_READ_TEMP_CON;
 	                else
 	                    p_task_menu_dta->state = ST_MENU_READ_TEMP_HIS;
-
-	                p_task_menu_dta->flag = false;
 	            }
 			break;
 

@@ -29,15 +29,15 @@ struct
 	uint32_t	tail;
 	uint32_t	count;
 	task_menu_ev_t	queue[MAX_EVENTS];
+	uint32_t key_values[MAX_EVENTS];
 } queue_task_a;
 
 /********************** external data declaration ****************************/
 
 /********************** external functions definition ************************/
-uint32_t key_to_event(bool btn_pressed, keypad_key_t key)
-{
-    if (!btn_pressed)
-        return KEY_VALUE_INVALID;
+void task_menu_push_event(bool btn_pressed, keypad_key_t key) {
+	 if (!btn_pressed || key == KEY_NONE)
+		 return;
 
     task_menu_ev_t event = EVENT_UNDEFINED;
     uint32_t key_value = KEY_VALUE_INVALID;
@@ -62,11 +62,10 @@ uint32_t key_to_event(bool btn_pressed, keypad_key_t key)
         case KEY_B: event = EV_PRESS_NEXT; break;
         case KEY_C: event = EV_PRESS_ENTER; break;
 
-        default: return KEY_VALUE_INVALID;
+        default: return;
     }
 
-    put_event_task_menu(event);
-    return key_value;
+    put_event_task_menu(event, key_value);
 }
 
 /********************** end of file ******************************************/

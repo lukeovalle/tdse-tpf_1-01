@@ -133,6 +133,7 @@ typedef struct
 	uint32_t		tick;
 	task_menu_st_t	state;
 	task_menu_ev_t	event;
+	uint32_t		ev_value;
 	bool			flag;
 } task_menu_dta_t;
 
@@ -140,7 +141,8 @@ typedef struct
 extern task_menu_dta_t task_menu_dta;
 
 /********************** external functions declaration ***********************/
-uint32_t key_to_event(bool btn_pressed, keypad_key_t key);
+void task_menu_push_event(bool btn_pressed, keypad_key_t key);
+uint32_t key_to_event(keypad_key_t key);
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
 }
