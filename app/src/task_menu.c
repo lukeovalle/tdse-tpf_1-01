@@ -206,45 +206,7 @@ void task_menu_update(void *parameters)
 	}
 }
 
-motor_cfg_type_t next_motor_cfg(motor_cfg_type_t current) {
-    switch (current) {
-    case POWER:
-        return SPEED;
-    case SPEED:
-        return SPIN;
-    case SPIN:
-        return POWER;
-    default:
-        return POWER;
-    }
-}
-
-void change_current_cfg(motor_cfg_t * cfg, motor_cfg_type_t type) {
-    switch (type) {
-    case POWER:
-        cfg->power = !cfg->power;
-        break;
-
-    case SPEED:
-        cfg->speed++;
-        if (cfg->speed > MAX_SPEED)
-            cfg->speed = 0;
-        break;
-
-    case SPIN:
-        if (cfg->spin == LEFT)
-            cfg->spin = RIGHT;
-        else
-            cfg->spin = LEFT;
-        break;
-
-    default:
-        break;
-    }
-}
-
-
-void text_conf(task_menu_dta_t *p) {
+void display_init(task_menu_dta_t *p) {
 	if (p->state == ST_INIT && p->event == EV_PRESS_SCROLL) {
 		displayCharPositionWrite(0, 0);
 		displayStringWrite("Lectura de");
@@ -257,63 +219,6 @@ void text_conf(task_menu_dta_t *p) {
 		displayCharPositionWrite(0, 1);
 		displayStringWrite("parametros");
 	}
-}
-
-void text_info_motor_in_row(char str[], uint8_t index, motor_cfg_t * cfg) {
-    snprintf(str, DISPLAY_CHAR_WIDTH + 1, "Motor %1.1d %s %1.1d %c",
-            index,
-            (cfg->power) ? "ON" : "OFF",
-            cfg->speed,
-            ((cfg->spin == LEFT) ? 'L' : 'R'));
-}
-
-void text_select_motor(char str[], uint8_t index) {
-    snprintf(str, DISPLAY_CHAR_WIDTH + 1, "> Motor %d", index);
-}
-
-void text_select_config(char str[], motor_cfg_type_t type) {
-    char *aux;
-
-    switch (type) {
-    case POWER:
-        aux = "Power";
-        break;
-    case SPEED:
-        aux = "Speed";
-        break;
-    case SPIN:
-        aux = "Spin";
-        break;
-    default:
-        break;
-    }
-    snprintf(str, DISPLAY_CHAR_WIDTH + 1, "> %s", aux);
-}
-
-void text_select_value(char str[],motor_cfg_t * cfg, motor_cfg_type_t type) {
-    switch (type) {
-    case POWER:
-        snprintf(str, DISPLAY_CHAR_WIDTH + 1, "> %s",
-                cfg->power ? "ON" : "OFF");
-        break;
-    case SPEED:
-        snprintf(str, DISPLAY_CHAR_WIDTH + 1, "> %d", cfg->speed);
-        break;
-    case SPIN:
-        snprintf(str, DISPLAY_CHAR_WIDTH + 1, "> %s",
-                cfg->spin == LEFT ? "LEFT" : "RIGHT");
-        break;
-    default:
-        break;
-    }
-
-}
-
-void print_text_in_row(const char str[], uint8_t row) {
-    displayCharPositionWrite(0, row);
-    displayStringWrite(empty_line);
-    displayCharPositionWrite(0, row);
-    displayStringWrite(str);
 }
 
 /*Falta crear funciones de acciones, guardas y display (condicional cambiar los elif por switch anidados con if para guardas) */
