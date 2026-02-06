@@ -335,6 +335,7 @@ static void MX_DMA_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
   /* USER CODE END MX_GPIO_Init_1 */
 
@@ -343,6 +344,59 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, D6_Pin|D5_Pin|D4_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, D_EN_Pin|BOTONERA_FILA2_Pin|BOTONERA_FILA3_Pin|BOTONERA_FILA1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, D7_Pin|D_RS_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(BOTONERA_FILA4_GPIO_Port, BOTONERA_FILA4_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : BOTONERA_COL1_Pin BOTONERA_COL2_Pin BOTONERA_COL4_Pin BOTONERA_COL3_Pin */
+  GPIO_InitStruct.Pin = BOTONERA_COL1_Pin|BOTONERA_COL2_Pin|BOTONERA_COL4_Pin|BOTONERA_COL3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : D6_Pin D5_Pin D4_Pin */
+  GPIO_InitStruct.Pin = D6_Pin|D5_Pin|D4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : D_EN_Pin */
+  GPIO_InitStruct.Pin = D_EN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(D_EN_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : D7_Pin D_RS_Pin */
+  GPIO_InitStruct.Pin = D7_Pin|D_RS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : BOTONERA_FILA2_Pin BOTONERA_FILA3_Pin BOTONERA_FILA1_Pin */
+  GPIO_InitStruct.Pin = BOTONERA_FILA2_Pin|BOTONERA_FILA3_Pin|BOTONERA_FILA1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : BOTONERA_FILA4_Pin */
+  GPIO_InitStruct.Pin = BOTONERA_FILA4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(BOTONERA_FILA4_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
   /* USER CODE END MX_GPIO_Init_2 */
