@@ -48,6 +48,7 @@
 #include "app.h"
 #include "task_menu_attribute.h"
 #include "task_menu_interface.h"
+#include "task_keypad.h"
 #include "display.h"
 #include "memory_buffer.h"
 
@@ -147,7 +148,7 @@ void task_menu_init(void *parameters)
 	displayCharPositionWrite(0, 1);
 	displayStringWrite("TPF integrador");
 
-	text_config(p_task_menu_dta);
+	task_keypad_init();
 
 	g_task_menu_tick_cnt = G_TASK_MEN_TICK_CNT_INI;
 }
@@ -195,6 +196,7 @@ void task_menu_update(void *parameters)
 
         p_task_menu_dta->tick = DEL_MEN_XX_MAX;
 
+        task_keypad_update();
         if (true == any_event_task_menu())
         {
             p_task_menu_dta->flag = true;
@@ -333,6 +335,8 @@ void task_menu_statechart(void)
 	switch (p_task_menu_dta->state)
 	{
 		case ST_MENU_INIT:
+			/*Mejorar dysplay para que se altere con cada scroll*/
+			text_config(p_task_menu_dta);
 
 	    	if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
 	            {
@@ -373,7 +377,6 @@ void task_menu_statechart(void)
 	            }
 	        break;
 
-	        /* ===================== CONFIG TIME ===================== */
 		case ST_MENU_CONFIG_TIME:
 
 			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
@@ -395,7 +398,6 @@ void task_menu_statechart(void)
 	            }
 	        break;
 
-	        /* ===================== CONFIG TEMP ===================== */
 		case ST_MENU_CONFIG_TEMP:
 
 			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
@@ -417,7 +419,6 @@ void task_menu_statechart(void)
 	            }
 			break;
 
-	        /* ===================== READ ===================== */
 		case ST_MENU_READ:
 
 			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
@@ -441,7 +442,6 @@ void task_menu_statechart(void)
 	            }
 			break;
 
-	        /* ===================== READ TEMP ===================== */
 		case ST_MENU_READ_TEMP:
 
 			if (p_task_menu_dta->flag && p_task_menu_dta->event == EV_PRESS_SCROLL)
@@ -460,7 +460,6 @@ void task_menu_statechart(void)
 	            }
 			break;
 
-	        /* ===================== DEFAULT ===================== */
 		default:
 			p_task_menu_dta->state = ST_MENU_INIT;
 			p_task_menu_dta->flag  = false;

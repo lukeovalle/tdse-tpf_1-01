@@ -140,7 +140,7 @@ typedef struct
 extern task_menu_dta_t task_menu_dta;
 
 /********************** external functions declaration ***********************/
-void key_to_event(bool btn_pressed, keypad_key_t key);
+uint32_t key_to_event(bool btn_pressed, keypad_key_t key);
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
 }
