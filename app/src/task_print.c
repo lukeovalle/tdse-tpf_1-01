@@ -73,7 +73,7 @@ extern void task_print_update(void *parameters) {
 
 		if (!read) {
 			date_time_t reloj = clock_get_time();
-			LOGGER_LOG("%4u/%02u/%02u %02u:%02u:%02u", reloj.year, reloj.month, reloj.day, reloj.hour, reloj.minutes, reloj.seconds);
+			LOGGER_LOG("%4u/%02u/%02u %02u:%02u:%02u", reloj.year, reloj.month, reloj.day, reloj.hours, reloj.minutes, reloj.seconds);
 			read = true;
 		}
 

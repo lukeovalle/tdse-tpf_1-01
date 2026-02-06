@@ -46,6 +46,7 @@
 /* Application & Tasks includes */
 #include "app.h"
 #include "board.h"
+#include "ext_memory.h"
 #include "task_actuator.h"
 #include "task_clock.h"
 #include "task_i2c.h"
@@ -115,6 +116,8 @@ void app_init(void)
 	/* Init & Print out: Application execution counter */
 	g_app_cnt = G_APP_CNT_INI;
 	LOGGER_INFO(" %s = %lu", GET_NAME(g_app_cnt), g_app_cnt);
+
+	ext_memory_init();
 
 	/* Init Cycle Counter */
 	cycle_counter_init();

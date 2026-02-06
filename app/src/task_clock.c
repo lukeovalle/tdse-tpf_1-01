@@ -68,7 +68,7 @@ static date_time_t clock = {
 		.year		= 2026,
 		.month		= JANUARY,
 		.day		= 1,
-		.hour		= 0,
+		.hours		= 0,
 		.minutes	= 0,
 		.seconds	= 0
 };
@@ -168,7 +168,7 @@ void clock_config_set_day(uint8_t day) {
 }
 
 void clock_config_set_hour(uint8_t hour) {
-	clock.hour = CLAMP(hour, 0, 23);
+	clock.hours = CLAMP(hour, 0, 23);
 }
 
 void clock_config_set_minute(uint8_t minute) {
@@ -177,6 +177,68 @@ void clock_config_set_minute(uint8_t minute) {
 
 date_time_t clock_get_time(void) {
 	return clock;
+}
+
+// días acumulados en cada mes
+static uint16_t cumulative_days[] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
+
+date_time_t timestamp_to_datetime(uint32_t timestamp) {
+	date_time_t date;
+
+	date.seconds = timestamp % 60;
+
+	uint32_t minutes = timestamp / 60;
+	date.minutes = minutes % 60;
+
+	uint32_t hours = minutes / 60;
+	date.hours = hours % 60;
+
+	uint32_t days = hours / 24;
+
+	uint16_t year = 2000;
+	uint32_t days_in_year = (is_leap_year(year) ? 1 : 0) + 365;
+	while (days > days_in_year) {
+		year++;
+		days -= days_in_year;
+		days_in_year = (is_leap_year(year) ? 1 : 0) + 365;
+	}
+	date.year = year;
+
+	for (uint16_t month = 0; month < DECEMBER; month++) {
+		bool leap_year = is_leap_year(year);
+		uint16_t leap_day = (leap_year && month >= FEBRUARY) ? 1 : 0;
+		if (days <= cumulative_days[month + 1] + leap_day) {
+			date.month = month;
+			days -= cumulative_days[month];
+			days -= (leap_year && month > FEBRUARY) ? 1 : 0;
+			break;
+		}
+	}
+	date.day = days;
+
+	return date;
+}
+
+uint32_t datetime_to_timestamp(date_time_t * date) {
+	if (!date)
+		return 0;
+
+	uint16_t leap_day = (is_leap_year(date->year) && date->month > FEBRUARY) ? 1 : 0;
+
+	uint16_t cumulative_leaps = 0;
+	for (uint16_t year = 2000; year < date->year; year++)
+		cumulative_leaps += is_leap_year(year) ? 1 : 0;
+
+	uint16_t days = (date->day - 1);	// días pasados en el mes
+	days += cumulative_days[date->month] + leap_day;	// días acumulados en los meses pasados y el bisiesto
+	days += (date->year - 2000) * 365 + cumulative_leaps;	// días acumulados en los años pasados y bisiestos
+
+	uint32_t seconds = date->seconds;
+	seconds += date->minutes * 60;
+	seconds += date->hours * 3600;	// 60 * 60
+	seconds += days * 86400;		// 24 * 60 * 60
+
+	return seconds;
 }
 
 /********************** internal functions definition ************************/
@@ -269,11 +331,11 @@ void increase_second(void) {
 		return;
 
 	clock.minutes = 0;
-	clock.hour++;
-	if (clock.hour < 24)
+	clock.hours++;
+	if (clock.hours < 24)
 		return;
 
-	clock.hour = 0;
+	clock.hours = 0;
 	clock.day++;
 
 	if (clock.day <= last_day(clock.year, clock.month))

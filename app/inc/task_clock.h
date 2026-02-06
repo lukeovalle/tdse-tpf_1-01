@@ -38,7 +38,7 @@ typedef struct {
 	uint16_t	year;
 	month_t		month;
 	uint8_t		day;
-	uint8_t		hour, minutes, seconds;
+	uint8_t		hours, minutes, seconds;
 } date_time_t;
 
 /********************** external data declaration ****************************/
@@ -55,6 +55,10 @@ void clock_config_set_day(uint8_t day);
 void clock_config_set_hour(uint8_t hour);
 void clock_config_set_minute(uint8_t minute);
 date_time_t clock_get_time(void);
+
+date_time_t timestamp_to_datetime(uint32_t timestamp);
+uint32_t	datetime_to_timestamp(date_time_t * date);
+
 
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
