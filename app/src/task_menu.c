@@ -60,9 +60,13 @@
 #define DEL_MEN_XX_MED				50ul
 #define DEL_MEN_XX_MAX				500ul
 
+#define EVENT_UNDEFINED	(255)
+#define MAX_EVENTS		(16)
+#define KEY_VALUE_INVALID 10
+
 /********************** internal data declaration ****************************/
 task_menu_dta_t task_menu_dta =
-	{DEL_MEN_XX_MIN, ST_MENU_INIT, EV_PRESS_BACK, EVENT_UNDEFINED, false};
+	{DEL_MEN_XX_MIN, ST_MENU_INIT, ST_MENU_INIT, EV_PRESS_BACK, KEY_VALUE_INVALID, false};
 
 #define MENU_DTA_QTY	(sizeof(task_menu_dta)/sizeof(task_menu_dta_t))
 
@@ -318,7 +322,7 @@ void print_text_in_row(const char str[], uint8_t row) {
     displayStringWrite(str);
 }
 
-/*Falta crear funciones de acciones y agregarlas (condicional cambiar los elif por switch anidados) */
+/*Falta crear funciones de acciones, guardas y display (condicional cambiar los elif por switch anidados con if para guardas) */
 void task_menu_statechart(void)
 {
 	task_menu_dta_t *p_task_menu_dta;
@@ -337,108 +341,223 @@ void task_menu_statechart(void)
 	}
 	else return;
 
-	/*El flasg se vuelve redundante para la maquina de estados*/
+	/*El flag se vuelve redundante para la maquina de estados*/
 	p_task_menu_dta->flag = false;
 
-	switch (p_task_menu_dta->state)
-	{
+	switch (p_task_menu_dta->state) {
 		case ST_MENU_INIT:
 			/*Mejorar dysplay para que se altere con cada scroll*/
-			text_config(p_task_menu_dta);
+			display_init(p_task_menu_dta);
 
-	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL)
-	            {
-	    			/* Selección*/
-	            }
-	        else if (p_task_menu_dta->event == EV_PRESS_NEXT)
-	            {
-	        		if (config_selected())
-	        			p_task_menu_dta->state = ST_MENU_CONFIG;
-	                else if (!config_selected() && fecha_valida())
-	                	p_task_menu_dta->state = ST_MENU_READ;
-	            }
+	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	    		/* Selección*/
+	    		scroll_init();
+	        }
+	        else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
+	        	if (config_selected())
+	        		p_task_menu_dta->state = ST_MENU_CONFIG;
+	            else if (!config_selected() && valid_date())
+	                p_task_menu_dta->state = ST_MENU_READ;
+	        }
 	    	break;
 
 		case ST_MENU_CONFIG:
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL)
-	            {
-	                /* Selección*/
-	            }
-	        else if (p_task_menu_dta->event == EV_PRESS_BACK)
-	            {
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	            /* Selección*/
+				scroll_modes();
+	        }
+	        else if (p_task_menu_dta->event == EV_PRESS_BACK) {
 	                p_task_menu_dta->state = ST_MENU_INIT;
-	            }
-	        else if (p_task_menu_dta->event == EV_PRESS_NEXT)
-	            {
-	                if (cfg_time_selected())      p_task_menu_dta->state = ST_MENU_CONFIG_TIME;
-	                else if (cfg_temp_selected()) p_task_menu_dta->state = ST_MENU_CONFIG_TEMP;
-	                else if (cfg_hum_selected())  p_task_menu_dta->state = ST_MENU_CONFIG_HUM;
-	                else if (cfg_lig_selected())  p_task_menu_dta->state = ST_MENU_CONFIG_LIG;
-	            }
+	        }
+	        else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
+	        	if (time_selected())      p_task_menu_dta->state = ST_MENU_CONFIG_TIME;
+	        	else if (temp_selected()) p_task_menu_dta->state = ST_MENU_CONFIG_TEMP;
+	        	else if (hum_selected())  p_task_menu_dta->state = ST_MENU_CONFIG_HUM;
+	            else if (lig_selected())  p_task_menu_dta->state = ST_MENU_CONFIG_LIG;
+	        }
 	        break;
 
 		case ST_MENU_CONFIG_TIME:
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL)
-	            {
-					/* Selección*/
-	            }
-	        else if (p_task_menu_dta->event == EV_PRESS_ENTER)
-	            {
-	                if (fecha_valida())
-	                    guardar_fecha();
-	            }
-	        else if (p_task_menu_dta->event == EV_PRESS_BACK)
-	            {
-	                p_task_menu_dta->state = ST_MENU_CONFIG;
-	            }
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+				/* Selección*/
+				scroll_time();
+	        }
+	        else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
+	            if (valid_date()) save_date();
+	        }
+	        else if (p_task_menu_dta->event == EV_PRESS_BACK) {
+	            p_task_menu_dta->state = ST_MENU_CONFIG;
+	        }
+	        else if (p_task_menu_dta->event == EV_PRESS_NUM) {
+	        	config_time(value);
+	        }
 	        break;
 
 		case ST_MENU_CONFIG_TEMP:
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL)
-	            {
-					/* Selección*/
-	            }
-			else if (p_task_menu_dta->event == EV_PRESS_ENTER)
-	            {
-	                if (temp_valida())
-	                    guardar_temp();
-	            }
-			else if (p_task_menu_dta->event == EV_PRESS_BACK)
-	            {
-	                p_task_menu_dta->state = ST_MENU_CONFIG;
-	            }
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+				/* Selección*/
+				scroll_parameters();
+	       	}
+			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
+	        	if (valid_temp()) save_temp();
+	        }
+			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
+	        	p_task_menu_dta->state = ST_MENU_CONFIG;
+	        }
+	        else if (p_task_menu_dta->event == EV_PRESS_NUM) {
+	        	config_temp(value);
+	        }
+			break;
+
+		case ST_MENU_CONFIG_HUM:
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+				/* Selección*/
+				scroll_parameters();
+	       	}
+			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
+	        	if (valid_hum()) save_hum();
+	        }
+			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
+				p_task_menu_dta->state = ST_MENU_CONFIG;
+	        }
+	        else if (p_task_menu_dta->event == EV_PRESS_NUM) {
+	        	config_hum(value);
+	        }
+			break;
+
+		case ST_MENU_CONFIG_LIG:
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+				/* Selección*/
+				scroll_parameters();
+	       	}
+			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
+	        	if (valid_lig()) save_lig();
+	        }
+			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
+				p_task_menu_dta->state = ST_MENU_CONFIG;
+	        }
+	        else if (p_task_menu_dta->event == EV_PRESS_NUM) {
+	        	config_lig(value);
+	        }
 			break;
 
 		case ST_MENU_READ:
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL)
-	            {
-	            	/* Selección*/
-	            }
-			else if (p_task_menu_dta->event == EV_PRESS_BACK)
-	            {
-	                p_task_menu_dta->state = ST_MENU_INIT;
-	            }
-			else if (p_task_menu_dta->event == EV_PRESS_NEXT)
-	            {
-	                if (read_time_selected()) p_task_menu_dta->state = ST_MENU_READ_TIME;
-	                else if (read_temp_selected()) p_task_menu_dta->state = ST_MENU_READ_TEMP;
-	                else if (read_hum_selected())  p_task_menu_dta->state = ST_MENU_READ_HUM;
-	                else if (read_lig_selected())  p_task_menu_dta->state = ST_MENU_READ_LIG;
-	            }
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	            /* Selección*/
+				scroll_modes();
+	        }
+			else if (p_task_menu_dta->event == EV_PRESS_BACK){
+	            p_task_menu_dta->state = ST_MENU_INIT;
+	        }
+			else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
+				if (time_selected()) p_task_menu_dta->state = ST_MENU_READ_TIME;
+				else if (temp_selected()) p_task_menu_dta->state = ST_MENU_READ_TEMP;
+				else if (hum_selected())  p_task_menu_dta->state = ST_MENU_READ_HUM;
+				else if (lig_selected())  p_task_menu_dta->state = ST_MENU_READ_LIG;
+	        }
+			break;
+
+		case ST_MENU_READ_TIME:
+			display_date();
+			if (p_task_menu_dta->event == EV_PRESS_BACK) {
+				p_task_menu_dta->state = ST_MENU_READ;
+			}
 			break;
 
 		case ST_MENU_READ_TEMP:
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL)
-	            {
-					/* Selección*/
-	            }
-			else if (p_task_menu_dta->event == EV_PRESS_NEXT)
-	            {
-	                if (temp_config_selected())
-	                    p_task_menu_dta->state = ST_MENU_READ_TEMP_CON;
-	                else
-	                    p_task_menu_dta->state = ST_MENU_READ_TEMP_HIS;
-	            }
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+				/* Selección*/
+				scroll_lectures();
+	        }
+			else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
+				if (!history_selected()) p_task_menu_dta->state = ST_MENU_READ_TEMP_CON;
+	            else p_task_menu_dta->state = ST_MENU_READ_TEMP_HIS;
+	        }
+			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
+				p_task_menu_dta->state = ST_MENU_READ;
+			}
+			break;
+
+		case ST_MENU_READ_HUM:
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+				/* Selección*/
+				scroll_lectures();
+	        }
+			else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
+				if (!history_selected()) p_task_menu_dta->state = ST_MENU_READ_HUM_CON;
+	            else p_task_menu_dta->state = ST_MENU_READ_HUM_HIS;
+	        }
+			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
+				p_task_menu_dta->state = ST_MENU_READ;
+			}
+			break;
+
+		case ST_MENU_READ_LIG:
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+				/* Selección*/
+				scroll_lectures();
+	        }
+			else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
+				if (!history_selected()) p_task_menu_dta->state = ST_MENU_READ_LIG_CON;
+	            else p_task_menu_dta->state = ST_MENU_READ_LIG_HIS;
+	        }
+			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
+				p_task_menu_dta->state = ST_MENU_READ;
+			}
+			break;
+
+		case ST_MENU_READ_TEMP_CON:
+			display_cfg_temp();
+			if (p_task_menu_dta->event == EV_PRESS_BACK) {
+				p_task_menu_dta->state = ST_MENU_READ_TEMP;
+			}
+			break;
+
+		case ST_MENU_READ_TEMP_HIS:
+			display_data_temp();
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+				/* Selección de medición*/
+				scroll_history();
+	        }
+			if (p_task_menu_dta->event == EV_PRESS_BACK) {
+				p_task_menu_dta->state = ST_MENU_READ_TEMP;
+			}
+			break;
+
+		case ST_MENU_READ_HUM_CON:
+			display_cfg_hum();
+			if (p_task_menu_dta->event == EV_PRESS_BACK) {
+				p_task_menu_dta->state = ST_MENU_READ_HUM;
+			}
+			break;
+
+		case ST_MENU_READ_HUM_HIS:
+			display_data_hum();
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+				/* Selección de medición*/
+				scroll_history();
+	        }
+			if (p_task_menu_dta->event == EV_PRESS_BACK) {
+				p_task_menu_dta->state = ST_MENU_READ_HUM;
+			}
+			break;
+
+		case ST_MENU_READ_LIG_CON:
+			display_cfg_lig();
+			if (p_task_menu_dta->event == EV_PRESS_BACK) {
+				p_task_menu_dta->state = ST_MENU_READ_LIG;
+			}
+			break;
+
+		case ST_MENU_READ_LIG_HIS:
+			display_data_lig();
+			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+				/* Selección de medición*/
+				scroll_history();
+	        }
+			if (p_task_menu_dta->event == EV_PRESS_BACK) {
+				p_task_menu_dta->state = ST_MENU_READ_LIG;
+			}
 			break;
 
 		default:

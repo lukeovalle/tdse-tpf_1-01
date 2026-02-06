@@ -83,6 +83,7 @@ extern "C" {
 	| ST_READ_TIME			| EV_PRESS_BACK			|												| ST_READ				|
 	| ST_READ_TEMP			| EV_PRESS_HASH/ASTK	|												| ST_READ_TEMP			| Cambiar entre configurada e historicas
 	| ST_READ_TEMP			| EV_PRESS_NEXT			| Seleccionada configurada						| ST_READ_TEMP_CON		| Muestra temperaturas maxima y minima
+	| ST_READ_TEMP			| EV_PRESS_BACK			|												| ST_READ				|
 	| ST_READ_TEMP_CON		| EV_PRESS_BACK			| 												| ST_READ_TEMP			|
 	| ST_READ_TEMP			| EV_PRESS_NEXT			| Seleccionada historicas						| ST_READ_TEMP_HIS		| Muestra medición más reciente
 	| ST_READ_TEMP_HIS		| EV_PRESS_HASH/ASTK	|												| ST_READ_TEMP_HIS		| Va cambiando las mediciones mostradas
@@ -132,6 +133,7 @@ typedef struct
 {
 	uint32_t		tick;
 	task_menu_st_t	state;
+	tas_menu_st_t	prev_state;
 	task_menu_ev_t	event;
 	uint32_t		ev_value;
 	bool			flag;
