@@ -201,14 +201,8 @@ void task_menu_update(void *parameters)
         p_task_menu_dta->tick = DEL_MEN_XX_MAX;
 
         task_keypad_update();
-        if (true == any_event_task_menu())
-        {
-            p_task_menu_dta->flag = true;
-            p_task_menu_dta->event = get_event_task_menu();
-        }
-
         /* Run Task Menu Statechart */
-        task_menu_statechart()
+        task_menu_statechart();
 	}
 }
 
@@ -337,7 +331,6 @@ void task_menu_statechart(void)
 	{
 		p_task_menu_dta->flag = true;
 		p_task_menu_dta->event = get_event_task_menu(&value);
-		/*Codificar acciones con EV_PRESS_NUM mas adelante*/
 	}
 	else return;
 
