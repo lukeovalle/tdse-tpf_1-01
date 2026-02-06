@@ -73,8 +73,21 @@ extern void task_print_update(void *parameters) {
 
 		if (!read) {
 			date_time_t reloj = clock_get_time();
-			LOGGER_LOG("%4u/%02u/%02u %02u:%02u:%02u", reloj.year, reloj.month, reloj.day, reloj.hours, reloj.minutes, reloj.seconds);
+			LOGGER_LOG("%4u/%02u/%02u %02u:%02u:%02u\n", reloj.year, reloj.month+1, reloj.day, reloj.hours, reloj.minutes, reloj.seconds);
 			read = true;
+
+			reloj.year = 2024;
+			reloj.month = FEBRUARY;
+			reloj.day = 29;
+			reloj.hours = 18;
+			reloj.minutes = 57;
+			reloj.seconds = 45;
+
+			LOGGER_LOG("%4u/%02u/%02u %02u:%02u:%02u\n", reloj.year, reloj.month+1, reloj.day, reloj.hours, reloj.minutes, reloj.seconds);
+			uint32_t timestamp = datetime_to_timestamp(&reloj);
+			LOGGER_LOG("timestamp: %lu\n", timestamp);
+			reloj = timestamp_to_datetime(timestamp);
+			LOGGER_LOG("%4u/%02u/%02u %02u:%02u:%02u", reloj.year, reloj.month+1, reloj.day, reloj.hours, reloj.minutes, reloj.seconds);
 		}
 
     	/* Protect shared resource */

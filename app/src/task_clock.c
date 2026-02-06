@@ -196,25 +196,25 @@ date_time_t timestamp_to_datetime(uint32_t timestamp) {
 	uint32_t days = hours / 24;
 
 	uint16_t year = 2000;
-	uint32_t days_in_year = (is_leap_year(year) ? 1 : 0) + 365;
+	uint32_t days_in_year = 365 + (is_leap_year(year) ? 1 : 0);
 	while (days > days_in_year) {
 		year++;
 		days -= days_in_year;
-		days_in_year = (is_leap_year(year) ? 1 : 0) + 365;
+		days_in_year = 365 + (is_leap_year(year) ? 1 : 0);
 	}
 	date.year = year;
 
+	bool leap_year = is_leap_year(year);
 	for (uint16_t month = 0; month < DECEMBER; month++) {
-		bool leap_year = is_leap_year(year);
 		uint16_t leap_day = (leap_year && month >= FEBRUARY) ? 1 : 0;
-		if (days <= cumulative_days[month + 1] + leap_day) {
+		if (days <= cumulative_days[month] + leap_day) {
 			date.month = month;
 			days -= cumulative_days[month];
 			days -= (leap_year && month > FEBRUARY) ? 1 : 0;
 			break;
 		}
 	}
-	date.day = days;
+	date.day = days + 1; // Días transcurridos más el del día actual
 
 	return date;
 }
