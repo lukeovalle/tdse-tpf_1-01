@@ -1,12 +1,14 @@
 #include <stdint.h>
 #include "task_keypad.h"
 #include "keypad.h"
-#include "task_menu.h"
+#include "task_menu_attribute.h"
 
 /* ===================== CONFIGURACION ===================== */
 #define TASK_KEYPAD_DEBOUNCE_TICKS   20
 #define TASK_KEYPAD_KEYS_QTY         16
 #define KEYPAD_SCAN_SAMPLES  10
+#define MENU_EV_KEY_PRESSED 1
+#define MENU_EV_KEY_RELEASED 0
 /* ========================================================= */
 
 /* ===================== CONTADORES ======================== */
