@@ -63,33 +63,19 @@
 #define EVENT_UNDEFINED	(255)
 #define MAX_EVENTS		(16)
 #define KEY_VALUE_INVALID 10
+#define SCROLL_UP   0
+#define SCROLL_DOWN 1
+#define SCROLL_VOID 0
 
 /********************** internal data declaration ****************************/
 task_menu_dta_t task_menu_dta =
-	{DEL_MEN_XX_MIN, ST_MENU_INIT, ST_MENU_INIT, EV_PRESS_BACK, KEY_VALUE_INVALID, false};
+	{DEL_MEN_XX_MIN, ST_MENU_INIT, ST_MENU_INIT, EV_PRESS_BACK, KEY_VALUE_INVALID, SCROLL_VOID, SCROLL_VOID, false};
 
 #define MENU_DTA_QTY	(sizeof(task_menu_dta)/sizeof(task_menu_dta_t))
 
-motor_cfg_t motor_cfg[] = {
-    {false, 0, RIGHT},
-    {false, 0, RIGHT}
-};
-
-#define MOTOR_CFG_QTY (sizeof(motor_cfg)/sizeof(motor_cfg_t))
-
-uint32_t current_motor = 0;
-motor_cfg_type_t current_motor_cfg_type = POWER;
-motor_cfg_t temp_motor_cfg;
-
 /********************** internal functions declaration ***********************/
-motor_cfg_type_t next_motor_cfg(motor_cfg_type_t current);
-void change_current_cfg(motor_cfg_t * cfg, motor_cfg_type_t type);
-void text_info_motor_in_row(char str[], uint8_t index, motor_cfg_t * cfg);
-void text_select_motor(char str[], uint8_t index);
-void text_select_config(char str[], motor_cfg_type_t type);
-void text_select_value(char str[],motor_cfg_t * cfg, motor_cfg_type_t type);
-void print_text_in_row(const char str[], uint8_t row);
 void task_menu_statechart(void);
+void scrolling(task_menu_dta_t *s_task_menu_dta, uint32_t value);
 
 /********************** internal data definition *****************************/
 const char *p_task_menu 		= "Task Menu (Interactive Menu)";
@@ -100,6 +86,7 @@ const char empty_line[]			= "                ";
 /********************** external data declaration ****************************/
 uint32_t g_task_menu_cnt;
 volatile uint32_t g_task_menu_tick_cnt;
+void display_init(task_menu_dta_t *p);
 
 /********************** external functions definition ************************/
 void task_menu_init(void *parameters)
@@ -206,6 +193,23 @@ void task_menu_update(void *parameters)
 	}
 }
 
+
+void scrolling(task_menu_dta_t *s_task_menu_dta, uint32_t value) {
+	if (s_task_menu_dta->scroll_max == 0) return;
+
+    if (value == SCROLL_UP) {
+    	s_task_menu_dta->scroll_idx--;
+        if (s_task_menu_dta->scroll_idx < 0)
+        	s_task_menu_dta->scroll_idx = s_task_menu_dta->scroll_max - 1;
+    }
+    else if (value == SCROLL_DOWN) {
+    	s_task_menu_dta->scroll_idx++;
+        if (s_task_menu_dta->scroll_idx >= s_task_menu_dta->scroll_max)
+        	s_task_menu_dta->scroll_idx = 0;
+    }
+}
+
+
 void display_init(task_menu_dta_t *p) {
 	if (p->state == ST_INIT && p->event == EV_PRESS_SCROLL) {
 		displayCharPositionWrite(0, 0);
@@ -239,46 +243,61 @@ void task_menu_statechart(void)
 	}
 	else return;
 
+	bool change_state = p_task_menu_dta->state == p_task_menu_dta->prev_state;
+	p_task_menu_dta->prev_state = p_task_menu_dta->state;
+
 	/*El flag se vuelve redundante para la maquina de estados*/
 	p_task_menu_dta->flag = false;
 
 	switch (p_task_menu_dta->state) {
 		case ST_MENU_INIT:
-			/*Mejorar dysplay para que se altere con cada scroll*/
-			display_init(p_task_menu_dta);
-
+			if (change_state) {
+				/*Mejorar dysplay para que se altere con cada scroll*/
+				display_init(p_task_menu_dta);
+				p_task_menu_dta->scroll_idx = 0;
+				p_task_menu_dta->scroll_max = 2;
+			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scroll_init();
+	    		scrolling(value);
 	        }
 	        else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
-	        	if (config_selected())
+	        	if (p_task_menu_dta->scroll_idx == 0)
 	        		p_task_menu_dta->state = ST_MENU_CONFIG;
-	            else if (!config_selected() && valid_date())
+	            else if (p_task_menu_dta->scroll_idx != 0 && valid_date())
 	                p_task_menu_dta->state = ST_MENU_READ;
 	        }
 	    	break;
 
 		case ST_MENU_CONFIG:
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
-	            /* Selección*/
-				scroll_modes();
+			if (change_state) {
+				p_task_menu_dta->scroll_idx = 0;
+				p_task_menu_dta->scroll_max = 4;
+			}
+	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	    		/* Selección*/
+	    		scrolling(value);
 	        }
 	        else if (p_task_menu_dta->event == EV_PRESS_BACK) {
 	                p_task_menu_dta->state = ST_MENU_INIT;
 	        }
 	        else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
-	        	if (time_selected())      p_task_menu_dta->state = ST_MENU_CONFIG_TIME;
-	        	else if (temp_selected()) p_task_menu_dta->state = ST_MENU_CONFIG_TEMP;
-	        	else if (hum_selected())  p_task_menu_dta->state = ST_MENU_CONFIG_HUM;
-	            else if (lig_selected())  p_task_menu_dta->state = ST_MENU_CONFIG_LIG;
+	        	if (p_task_menu_dta->scroll_idx == 0)      p_task_menu_dta->state = ST_MENU_CONFIG_TIME;
+	        	else if (p_task_menu_dta->scroll_idx == 1) p_task_menu_dta->state = ST_MENU_CONFIG_TEMP;
+	        	else if (p_task_menu_dta->scroll_idx == 2)  p_task_menu_dta->state = ST_MENU_CONFIG_HUM;
+	            else if (p_task_menu_dta->scroll_idx == 3)  p_task_menu_dta->state = ST_MENU_CONFIG_LIG;
 	        }
 	        break;
 
 		case ST_MENU_CONFIG_TIME:
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
-				/* Selección*/
-				scroll_time();
+			if (change_state) {
+				/*Mejorar dysplay para que se altere con cada scroll*/
+				p_task_menu_dta->scroll_idx = 0;
+				p_task_menu_dta->scroll_max = 2;
+			}
+	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	    		/* Selección*/
+	    		scrolling(value);
 	        }
 	        else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
 	            if (valid_date()) save_date();
@@ -292,10 +311,14 @@ void task_menu_statechart(void)
 	        break;
 
 		case ST_MENU_CONFIG_TEMP:
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
-				/* Selección*/
-				scroll_parameters();
-	       	}
+			if (change_state) {
+				p_task_menu_dta->scroll_idx = 0;
+				p_task_menu_dta->scroll_max = 2;
+			}
+	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	    		/* Selección*/
+	    		scrolling(value);
+	        }
 			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
 	        	if (valid_temp()) save_temp();
 	        }
@@ -308,10 +331,14 @@ void task_menu_statechart(void)
 			break;
 
 		case ST_MENU_CONFIG_HUM:
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
-				/* Selección*/
-				scroll_parameters();
-	       	}
+			if (change_state) {
+				p_task_menu_dta->scroll_idx = 0;
+				p_task_menu_dta->scroll_max = 2;
+			}
+	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	    		/* Selección*/
+	    		scrolling(value);
+	        }
 			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
 	        	if (valid_hum()) save_hum();
 	        }
@@ -324,10 +351,14 @@ void task_menu_statechart(void)
 			break;
 
 		case ST_MENU_CONFIG_LIG:
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
-				/* Selección*/
-				scroll_parameters();
-	       	}
+			if (change_state) {
+				p_task_menu_dta->scroll_idx = 0;
+				p_task_menu_dta->scroll_max = 2;
+			}
+	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	    		/* Selección*/
+	    		scrolling(value);
+	        }
 			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
 	        	if (valid_lig()) save_lig();
 	        }
@@ -340,18 +371,22 @@ void task_menu_statechart(void)
 			break;
 
 		case ST_MENU_READ:
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
-	            /* Selección*/
-				scroll_modes();
+			if (change_state) {
+				p_task_menu_dta->scroll_idx = 0;
+				p_task_menu_dta->scroll_max = 4;
+			}
+	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	    		/* Selección*/
+	    		scrolling(value);
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_BACK){
 	            p_task_menu_dta->state = ST_MENU_INIT;
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
-				if (time_selected()) p_task_menu_dta->state = ST_MENU_READ_TIME;
-				else if (temp_selected()) p_task_menu_dta->state = ST_MENU_READ_TEMP;
-				else if (hum_selected())  p_task_menu_dta->state = ST_MENU_READ_HUM;
-				else if (lig_selected())  p_task_menu_dta->state = ST_MENU_READ_LIG;
+				if (p_task_menu_dta->scroll_idx == 0) p_task_menu_dta->state = ST_MENU_READ_TIME;
+				else if (p_task_menu_dta->scroll_idx == 1) p_task_menu_dta->state = ST_MENU_READ_TEMP;
+				else if (p_task_menu_dta->scroll_idx == 2)  p_task_menu_dta->state = ST_MENU_READ_HUM;
+				else if (p_task_menu_dta->scroll_idx == 3)  p_task_menu_dta->state = ST_MENU_READ_LIG;
 	        }
 			break;
 
@@ -363,12 +398,16 @@ void task_menu_statechart(void)
 			break;
 
 		case ST_MENU_READ_TEMP:
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
-				/* Selección*/
-				scroll_lectures();
+			if (change_state) {
+				p_task_menu_dta->scroll_idx = 0;
+				p_task_menu_dta->scroll_max = 2;
+			}
+	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	    		/* Selección*/
+	    		scrolling(value);
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
-				if (!history_selected()) p_task_menu_dta->state = ST_MENU_READ_TEMP_CON;
+				if (p_task_menu_dta->scroll_idx == 0) p_task_menu_dta->state = ST_MENU_READ_TEMP_CON;
 	            else p_task_menu_dta->state = ST_MENU_READ_TEMP_HIS;
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
@@ -377,12 +416,16 @@ void task_menu_statechart(void)
 			break;
 
 		case ST_MENU_READ_HUM:
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
-				/* Selección*/
-				scroll_lectures();
+			if (change_state) {
+				p_task_menu_dta->scroll_idx = 0;
+				p_task_menu_dta->scroll_max = 2;
+			}
+	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	    		/* Selección*/
+	    		scrolling(value);
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
-				if (!history_selected()) p_task_menu_dta->state = ST_MENU_READ_HUM_CON;
+				if (p_task_menu_dta->scroll_idx == 0) p_task_menu_dta->state = ST_MENU_READ_HUM_CON;
 	            else p_task_menu_dta->state = ST_MENU_READ_HUM_HIS;
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
@@ -391,12 +434,16 @@ void task_menu_statechart(void)
 			break;
 
 		case ST_MENU_READ_LIG:
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
-				/* Selección*/
-				scroll_lectures();
+			if (change_state) {
+				p_task_menu_dta->scroll_idx = 0;
+				p_task_menu_dta->scroll_max = 2;
+			}
+	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	    		/* Selección*/
+	    		scrolling(value);
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
-				if (!history_selected()) p_task_menu_dta->state = ST_MENU_READ_LIG_CON;
+				if (p_task_menu_dta->scroll_idx == 0) p_task_menu_dta->state = ST_MENU_READ_LIG_CON;
 	            else p_task_menu_dta->state = ST_MENU_READ_LIG_HIS;
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
@@ -412,10 +459,15 @@ void task_menu_statechart(void)
 			break;
 
 		case ST_MENU_READ_TEMP_HIS:
-			display_data_temp();
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
-				/* Selección de medición*/
-				scroll_history();
+			if (change_state) {
+				p_task_menu_dta->scroll_idx = 0;
+				p_task_menu_dta->scroll_max = data_count(); /*Función que devuelve cantidad total de muestras*/
+	    		display_data(p_task_menu_dta->scroll_idx);
+			}
+	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	    		/* Selección*/
+	    		scrolling(value);
+	    		display_data(p_task_menu_dta->scroll_idx);
 	        }
 			if (p_task_menu_dta->event == EV_PRESS_BACK) {
 				p_task_menu_dta->state = ST_MENU_READ_TEMP;
@@ -430,10 +482,15 @@ void task_menu_statechart(void)
 			break;
 
 		case ST_MENU_READ_HUM_HIS:
-			display_data_hum();
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
-				/* Selección de medición*/
-				scroll_history();
+			if (change_state) {
+				p_task_menu_dta->scroll_idx = 0;
+				p_task_menu_dta->scroll_max = data_count(); /*Función que devuelve cantidad total de muestras*/
+	    		display_data(p_task_menu_dta->scroll_idx);
+			}
+	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	    		/* Selección*/
+	    		scrolling(value);
+	    		display_data(p_task_menu_dta->scroll_idx);
 	        }
 			if (p_task_menu_dta->event == EV_PRESS_BACK) {
 				p_task_menu_dta->state = ST_MENU_READ_HUM;
@@ -448,10 +505,15 @@ void task_menu_statechart(void)
 			break;
 
 		case ST_MENU_READ_LIG_HIS:
-			display_data_lig();
-			if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
-				/* Selección de medición*/
-				scroll_history();
+			if (change_state) {
+				p_task_menu_dta->scroll_idx = 0;
+				p_task_menu_dta->scroll_max = data_count(); /*Función que devuelve cantidad total de muestras*/
+	    		display_data(p_task_menu_dta->scroll_idx);
+			}
+	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+	    		/* Selección*/
+	    		scrolling(value);
+	    		display_data(p_task_menu_dta->scroll_idx);
 	        }
 			if (p_task_menu_dta->event == EV_PRESS_BACK) {
 				p_task_menu_dta->state = ST_MENU_READ_LIG;

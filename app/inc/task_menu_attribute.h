@@ -133,9 +133,11 @@ typedef struct
 {
 	uint32_t		tick;
 	task_menu_st_t	state;
-	tas_menu_st_t	prev_state;
+	task_menu_st_t	prev_state;
 	task_menu_ev_t	event;
 	uint32_t		ev_value;
+	int				scroll_idx;
+	uint32_t		scroll_max;
 	bool			flag;
 } task_menu_dta_t;
 
