@@ -9,7 +9,7 @@
 #define INC_MEMORY_BUFFER_H_
 
 //#include <stdlib.h>
-//#include <stdbool.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #define MEM_DATA_SLICE_SIZE 16
@@ -21,6 +21,7 @@ typedef enum {
 } mem_buffer_status_t;
 
 typedef struct {
+	bool write_mode; // True para escribir, false para leer
 	uint16_t dev_addr, mem_addr_size;
 	uint16_t dir;
 	uint8_t	data[MEM_DATA_SLICE_SIZE];

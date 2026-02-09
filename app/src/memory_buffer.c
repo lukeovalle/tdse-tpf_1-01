@@ -20,14 +20,14 @@ static memory_buffer_t buffer = { .start = 0, .end = 0, .size = 0};
 
 
 
-mem_buffer_status_t mem_buffer_queue(uint16_t dir, uint8_t * data, uint16_t size, uint16_t dev_addr, uint16_t mem_addr_size) {
+mem_buffer_status_t mem_buffer_queue(bool write_mode, uint16_t dir, uint8_t * data, uint16_t size, uint16_t dev_addr, uint16_t mem_addr_size) {
 	if (size > MEM_DATA_SLICE_SIZE)
 		return ST_MEM_BUF_ERROR_SLICE_SIZE;
 
 	if (buffer.size >= MEM_BUFFER_SIZE)
 		return ST_MEM_BUF_ERROR_FULL;
 
-	mem_data_t aux = { .dir = dir, .size = size, .dev_addr = dev_addr, .mem_addr_size = mem_addr_size };
+	mem_data_t aux = { .write_mode = write_mode, .dir = dir, .size = size, .dev_addr = dev_addr, .mem_addr_size = mem_addr_size };
 	for (size_t i = 0; i < size; i++)
 		aux.data[i] = data[i];
 
