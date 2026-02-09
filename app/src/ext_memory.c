@@ -36,7 +36,7 @@ typedef struct {
 static log_ring_limits_t limits;
 /* Internal function declarations */
 mem_status_t memory_get_log_size(log_ring_limits_t * lim);
-mem_buffer_status_t append_to_buffer(uint16_t data_size, uint16_t mem_addr, uint8_t * data_ptr);
+mem_buffer_status_t append_to_buffer(uint16_t data_size, uint16_t mem_addr, uint8_t * data_ptr, bool write_mode);
 
 /* Function definitions */
 void ext_memory_init() {
@@ -46,7 +46,7 @@ void ext_memory_init() {
 mem_status_t memory_write_config_field(mem_type_cfg_t type, float * value) {
 	mem_buffer_status_t error;
 
-	error = append_to_buffer(sizeof(float), MEMORY_CONFIG_ADDR + sizeof(float) * type, (uint8_t *)value);
+	error = append_to_buffer(sizeof(float), MEMORY_CONFIG_ADDR + sizeof(float) * type, (uint8_t *)value, true);
 	if (error)
 		return ST_MEM_FAIL;
 
@@ -80,7 +80,7 @@ mem_status_t memory_append_log(float * humidity, float * light, float * temperat
 
 	mem_buffer_status_t error;
 	error = append_to_buffer(data_size, MEMORY_LOG_DATA_ADDR + limits.end * data_size,
-			(uint8_t *)&log_aux);
+			(uint8_t *)&log_aux, true);
 	if (error)
 		return ST_MEM_FAIL;
 
@@ -92,7 +92,7 @@ mem_status_t memory_append_log(float * humidity, float * light, float * temperat
 		limits.size++;
 	}
 
-	error = append_to_buffer(MEMORY_LOG_LIMITS_SIZE, MEMORY_LOG_LIMITS_ADDR, (uint8_t *)&limits);
+	error = append_to_buffer(MEMORY_LOG_LIMITS_SIZE, MEMORY_LOG_LIMITS_ADDR, (uint8_t *)&limits, true);
 	if (error)
 		return ST_MEM_FAIL;
 
@@ -107,14 +107,11 @@ mem_status_t memory_read_log_range(uint32_t start, uint32_t size, mem_log_t * da
 		return ST_MEM_FAIL;
 
 	uint16_t real_start = (limits.start + start) % MEMORY_MAX_LOGS;
-
 	uint16_t mem_addr = MEMORY_LOG_DATA_ADDR + real_start * sizeof(mem_log_t);
-	uint8_t mem_addr_high_bits = (mem_addr >> 8) & 0x03;
-	uint8_t dev_addr = DEVICE_ADDRESS_8BIT | (mem_addr_high_bits << 1);
 
-	/* TODO: ver que pasa si queremos leer un bloque no continuo de memoria */
-	bool can_read = task_i2c_request_read(dev_addr, I2C_MEMADD_SIZE_8BIT, mem_addr & 0xFF,
-			(uint8_t *)data, size * sizeof(mem_log_t));
+	error = append_to_buffer(size * sizeof(mem_log_t), mem_addr & 0xFF, (uint8_t *)data, false);
+	if (error)
+		return ST_MEM_FAIL;
 
 	if (can_read)
 		return ST_MEM_OK;
@@ -127,7 +124,7 @@ mem_status_t memory_clear_log(void) {
 	limits.end = 0;
 	limits.size = 0;
 
-	if (append_to_buffer(MEMORY_LOG_LIMITS_SIZE, MEMORY_LOG_LIMITS_ADDR, (uint8_t *)&limits))
+	if (append_to_buffer(MEMORY_LOG_LIMITS_SIZE, MEMORY_LOG_LIMITS_ADDR, (uint8_t *)&limits, true))
 		return ST_MEM_FAIL;
 
 	return ST_MEM_OK;
@@ -161,7 +158,7 @@ mem_status_t memory_get_log_size(log_ring_limits_t * lim) {
 	return ST_MEM_BUSY;
 }
 
-mem_buffer_status_t append_to_buffer(uint16_t data_size, uint16_t mem_addr, uint8_t * data_ptr) {
+mem_buffer_status_t append_to_buffer(uint16_t data_size, uint16_t mem_addr, uint8_t * data_ptr, bool write_mode) {
 	mem_buffer_status_t error;
 
 	uint16_t remaining_data_size = data_size;
@@ -171,7 +168,7 @@ mem_buffer_status_t append_to_buffer(uint16_t data_size, uint16_t mem_addr, uint
 
 		uint8_t mem_addr_high_bits = (mem_addr >> 8) & 0x03;
 		uint8_t dev_addr = DEVICE_ADDRESS_8BIT | (mem_addr_high_bits << 1);
-		error = mem_buffer_queue(mem_addr & 0xFF, data_ptr, data_size, dev_addr, I2C_MEMADD_SIZE_8BIT);
+		error = mem_buffer_queue(write_mode, mem_addr & 0xFF, data_ptr, data_size, dev_addr, I2C_MEMADD_SIZE_8BIT);
 		if (error)
 			return error;
 
