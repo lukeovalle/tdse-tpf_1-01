@@ -191,23 +191,24 @@ date_time_t timestamp_to_datetime(uint32_t timestamp) {
 	date.minutes = minutes % 60;
 
 	uint32_t hours = minutes / 60;
-	date.hours = hours % 60;
+	date.hours = hours % 24;
 
 	uint32_t days = hours / 24;
 
 	uint16_t year = 2000;
-	uint32_t days_in_year = 365 + (is_leap_year(year) ? 1 : 0);
-	while (days > days_in_year) {
+    bool leap_year = is_leap_year(year);
+	uint32_t days_in_year = 365 + (leap_year ? 1 : 0);
+	while (days >= days_in_year) {
 		year++;
 		days -= days_in_year;
-		days_in_year = 365 + (is_leap_year(year) ? 1 : 0);
+        leap_year = is_leap_year(year);
+		days_in_year = 365 + (leap_year ? 1 : 0);
 	}
 	date.year = year;
 
-	bool leap_year = is_leap_year(year);
-	for (uint16_t month = 0; month < DECEMBER; month++) {
+	for (uint16_t month = JANUARY; month <= DECEMBER; month++) {
 		uint16_t leap_day = (leap_year && month >= FEBRUARY) ? 1 : 0;
-		if (days <= cumulative_days[month] + leap_day) {
+		if (month == DECEMBER || days < cumulative_days[month + 1] + leap_day) {
 			date.month = month;
 			days -= cumulative_days[month];
 			days -= (leap_year && month > FEBRUARY) ? 1 : 0;
