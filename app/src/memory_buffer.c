@@ -56,4 +56,17 @@ uint16_t mem_buffer_size(void) {
 }
 
 
+void mem_buffer_iterate(mem_data_iterator_callback_t callback, void * aux_data) {
+	uint16_t it = buffer.start;
+	uint16_t cnt = 0;
+
+	while (cnt < buffer.size) {
+		callback(&buffer.arr[it], aux_data);
+
+		cnt++;
+		it = (it + 1) % MEM_BUFFER_SIZE;
+	}
+}
+
+
 

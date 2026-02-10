@@ -57,11 +57,10 @@ mem_status_t memory_read_config(mem_cfg_t * config) {
 	if(!config)
 		return ST_MEM_NULL_PTR;
 
-	bool can_read = task_i2c_request_read(DEVICE_ADDRESS_8BIT, I2C_MEMADD_SIZE_8BIT, MEMORY_CONFIG_ADDR,
-			(uint8_t *)config, MEMORY_CONFIG_SIZE);
-
-	if (can_read)
-		return ST_MEM_OK;
+	mem_buffer_status_t error;
+	error = append_to_buffer(MEMORY_CONFIG_SIZE, MEMORY_CONFIG_ADDR, (uint8_t *)config, false);
+	if (error)
+		return ST_MEM_FAIL;
 
 	return ST_MEM_BUSY;
 }
@@ -100,6 +99,8 @@ mem_status_t memory_append_log(float * humidity, float * light, float * temperat
 }
 
 mem_status_t memory_read_log_range(uint32_t start, uint32_t size, mem_log_t * data) {
+	mem_buffer_status_t error;
+
 	if (!data)
 		return ST_MEM_NULL_PTR;
 
@@ -112,9 +113,6 @@ mem_status_t memory_read_log_range(uint32_t start, uint32_t size, mem_log_t * da
 	error = append_to_buffer(size * sizeof(mem_log_t), mem_addr & 0xFF, (uint8_t *)data, false);
 	if (error)
 		return ST_MEM_FAIL;
-
-	if (can_read)
-		return ST_MEM_OK;
 
 	return ST_MEM_BUSY;
 }
@@ -134,12 +132,39 @@ uint8_t memory_log_size(void) {
 	return limits.size;
 }
 
+/* Función de callback para el iterador de buffer */
+void check_writing(mem_data_t * data, void * aux_data) {
+	if (!data || !aux_data)
+		return;
+
+	uint16_t * writing_cnt = (uint16_t *)aux_data;
+
+	if (data->write_mode)
+		writing_cnt++;
+
+	return;
+}
+
 bool memory_finished_reading(void) {
-	return task_i2c_finished_reading();
+	uint16_t buf_size = mem_buffer_size();
+	if (!buf_size)
+		return true;
+
+	uint16_t writing_cnt = 0;
+	mem_buffer_iterate(&check_writing, (void *) &writing_cnt);
+
+	return writing_cnt == buf_size ? true : false;
 }
 
 bool memory_finished_writing(void) {
-	return task_i2c_finished_writing();
+	uint16_t buf_size = mem_buffer_size();
+	if (!buf_size)
+		return true;
+
+	uint16_t writing_cnt = 0;
+	mem_buffer_iterate(&check_writing, (void *) &writing_cnt);
+
+	return writing_cnt == 0 ? true : false;
 }
 
 
@@ -149,11 +174,10 @@ mem_status_t memory_get_log_size(log_ring_limits_t * lim) {
 	if (!lim)
 		return ST_MEM_NULL_PTR;
 
-	bool can_read = task_i2c_request_read(DEVICE_ADDRESS_8BIT, I2C_MEMADD_SIZE_8BIT, MEMORY_LOG_LIMITS_ADDR,
-			(uint8_t *)lim, MEMORY_LOG_LIMITS_SIZE);
-
-	if (can_read)
-		return ST_MEM_OK;
+	mem_buffer_status_t error;
+	error = append_to_buffer(MEMORY_LOG_LIMITS_SIZE, MEMORY_LOG_LIMITS_ADDR, (uint8_t *)lim, false);
+	if (error)
+		return ST_MEM_FAIL;
 
 	return ST_MEM_BUSY;
 }

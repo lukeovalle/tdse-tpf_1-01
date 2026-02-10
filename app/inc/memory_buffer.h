@@ -31,4 +31,8 @@ typedef struct {
 mem_buffer_status_t mem_buffer_queue(bool write_mode, uint16_t dir, uint8_t * data, uint16_t size, uint16_t dev_addr, uint16_t mem_addr_size);
 mem_data_t			mem_buffer_dequeue(void);	// Si el data.size es 0, es porque la cola estaba vacía
 uint16_t			mem_buffer_size(void);
+
+typedef void (*mem_data_iterator_callback_t)(mem_data_t * data, void * aux_data);
+void mem_buffer_iterate(mem_data_iterator_callback_t callback, void * aux_data);
+
 #endif /* INC_MEMORY_BUFFER_H_ */

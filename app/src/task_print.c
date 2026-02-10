@@ -42,14 +42,38 @@ const char *p_task_print_ 		= "Non-Blocking & Update By Time Code";
 
 bool read = false;
 
+mem_cfg_t config_read;
+mem_status_t error;
+mem_log_t log_leidos[30];
+
 /********************** external functions definition ************************/
 extern void task_print_init(void *parameters) {
+	mem_status_t error;
 
-	clock_config_set_year(2067);
-	clock_config_set_month(AUGUST);
-	clock_config_set_day(80);
-	clock_config_set_hour(16);
-	clock_config_set_minute(20);
+	clock_config_set_year(2026);
+	clock_config_set_month(FEBRUARY);
+	clock_config_set_day(10);
+	clock_config_set_hour(11);
+	clock_config_set_minute(30);
+
+	float val = 5.0;
+	error = memory_write_config_field(MEM_CFG_LIGHT_MIN, &val);
+	if (error)
+		LOGGER_LOG("Error en la línea %d y archivo %s\n", __LINE__, __FILE__);
+
+	val = 1000.0;
+	error = memory_write_config_field(MEM_CFG_LIGHT_MAX, &val);
+	if (error)
+		LOGGER_LOG("Error en la línea %d y archivo %s\n", __LINE__, __FILE__);
+
+
+	float h = 69, l = 67, t = 420;
+	error = memory_append_log(&h, &l, &t);
+	if (error)
+		LOGGER_LOG("Error en la línea %d y archivo %s\n", __LINE__, __FILE__);
+
+	LOGGER_LOG("Terminó de escribir? %d\n",	memory_finished_writing());
+
 
 	return;
 }
@@ -88,6 +112,31 @@ extern void task_print_update(void *parameters) {
 			LOGGER_LOG("timestamp: %lu\n", timestamp);
 			reloj = timestamp_to_datetime(timestamp);
 			LOGGER_LOG("%4u/%02u/%02u %02u:%02u:%02u", reloj.year, reloj.month+1, reloj.day, reloj.hours, reloj.minutes, reloj.seconds);
+
+
+			error = memory_read_config(&config_read);
+			if (error)
+				LOGGER_LOG("Error en la línea %d y archivo %s\n", __LINE__, __FILE__);
+			if (!error)
+				LOGGER_LOG("Leyó config bien\n");
+
+			uint16_t log_size = memory_log_size();
+			LOGGER_LOG("log size: %u\n", log_size);
+
+			error = memory_read_log_range(0, log_size, log_leidos);
+			if (error)
+				LOGGER_LOG("Error en la línea %d y archivo %s\n", __LINE__, __FILE__);
+
+
+
+
+			memory_clear_log();
+			log_size = memory_log_size();
+			LOGGER_LOG("log size: %u\n", log_size);
+
+			LOGGER_LOG("Terminó de escribir? %d\n",	memory_finished_writing());
+			LOGGER_LOG("Terminó de leer? %d\n",	memory_finished_reading());
+
 		}
 
     	/* Protect shared resource */
