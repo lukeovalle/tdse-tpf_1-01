@@ -24,7 +24,8 @@ typedef struct {
 	bool write_mode; // True para escribir, false para leer
 	uint16_t dev_addr, mem_addr_size;
 	uint16_t dir;
-	uint8_t	data[MEM_DATA_SLICE_SIZE];
+	uint8_t	data[MEM_DATA_SLICE_SIZE];	// Buffer para escritura
+	uint8_t * dest_ptr;					// Puntero para lectura
 	uint16_t size;
 } mem_data_t;
 

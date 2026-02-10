@@ -225,7 +225,7 @@ HAL_StatusTypeDef start_page_write(mem_data_t * data) {
 }
 
 HAL_StatusTypeDef start_page_read(mem_data_t * data) {
-	return HAL_I2C_Mem_Read_IT(&hi2c1, data->dev_addr, data->dir, data->mem_addr_size, data->data, data->size);
+	return HAL_I2C_Mem_Read_IT(&hi2c1, data->dev_addr, data->dir, data->mem_addr_size, data->dest_ptr, data->size);
 }
 
 /********************** end of file ******************************************/

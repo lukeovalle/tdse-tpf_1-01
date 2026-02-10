@@ -27,9 +27,19 @@ mem_buffer_status_t mem_buffer_queue(bool write_mode, uint16_t dir, uint8_t * da
 	if (buffer.size >= MEM_BUFFER_SIZE)
 		return ST_MEM_BUF_ERROR_FULL;
 
-	mem_data_t aux = { .write_mode = write_mode, .dir = dir, .size = size, .dev_addr = dev_addr, .mem_addr_size = mem_addr_size };
-	for (size_t i = 0; i < size; i++)
-		aux.data[i] = data[i];
+	mem_data_t aux = {
+			.write_mode = write_mode,
+			.dir = dir,
+			.size = size,
+			.dev_addr = dev_addr,
+			.mem_addr_size = mem_addr_size,
+			.dest_ptr = data
+	};
+
+	if (write_mode) {
+		for (size_t i = 0; i < size; i++)
+			aux.data[i] = data[i];
+	}
 
 	buffer.arr[buffer.end] = aux;
 	buffer.end = (buffer.end + 1) % MEM_BUFFER_SIZE;
