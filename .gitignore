@@ -55,3 +55,11 @@ dkms.conf
 /*.launch
 
 .settings/language.settings.xml
+.settings/stm32cubeide.project.prefs
+.settings/com.st.stm32cube.ide.mcu.sfrview.prefs
+
+invernadero/fp-info-cache
+invernadero/fp-lib-table
+invernadero/sym-lib-table
+invernadero/invernadero-backups/
+invernadero/*.kicad_prl

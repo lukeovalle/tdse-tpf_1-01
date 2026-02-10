@@ -25,18 +25,6 @@
 #define G_TASK_I2C_CNT_INIT			0ul
 #define G_TASK_I2C_TICK_CNT_INI		0ul
 
-typedef struct {
-	bool 		is_i2c_finished;
-	bool		request_read;	// Para solicitar lectura
-	uint16_t	dev_addr;
-	uint16_t	mem_addr_size;
-	uint16_t	mem_addr;
-	uint8_t		* data;
-	uint16_t	data_size;
-	uint16_t	offset;
-} reading_data_t;
-
-
 /* Number of ticks for the i2c measurement and the starting value */
 #define DEL_I2C_TICK_MAX			50ul
 #define DEL_I2C_TICK_INIT			0ul
@@ -60,22 +48,13 @@ task_i2c_dta_t task_i2c_dta_list[] = {
 #define I2C_DTA_QTY	(sizeof(task_i2c_dta_list)/sizeof(task_i2c_dta_t))
 
 static bool tr_finished = false;
-static reading_data_t reading_data = {
-	.is_i2c_finished = true,
-	.request_read = false,
-	.dev_addr = 0x00,
-	.mem_addr_size = I2C_MEMADD_SIZE_16BIT,
-	.mem_addr = 0x00,
-	.data = 0x00,
-	.data_size = 0,
-	.offset = 0
-};
+
 static mem_data_t data_aux;
 
 /********************** internal functions declaration ***********************/
 void task_i2c_statechart(shared_data_type * parameters);
 HAL_StatusTypeDef start_page_write(mem_data_t * data);
-HAL_StatusTypeDef start_page_read(task_i2c_dta_t * data);
+HAL_StatusTypeDef start_page_read(mem_data_t * data);
 /********************** internal data definition *****************************/
 const char *p_task_i2c 		= "Task I2C (I2C Statechart)";
 const char *p_task_i2c_ 	= "Non-Blocking & Update By Time Code";
@@ -138,13 +117,6 @@ void task_i2c_update(void *parameters) {
 		/* Run Task I2C Statechart */
 		shared_data_type * shared_data = (shared_data_type *) parameters;
 
-		if (mem_buffer_size())		// Vemos si hay escrituras encoladas
-			task_i2c_dta_list[0].event = EV_I2C_WRITE;
-		if (reading_data.request_read) {
-			task_i2c_dta_list[0].event = EV_I2C_READ;
-			reading_data.request_read = false;
-		}
-
     	task_i2c_statechart(shared_data);
 
     	/* Protect shared resource */
@@ -174,6 +146,10 @@ void task_i2c_statechart(shared_data_type * parameters) {
 		task_i2c_st_t state = p_task_i2c_dta->state;
 		switch (state) {
 		case ST_I2C_IDLE:
+			data_aux = mem_buffer_dequeue();
+			if (data_aux.size)
+				p_task_i2c_dta->event = data_aux.write_mode ? EV_I2C_WRITE : EV_I2C_READ;
+
 			switch (p_task_i2c_dta->event) {
 			case EV_I2C_IDLE:
 				p_task_i2c_dta->state = ST_I2C_IDLE;
@@ -192,44 +168,31 @@ void task_i2c_statechart(shared_data_type * parameters) {
 			break;
 
 		case ST_I2C_WRITING:
-			data_aux = mem_buffer_dequeue();
-			if (data_aux.size) { // Si el data es válido
-				status = start_page_write(&data_aux);
-				if (status == HAL_OK) {
-					p_task_i2c_dta->state = ST_I2C_WAITING_WRITE;
-				} else {
-					LOGGER_LOG("Error en escritura de datos: %u\n", status);
-				}
+			status = start_page_write(&data_aux);
+			if (status == HAL_OK) {
+				p_task_i2c_dta->state = ST_I2C_WAITING;
 			} else {
+				LOGGER_LOG("Error en escritura de datos: %u\n", status);
 				p_task_i2c_dta->state = ST_I2C_IDLE;
 			}
+
 			break;
 
 		case ST_I2C_READING:
-			if (reading_data.offset < reading_data.data_size) {
-				status = start_page_read(p_task_i2c_dta);
-				if (status == HAL_OK) {
-					p_task_i2c_dta->state = ST_I2C_WAITING_READ;
-				} else {
-					LOGGER_LOG("Error en lectura de datos: %u\n", status);
-				}
+			status = start_page_read(&data_aux);
+			if (status == HAL_OK) {
+				p_task_i2c_dta->state = ST_I2C_WAITING;
 			} else {
+				LOGGER_LOG("Error en lectura de datos: %u\n", status);
 				p_task_i2c_dta->state = ST_I2C_IDLE;
-				reading_data.is_i2c_finished = true;
 			}
+
 			break;
 
-		case ST_I2C_WAITING_WRITE:
+		case ST_I2C_WAITING:
 			if (tr_finished) {
 				while (HAL_I2C_IsDeviceReady(&hi2c1, DEVICE_ADDRESS_8BIT, 10, 5) != HAL_OK);
-				p_task_i2c_dta->state = ST_I2C_WRITING;
-				tr_finished = false;
-			}
-			break;
-
-		case ST_I2C_WAITING_READ:
-			if (tr_finished) {
-				p_task_i2c_dta->state = ST_I2C_READING;
+				p_task_i2c_dta->state = ST_I2C_IDLE;
 				tr_finished = false;
 			}
 			break;
@@ -241,34 +204,6 @@ void task_i2c_statechart(shared_data_type * parameters) {
 		}
 	}
 }
-
-bool task_i2c_request_read(uint16_t dev_addr,				// Dirección del dispositivo I2C (8 bits)
-								  uint16_t mem_addr_size,	// I2C_MEMADD_SIZE_8BIT o I2C_MEMADD_SIZE_16BIT
-								  uint16_t mem_addr,		// Dirección de memoria
-								  uint8_t * data,			// Puntero a los datos
-								  uint16_t data_size) {		// Tamaño de los datos (en bytes)
-	if (reading_data.request_read || !reading_data.is_i2c_finished)
-		return false;
-
-	reading_data.is_i2c_finished 	= false;
-	reading_data.request_read		= true;
-	reading_data.dev_addr			= dev_addr;
-	reading_data.mem_addr_size		= mem_addr_size;
-	reading_data.mem_addr			= mem_addr;
-	reading_data.data				= data;
-	reading_data.data_size			= data_size;
-	reading_data.offset				= 0;
-
-	return true;
-}
-
-bool task_i2c_finished_reading(void) {
-	return reading_data.is_i2c_finished;
-}
-bool task_i2c_finished_writing(void) {
-	return mem_buffer_size() == 0;
-}
-
 
 /********************** internal functions definition ************************/
 
@@ -289,18 +224,8 @@ HAL_StatusTypeDef start_page_write(mem_data_t * data) {
     return HAL_I2C_Mem_Write_IT(&hi2c1, data->dev_addr, data->dir, data->mem_addr_size, data->data, data->size);
 }
 
-HAL_StatusTypeDef start_page_read(task_i2c_dta_t * data) {
-	uint16_t mem_addr = (reading_data.mem_addr + reading_data.offset) & 0xFF;
-	uint16_t remaining_data_size = reading_data.data_size - reading_data.offset;
-	uint16_t space_in_page = MEM_PAGE_SIZE_BYTES - (mem_addr % MEM_PAGE_SIZE_BYTES);	// ej. si mem_addr = 17, space_in_page = 15
-	uint16_t data_size = (remaining_data_size < space_in_page) ? remaining_data_size : space_in_page; // menor entre remaining_data_size y space_in_page
-	uint8_t * data_ptr = reading_data.data + reading_data.offset;
-
-	uint8_t mem_addr_high_bits = (mem_addr >> 8) & 0x03;
-	uint16_t dev_addr = reading_data.dev_addr | (mem_addr_high_bits << 1);
-	reading_data.offset += data_size;
-
-	return HAL_I2C_Mem_Read_IT(&hi2c1, dev_addr, mem_addr, reading_data.mem_addr_size, data_ptr, data_size);
+HAL_StatusTypeDef start_page_read(mem_data_t * data) {
+	return HAL_I2C_Mem_Read_IT(&hi2c1, data->dev_addr, data->dir, data->mem_addr_size, data->dest_ptr, data->size);
 }
 
 /********************** end of file ******************************************/

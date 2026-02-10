@@ -46,6 +46,8 @@
 /* Application & Tasks includes */
 #include "app.h"
 #include "board.h"
+#include "ext_memory.h"
+#include "task_actuator.h"
 #include "task_clock.h"
 #include "task_i2c.h"
 #include "task_menu.h"
@@ -79,7 +81,8 @@ const task_cfg_t task_cfg_list[]	= {
 		{ .task_init = task_clock_init, .task_update = task_clock_update, .parameters = &shared_data },
 		{ .task_init = task_sensor_init, .task_update = task_sensor_update, .parameters = &shared_data },
 		{ .task_init = task_i2c_init, .task_update = task_i2c_update, .parameters = &shared_data },
-		{ .task_init = task_print_init, .task_update = task_print_update, .parameters = &shared_data }
+		{ .task_init = task_print_init, .task_update = task_print_update, .parameters = &shared_data },
+		{ .task_init = task_actuator_init, .task_update = task_actuator_update, .parameters = &shared_data }
 };
 
 #define TASK_QTY	(sizeof(task_cfg_list)/sizeof(task_cfg_t))
@@ -113,6 +116,8 @@ void app_init(void)
 	/* Init & Print out: Application execution counter */
 	g_app_cnt = G_APP_CNT_INI;
 	LOGGER_INFO(" %s = %lu", GET_NAME(g_app_cnt), g_app_cnt);
+
+	ext_memory_init();
 
 	/* Init Cycle Counter */
 	cycle_counter_init();
@@ -205,11 +210,13 @@ void HAL_SYSTICK_Callback(void)
 {
 	/* Update Tick Counter */
 	g_app_tick_cnt++;
+
+	g_task_actuator_tick_cnt++;
 	g_task_clock_tick_cnt++;
-	g_task_sensor_tick_cnt++;
-	g_task_print_tick_cnt++;
-	g_task_menu_tick_cnt++;
 	g_task_i2c_tick_cnt++;
+	g_task_menu_tick_cnt++;
+	g_task_print_tick_cnt++;
+	g_task_sensor_tick_cnt++;
 }
 
 /********************** end of file ******************************************/
