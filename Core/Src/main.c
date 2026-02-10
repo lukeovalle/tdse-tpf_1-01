@@ -153,7 +153,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI_DIV2;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL2;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL5;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -346,57 +346,53 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, D6_Pin|D5_Pin|D4_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, DISPLAY_D5_Pin|DISPLAY_D6_Pin|DISPLAY_D7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, D_EN_Pin|BOTONERA_FILA2_Pin|BOTONERA_FILA3_Pin|BOTONERA_FILA1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, DISPLAY_RS_Pin|ACTUATOR_PUMP_Pin|ACTUATOR_FAN_Pin|ROW2_Pin
+                          |ROW3_Pin|ROW1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, D7_Pin|D_RS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, DISPLAY_D4_Pin|DISPLAY_E_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(BOTONERA_FILA4_GPIO_Port, BOTONERA_FILA4_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(ROW4_GPIO_Port, ROW4_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : BOTONERA_COL1_Pin BOTONERA_COL2_Pin BOTONERA_COL4_Pin BOTONERA_COL3_Pin */
-  GPIO_InitStruct.Pin = BOTONERA_COL1_Pin|BOTONERA_COL2_Pin|BOTONERA_COL4_Pin|BOTONERA_COL3_Pin;
+  /*Configure GPIO pins : COL2_Pin COL1_Pin COL4_Pin COL3_Pin */
+  GPIO_InitStruct.Pin = COL2_Pin|COL1_Pin|COL4_Pin|COL3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : D6_Pin D5_Pin D4_Pin */
-  GPIO_InitStruct.Pin = D6_Pin|D5_Pin|D4_Pin;
+  /*Configure GPIO pins : DISPLAY_D5_Pin DISPLAY_D6_Pin DISPLAY_D7_Pin */
+  GPIO_InitStruct.Pin = DISPLAY_D5_Pin|DISPLAY_D6_Pin|DISPLAY_D7_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : D_EN_Pin */
-  GPIO_InitStruct.Pin = D_EN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(D_EN_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : D7_Pin D_RS_Pin */
-  GPIO_InitStruct.Pin = D7_Pin|D_RS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : BOTONERA_FILA2_Pin BOTONERA_FILA3_Pin BOTONERA_FILA1_Pin */
-  GPIO_InitStruct.Pin = BOTONERA_FILA2_Pin|BOTONERA_FILA3_Pin|BOTONERA_FILA1_Pin;
+  /*Configure GPIO pins : DISPLAY_RS_Pin ACTUATOR_PUMP_Pin ACTUATOR_FAN_Pin ROW2_Pin
+                           ROW3_Pin ROW1_Pin */
+  GPIO_InitStruct.Pin = DISPLAY_RS_Pin|ACTUATOR_PUMP_Pin|ACTUATOR_FAN_Pin|ROW2_Pin
+                          |ROW3_Pin|ROW1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : BOTONERA_FILA4_Pin */
-  GPIO_InitStruct.Pin = BOTONERA_FILA4_Pin;
+  /*Configure GPIO pins : DISPLAY_D4_Pin DISPLAY_E_Pin */
+  GPIO_InitStruct.Pin = DISPLAY_D4_Pin|DISPLAY_E_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(BOTONERA_FILA4_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : ROW4_Pin */
+  GPIO_InitStruct.Pin = ROW4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(ROW4_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
   /* USER CODE END MX_GPIO_Init_2 */

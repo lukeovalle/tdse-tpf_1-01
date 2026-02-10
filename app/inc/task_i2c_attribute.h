@@ -32,8 +32,7 @@ typedef enum task_i2c_st {
 	ST_I2C_IDLE = 0,
 	ST_I2C_WRITING,
 	ST_I2C_READING,
-	ST_I2C_WAITING_WRITE,
-	ST_I2C_WAITING_READ
+	ST_I2C_WAITING
 } task_i2c_st_t;
 
 
