@@ -131,8 +131,8 @@ void task_menu_init(void *parameters)
 	cycle_counter_reset();
 
 	/* Init & Print out: LCD Display */
-	displayInit( DISPLAY_CONNECTION_GPIO_4BITS );
-
+	//displayInit( DISPLAY_CONNECTION_GPIO_4BITS );
+/*
     displayCharPositionWrite(0, 0);
 	displayStringWrite("TdSE Bienvenidos");
 

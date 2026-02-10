@@ -52,10 +52,10 @@ task_sensor_dta_t task_sensor_dta_list[] = {
 
 #define SENSOR_DTA_QTY	(sizeof(task_sensor_dta_list)/sizeof(task_sensor_dta_t))
 
-volatile uint16_t ADC_vals[SENSOR_DTA_QTY];
-bool is_ADC_reading = false;
-bool is_ADC_finished = false;
-uint16_t adc_counter;
+static volatile uint16_t ADC_vals[SENSOR_DTA_QTY];
+static bool is_ADC_reading = false;
+static bool is_ADC_finished = false;
+static uint16_t adc_counter;
 
 /********************** internal functions declaration ***********************/
 void task_sensor_statechart(shared_data_type * parameters);

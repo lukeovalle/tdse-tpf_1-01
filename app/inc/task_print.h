@@ -10,7 +10,7 @@
 
 extern volatile uint32_t g_task_print_tick_cnt;
 
-extern void task_light_print_init(void *parameters);
-extern void task_light_print_update(void *parameters);
+extern void task_print_init(void *parameters);
+extern void task_print_update(void *parameters);
 
 #endif /* INC_TASK_PRINT_H_ */

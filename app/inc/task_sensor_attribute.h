@@ -39,7 +39,7 @@ typedef enum task_sensor_ev {
 	EV_SENSOR_REQUEST
 } task_sensor_ev_t;
 
-/* States of Task  Sensor */
+/* States of Task Sensor */
 typedef enum task_sensor_st {
 	ST_SENSOR_IDLE,
 	ST_SENSOR_REQUEST,
