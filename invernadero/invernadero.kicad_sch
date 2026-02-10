@@ -7162,6 +7162,16 @@
 		)
 		(uuid "d0f7d1c3-2002-4445-8112-bf3c678e16d5")
 	)
+	(label "fan-"
+		(at 224.79 142.24 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d526245d-3c60-4e72-9536-c8288117578a")
+	)
 	(label "PA1"
 		(at 102.87 73.66 0)
 		(effects
@@ -8656,7 +8666,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "LED_THT:LED_D4.0mm"
+		(property "Footprint" "LED_THT:LED_D3.0mm_Clear"
 			(at 177.8 147.32 0)
 			(effects
 				(font
