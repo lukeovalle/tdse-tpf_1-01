@@ -8,7 +8,7 @@
 #include "memory_buffer.h"
 #include <stdlib.h>
 
-#define	MEM_BUFFER_SIZE		32
+#define	MEM_BUFFER_SIZE		64
 
 typedef struct {
 	mem_data_t	arr[MEM_BUFFER_SIZE];

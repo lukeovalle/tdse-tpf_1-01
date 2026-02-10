@@ -15,6 +15,7 @@
 #include "task_i2c.h"
 #include "task_i2c_attribute.h"
 #include "task_clock.h"
+#include "utils.h"
 
 /* macros and definitions */
 typedef struct {
@@ -59,10 +60,12 @@ mem_status_t memory_read_config(mem_cfg_t * config) {
 
 	mem_buffer_status_t error;
 	error = append_to_buffer(MEMORY_CONFIG_SIZE, MEMORY_CONFIG_ADDR, (uint8_t *)config, false);
-	if (error)
+	if (error == ST_MEM_BUF_ERROR_FULL)
+		return ST_MEM_BUSY;
+	if (error == ST_MEM_BUF_ERROR_SLICE_SIZE)
 		return ST_MEM_FAIL;
 
-	return ST_MEM_BUSY;
+	return ST_MEM_OK;
 }
 
 mem_status_t memory_append_log(float * humidity, float * light, float * temperature) {
@@ -80,7 +83,9 @@ mem_status_t memory_append_log(float * humidity, float * light, float * temperat
 	mem_buffer_status_t error;
 	error = append_to_buffer(data_size, MEMORY_LOG_DATA_ADDR + limits.end * data_size,
 			(uint8_t *)&log_aux, true);
-	if (error)
+	if (error == ST_MEM_BUF_ERROR_FULL)
+		return ST_MEM_BUSY;
+	if (error == ST_MEM_BUF_ERROR_SLICE_SIZE)
 		return ST_MEM_FAIL;
 
 	/* Aumentamos el tamaño del log */
@@ -92,29 +97,42 @@ mem_status_t memory_append_log(float * humidity, float * light, float * temperat
 	}
 
 	error = append_to_buffer(MEMORY_LOG_LIMITS_SIZE, MEMORY_LOG_LIMITS_ADDR, (uint8_t *)&limits, true);
-	if (error)
+	if (error == ST_MEM_BUF_ERROR_FULL)
+		return ST_MEM_BUSY;
+	if (error == ST_MEM_BUF_ERROR_SLICE_SIZE)
 		return ST_MEM_FAIL;
 
 	return ST_MEM_OK;
 }
 
-mem_status_t memory_read_log_range(uint32_t start, uint32_t size, mem_log_t * data) {
+mem_status_t memory_read_log_range(uint32_t start, uint32_t log_qty, mem_log_t * data) {
 	mem_buffer_status_t error;
 
 	if (!data)
 		return ST_MEM_NULL_PTR;
 
-	if (start + size > memory_log_size())
+	if (start + log_qty > memory_log_size())
 		return ST_MEM_FAIL;
 
 	uint16_t real_start = (limits.start + start) % MEMORY_MAX_LOGS;
 	uint16_t mem_addr = MEMORY_LOG_DATA_ADDR + real_start * sizeof(mem_log_t);
+	uint16_t remaining_data_size = log_qty * sizeof(mem_log_t);
 
-	error = append_to_buffer(size * sizeof(mem_log_t), mem_addr & 0xFF, (uint8_t *)data, false);
-	if (error)
-		return ST_MEM_FAIL;
+	/* Si la lectura supera la última dirección de memoria, se empieza a leer desde el inicio de la sección de logs */
+	uint16_t data_size = MIN(remaining_data_size, MEMORY_MAX_BYTES - mem_addr);
+	while (remaining_data_size) {
+		error = append_to_buffer(data_size, mem_addr, (uint8_t *)data, false);
+		if (error == ST_MEM_BUF_ERROR_FULL)
+			return ST_MEM_BUSY;
+		if (error == ST_MEM_BUF_ERROR_SLICE_SIZE)
+			return ST_MEM_FAIL;
 
-	return ST_MEM_BUSY;
+		remaining_data_size -= data_size;
+		data_size = MIN(remaining_data_size, MEMORY_MAX_BYTES - mem_addr);
+
+	}
+
+	return ST_MEM_OK;
 }
 
 mem_status_t memory_clear_log(void) {
@@ -122,7 +140,13 @@ mem_status_t memory_clear_log(void) {
 	limits.end = 0;
 	limits.size = 0;
 
-	if (append_to_buffer(MEMORY_LOG_LIMITS_SIZE, MEMORY_LOG_LIMITS_ADDR, (uint8_t *)&limits, true))
+	mem_buffer_status_t error;
+
+
+	error = append_to_buffer(MEMORY_LOG_LIMITS_SIZE, MEMORY_LOG_LIMITS_ADDR, (uint8_t *)&limits, true);
+	if (error == ST_MEM_BUF_ERROR_FULL)
+		return ST_MEM_BUSY;
+	if (error == ST_MEM_BUF_ERROR_SLICE_SIZE)
 		return ST_MEM_FAIL;
 
 	return ST_MEM_OK;
@@ -140,7 +164,7 @@ void check_writing(mem_data_t * data, void * aux_data) {
 	uint16_t * writing_cnt = (uint16_t *)aux_data;
 
 	if (data->write_mode)
-		writing_cnt++;
+		(*writing_cnt)++;
 
 	return;
 }
@@ -176,7 +200,9 @@ mem_status_t memory_get_log_size(log_ring_limits_t * lim) {
 
 	mem_buffer_status_t error;
 	error = append_to_buffer(MEMORY_LOG_LIMITS_SIZE, MEMORY_LOG_LIMITS_ADDR, (uint8_t *)lim, false);
-	if (error)
+	if (error == ST_MEM_BUF_ERROR_FULL)
+		return ST_MEM_BUSY;
+	if (error == ST_MEM_BUF_ERROR_SLICE_SIZE)
 		return ST_MEM_FAIL;
 
 	return ST_MEM_BUSY;
