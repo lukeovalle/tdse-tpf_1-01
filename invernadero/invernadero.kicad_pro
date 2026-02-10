@@ -519,6 +519,10 @@
       {
         "netclass": "alimentación",
         "pattern": "\\+12V"
+      },
+      {
+        "netclass": "alimentación",
+        "pattern": "/fan-"
       }
     ]
   },
