@@ -63,3 +63,5 @@ invernadero/fp-lib-table
 invernadero/sym-lib-table
 invernadero/invernadero-backups/
 invernadero/*.kicad_prl
+invernadero/*.pdf
+
