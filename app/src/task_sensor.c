@@ -16,7 +16,7 @@
 /* Application & Tasks includes */
 #include "board.h"
 #include "app.h"
-#include "task_sensor_attribute.h"
+#include "task_sensor.h"
 #include "adc.h"
 
 /********************** macros and definitions *******************************/
@@ -43,11 +43,11 @@ const task_sensor_cfg_t task_sensor_cfg_list[] = {
 
 task_sensor_dta_t task_sensor_dta_list[] = {
 	{.tick_cnt = DEL_SEN_TICK_INIT, .state = ST_SENSOR_IDLE, .event = EV_SENSOR_IDLE,
-		.measure = 0.0},
+		.measure = NULL },
 	{.tick_cnt = DEL_SEN_TICK_INIT, .state = ST_SENSOR_IDLE, .event = EV_SENSOR_IDLE,
-		.measure = 0.0},
+		.measure = NULL },
 	{.tick_cnt = DEL_SEN_TICK_INIT, .state = ST_SENSOR_IDLE, .event = EV_SENSOR_IDLE,
-		.measure = 0.0}
+		.measure = NULL }
 };
 
 #define SENSOR_DTA_QTY	(sizeof(task_sensor_dta_list)/sizeof(task_sensor_dta_t))
@@ -61,7 +61,6 @@ static uint16_t adc_counter;
 void task_sensor_statechart(shared_data_type * parameters);
 HAL_StatusTypeDef read_sensors(void);
 float take_sensor_value(const task_sensor_cfg_t * cfg);
-void assign_read_value(shared_data_type * parameters, const task_sensor_cfg_t * cfg, task_sensor_dta_t * data);
 
 /********************** internal data definition *****************************/
 const char *p_task_sensor 		= "Task Sensor (Sensor Statechart)";
@@ -118,17 +117,6 @@ void task_sensor_update(void *parameters) {
 		/* Run Task Sensor Statechart */
 		shared_data_type * shared_data = (shared_data_type *) parameters;
 
-		if (shared_data->needs_light_measure)
-			task_sensor_dta_list[SENSOR_LIGHT].event = EV_SENSOR_REQUEST;
-		if (shared_data->needs_temp_measure)
-			task_sensor_dta_list[SENSOR_TEMP].event = EV_SENSOR_REQUEST;
-		if (shared_data->needs_humidity_measure)
-			task_sensor_dta_list[SENSOR_HUMIDITY].event = EV_SENSOR_REQUEST;
-
-		shared_data->needs_light_measure = false;
-		shared_data->needs_temp_measure = false;
-		shared_data->needs_humidity_measure = false;
-
     	task_sensor_statechart(shared_data);
 
     	/* Protect shared resource */
@@ -143,6 +131,17 @@ void task_sensor_update(void *parameters) {
 		__asm("CPSIE i");	/* enable interrupts */
     }
 }
+
+void sensor_request_measurement(sensor_name_t name, float * data_ptr) {
+	task_sensor_dta_list[name].event = EV_SENSOR_REQUEST;
+	task_sensor_dta_list[name].measure = data_ptr;
+
+}
+
+bool sensor_measurement_ready(sensor_name_t name) {
+	return task_sensor_dta_list[name].state == ST_SENSOR_IDLE ? true : false;
+}
+
 
 void task_sensor_statechart(shared_data_type * parameters) {
 	uint32_t index;
@@ -167,7 +166,7 @@ void task_sensor_statechart(shared_data_type * parameters) {
 		case ST_SENSOR_REQUEST:
 			if (!is_ADC_reading) {
 				if (read_sensors() != HAL_OK) {
-					LOGGER_LOG("Error measuring sensors\n"); // TODO: preguntar como manejar este error
+					LOGGER_LOG("Error measuring sensors\n");
 				} else
 					is_ADC_reading = true;
 			}
@@ -188,11 +187,10 @@ void task_sensor_statechart(shared_data_type * parameters) {
 
 			if (p_task_sensor_dta->tick_cnt <= p_task_sensor_cfg->tick_max) {
 				float val = take_sensor_value(p_task_sensor_cfg);
-				p_task_sensor_dta->measure += val;
+				*p_task_sensor_dta->measure += val;
 				p_task_sensor_dta->state = ST_SENSOR_REQUEST;
 			} else {
-				assign_read_value(parameters, p_task_sensor_cfg, p_task_sensor_dta);
-				p_task_sensor_dta->measure = 0.0;
+				*p_task_sensor_dta->measure /= (float) p_task_sensor_dta->tick_cnt;
 				p_task_sensor_dta->tick_cnt = DEL_SEN_TICK_INIT;
 				p_task_sensor_dta->event = EV_SENSOR_IDLE;
 				p_task_sensor_dta->state = ST_SENSOR_IDLE;
@@ -204,7 +202,7 @@ void task_sensor_statechart(shared_data_type * parameters) {
 			p_task_sensor_dta->tick_cnt = DEL_SEN_TICK_INIT;
 			p_task_sensor_dta->event = EV_SENSOR_IDLE;
 			p_task_sensor_dta->state = ST_SENSOR_IDLE;
-			p_task_sensor_dta->measure = 0.0;
+			*p_task_sensor_dta->measure = 0.0;
 			break;
 		}
 	}
@@ -224,25 +222,7 @@ float take_sensor_value(const task_sensor_cfg_t * cfg) {
 	return value;
 }
 
-void assign_read_value(shared_data_type * parameters, const task_sensor_cfg_t * cfg, task_sensor_dta_t * data) {
-	float val = data->measure / (float) data->tick_cnt;
-	switch (cfg->name) {
-	case SENSOR_LIGHT:
-		parameters->light_measure = val;
-		break;
-	case SENSOR_TEMP:
-		parameters->temp_measure = val;
-		break;
-	case SENSOR_HUMIDITY:
-		parameters->humidity_measure = val;
-		break;
-	default:
-		break;
-	}
-}
-
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
-{
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	is_ADC_finished = true;
 }
 
