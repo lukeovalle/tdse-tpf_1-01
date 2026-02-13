@@ -279,6 +279,7 @@ void task_clock_statechart(shared_data_type * parameters) {
 				p_task_clock_dta->state = ST_CLOCK_INCREASE_SECOND;
 				p_task_clock_dta->event = EV_CLOCK_IDLE;
 			}
+			break;
 		default:
 			p_task_clock_dta->event = EV_CLOCK_IDLE;
 			p_task_clock_dta->state = ST_CLOCK_IDLE;

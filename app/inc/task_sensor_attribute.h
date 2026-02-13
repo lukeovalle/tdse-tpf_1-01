@@ -58,7 +58,7 @@ typedef struct {
 	uint32_t			tick_cnt;
 	task_sensor_st_t	state;
 	task_sensor_ev_t	event;
-	float				measure;
+	float *				measure;
 } task_sensor_dta_t;
 
 
