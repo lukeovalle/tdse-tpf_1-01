@@ -17,8 +17,9 @@
 #include <math.h>
 #include "board.h"
 #include "app.h"
-#include "task_sensor.h"
 #include "adc.h"
+#include "task_sensor.h"
+#include "utils.h"
 
 /********************** macros and definitions *******************************/
 #define G_TASK_SEN_CNT_INIT           0ul
@@ -222,10 +223,23 @@ HAL_StatusTypeDef read_sensors(void) {
 	return HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_vals, SENSOR_DTA_QTY);
 }
 
+#define V_OUT_IN_BYTES	0xFFF
 float take_sensor_value(const task_sensor_cfg_t * cfg) {
+	/*
+	 * malla: (V_ref) --- R_var --- R_fija --- (GND)
+	 * 							 |
+	 * 							V_out
+	 *
+	 * V_out = V_ref * R_fija / (R_var + R_fija)
+	 * R_var = R_fija * ( V_ref / V_out - 1)
+	 *
+	 * V_ref = 3,3V --> 0xFFF (12 bits completos)
+	 * V_out = lectura en 12 bits (0 a 3,3V)
+	 */
+
 	uint16_t measure = (uint16_t) ADC_vals[cfg->name];
 
-	return measure != 0 ? cfg->r_div * ((float)0xFFF / (float)measure - 1.0) : 0; // Valor de resistencia medido
+	return measure != 0 ? cfg->r_div * ((float)V_OUT_IN_BYTES / (float)measure - 1.0) : 0;
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
@@ -234,6 +248,9 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 }
 
 float light_conversion(float res) {
+
+	// sin luz: 20 kohm
+	// con luz: 500 ohm
 	return res;
 }
 
@@ -251,7 +268,12 @@ float temp_conversion(float res) {
 }
 
 float humidity_conversion(float res) {
-	return res;
+	float r_min = 0, r_max = 12e3;
+	float hum_min = 0, hum_max = 100; // Tomamos humedad de 0% a 100%
+
+	float slope = (hum_max - hum_min) / (r_max - r_min);
+
+	return CLAMP(hum_min + slope * res, hum_min, hum_max);
 }
 
 
