@@ -79,8 +79,31 @@ extern void task_print_update(void *parameters) {
     while (b_time_update_required) {
 		/* Update Task Counter */
 		g_task_print_cnt++;
+/*
+		if (!first_run) {
+			first_run = true;
 
-
+			float aux;
+			aux = 20;
+			memory_write_config_field(MEM_CFG_HUMIDITY_MIN, &aux);
+			aux = 80;
+			memory_write_config_field(MEM_CFG_HUMIDITY_MAX, &aux);
+			aux = 15;
+			memory_write_config_field(MEM_CFG_TEMP_DAY_MIN, &aux);
+			aux = 40;
+			memory_write_config_field(MEM_CFG_TEMP_DAY_MAX, &aux);
+			aux = 10;
+			memory_write_config_field(MEM_CFG_TEMP_NIGHT_MIN, &aux);
+			aux = 30;
+			memory_write_config_field(MEM_CFG_TEMP_NIGHT_MAX, &aux);
+			aux = 10000;
+			memory_write_config_field(MEM_CFG_LIGHT_THRESHOLD, &aux);
+			aux = 8;
+			memory_write_config_field(MEM_CFG_LIGHT_HOURS_NEEDED, &aux);
+			aux = 2;
+			memory_write_config_field(MEM_CFG_SAVE_FREQ, &aux);
+		}
+*/
 
     	/* Protect shared resource */
 		__asm("CPSID i");	/* disable interrupts */

@@ -70,6 +70,7 @@ bool is_day(date_time_t * date);
 const char *p_task_controller 	= "Task Controller (Controller Statechart)";
 const char *p_task_controller_ 	= "Non-Blocking & Update By Time Code";
 
+static uint8_t last_minute = 255;
 /********************** external functions definition ************************/
 void task_controller_init(void *parameters)
 {
@@ -123,8 +124,10 @@ void task_controller_update(void *parameters) {
 
 		task_controller_dta_list[0].curr_time = clock_get_time();
 
-		if (task_controller_dta_list[0].curr_time.seconds == 0)
+		if (task_controller_dta_list[0].curr_time.seconds == 0 && task_controller_dta_list[0].curr_time.minutes != last_minute) {
+			last_minute = task_controller_dta_list[0].curr_time.minutes;
 			task_controller_dta_list[0].event = EV_CONTROLLER_MINUTE_ELAPSED;
+		}
 
     	task_controller_statechart(shared_data);
 
@@ -163,6 +166,7 @@ void task_controller_statechart(shared_data_type * parameters) {
 			case EV_CONTROLLER_IDLE:
 				p_task_controller_dta->state = ST_CONTROLLER_IDLE;
 				break;
+
 			case EV_CONTROLLER_MINUTE_ELAPSED:
 				sensor_request_measurement(SENSOR_LIGHT, &p_task_controller_dta->light);
 				sensor_request_measurement(SENSOR_TEMP, &p_task_controller_dta->temp);
@@ -171,13 +175,16 @@ void task_controller_statechart(shared_data_type * parameters) {
 				p_task_controller_dta->state = ST_CONTROLLER_WAITING_MEASUREMENT;
 				p_task_controller_dta->event = EV_CONTROLLER_IDLE;
 				break;
+
 			case EV_CONTROLLER_UPDATE_CONFIG:
 				p_task_controller_dta->state = ST_CONTROLLER_UPDATE_CONFIG;
 				p_task_controller_dta->event = EV_CONTROLLER_IDLE;
 			default:
 				break;
+
 			}
 			break;
+
 		case ST_CONTROLLER_WAITING_MEASUREMENT:
 			if (sensor_measurement_ready(SENSOR_LIGHT)
 			&& sensor_measurement_ready(SENSOR_TEMP)
@@ -185,9 +192,14 @@ void task_controller_statechart(shared_data_type * parameters) {
 				p_task_controller_dta->state = ST_CONTROLLER_SAVE_LOG;
 
 			break;
+
 		case ST_CONTROLLER_SAVE_LOG:
 			date_time_t * curr_time = &p_task_controller_dta->curr_time;
 			uint8_t save_freq = (uint8_t) config.save_freq;
+
+			if  (!curr_time) {
+				LOGGER_LOG("Puntero a tiempo actual nulo. archivo %s, línea %d\n", __FILE__, __LINE__);
+			}
 
 			if (curr_time->minutes == 0 && (curr_time->hours % save_freq) == 0)
 				memory_append_log(&p_task_controller_dta->humidity,
@@ -196,19 +208,24 @@ void task_controller_statechart(shared_data_type * parameters) {
 
 			p_task_controller_dta->state = ST_CONTROLLER_REGULATE_ACTUATORS;
 			break;
+
 		case ST_CONTROLLER_REGULATE_ACTUATORS:
 			reset_controller_data(p_task_controller_dta);
 			regulate_temperature(p_task_controller_dta);
 			regulate_light(p_task_controller_dta);
 			regulate_humidity(p_task_controller_dta);
 
+			p_task_controller_dta->state = ST_CONTROLLER_IDLE;
+
 			break;
+
 		case ST_CONTROLLER_UPDATE_CONFIG:
 			memory_read_config(&config);
 			p_task_controller_dta->event = EV_CONTROLLER_IDLE;
 			p_task_controller_dta->state = ST_CONTROLLER_IDLE;
 
 			break;
+
 		default:
 			p_task_controller_dta->event = EV_CONTROLLER_IDLE;
 			p_task_controller_dta->state = ST_CONTROLLER_IDLE;
