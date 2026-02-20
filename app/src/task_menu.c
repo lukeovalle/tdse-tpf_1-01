@@ -293,14 +293,23 @@ void task_menu_statechart(void)
 			if (change_state) {
 				/*Mejorar dysplay para que se altere con cada scroll*/
 				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 2;
+				p_task_menu_dta->scroll_max = 3;
+				/*El scroll 0 es configurar fecha el 1 configurar horas y el 2 frecuencia de muestreo*/
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
 	    		scrolling(value);
 	        }
 	        else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
-	            if (valid_date()) save_date();
+	            if (valid_date() &&	p_task_menu_dta->scroll_idx==0) {
+	            	save_date();
+	            }
+	            else if (valid_hour() && p_task_menu_dta->scroll_idx==1) {
+	           		save_hour();
+	           	}
+	            else if (valid_rate() && p_task_menu_dta->scroll_idx==2) {
+	            	save_rate();
+	           	}
 	        }
 	        else if (p_task_menu_dta->event == EV_PRESS_BACK) {
 	            p_task_menu_dta->state = ST_MENU_CONFIG;
@@ -313,14 +322,26 @@ void task_menu_statechart(void)
 		case ST_MENU_CONFIG_TEMP:
 			if (change_state) {
 				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 2;
+				p_task_menu_dta->scroll_max = 4;
+				/*El scroll 0 es configurar maxima diurna, 1 minima diurna, 2 maxima nocturna y 3 minima nocturna*
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
 	    		scrolling(value);
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
-	        	if (valid_temp()) save_temp();
+	            if (valid_temp_max() &&	p_task_menu_dta->scroll_idx==0) {
+	            	save_day_max();
+	            }
+	            else if (valid_temp_min() && p_task_menu_dta->scroll_idx==1) {
+	           		save_day_min();
+	           	}
+	            else if (valid_temp_max() && p_task_menu_dta->scroll_idx==2) {
+	            	save_night_max();
+	           	}
+	            else if (valid_temp_min() && p_task_menu_dta->scroll_idx==3) {
+	           		save_night_min();
+	           	}
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
 	        	p_task_menu_dta->state = ST_MENU_CONFIG;
@@ -354,13 +375,19 @@ void task_menu_statechart(void)
 			if (change_state) {
 				p_task_menu_dta->scroll_idx = 0;
 				p_task_menu_dta->scroll_max = 2;
+				/*El scroll 0 es configurar luminosida minima y el 1 configurar horas de luz*/
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
 	    		scrolling(value);
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
-	        	if (valid_lig()) save_lig();
+	        	if (valid_lig() &&	p_task_menu_dta->scroll_idx==0) {
+	        		save_lig();
+	        	}
+	        	else if (valid_lig_hours() && p_task_menu_dta->scroll_idx==1) {
+	        		save_lig_hours();
+	        	}
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
 				p_task_menu_dta->state = ST_MENU_CONFIG;
