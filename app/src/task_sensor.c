@@ -15,6 +15,7 @@
 
 /* Application & Tasks includes */
 #include <math.h>
+#include <float.h>
 #include "board.h"
 #include "app.h"
 #include "adc.h"
@@ -239,7 +240,7 @@ float take_sensor_value(const task_sensor_cfg_t * cfg) {
 
 	uint16_t measure = (uint16_t) ADC_vals[cfg->name];
 
-	return measure != 0 ? cfg->r_div * ((float)V_OUT_IN_BYTES / (float)measure - 1.0) : 0;
+	return measure != 0 ? cfg->r_div * ((float)V_OUT_IN_BYTES / (float)measure - 1.0) : FLT_MAX;
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
@@ -268,12 +269,12 @@ float temp_conversion(float res) {
 }
 
 float humidity_conversion(float res) {
-	float r_min = 0, r_max = 12e3;
-	float hum_min = 0, hum_max = 100; // Tomamos humedad de 0% a 100%
+	float r_1 = 5e3, r_2 = 40e3;
+	float hum_1 = 100, hum_2 = 0; // Tomamos humedad de 0% a 100%
 
-	float slope = (hum_max - hum_min) / (r_max - r_min);
+	float slope = (hum_2 - hum_1) / (r_2 - r_1);
 
-	return CLAMP(hum_min + slope * res, hum_min, hum_max);
+	return CLAMP(hum_1 + slope * res, hum_2, hum_1);
 }
 
 
