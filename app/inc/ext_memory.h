@@ -19,19 +19,26 @@ typedef enum mem_status {
 } mem_status_t;
 
 typedef enum mem_type_cfg {
-	MEM_CFG_HUMIDITY_MIN = 0,
+	MEM_CFG_TEMP_DAY_MIN = 0,
+	MEM_CFG_TEMP_DAY_MAX,
+	MEM_CFG_TEMP_NIGHT_MIN,
+	MEM_CFG_TEMP_NIGHT_MAX,
+	MEM_CFG_HUMIDITY_MIN ,
 	MEM_CFG_HUMIDITY_MAX,
-	MEM_CFG_LIGHT_MIN,
-	MEM_CFG_LIGHT_MAX,
-	MEM_CFG_TEMP_MIN,
-	MEM_CFG_TEMP_MAX,
+	MEM_CFG_LIGHT_THRESHOLD,
+	MEM_CFG_LIGHT_HOURS_NEEDED,
 	MEM_CFG_SAVE_FREQ
 } mem_type_cfg_t;
 
 typedef struct mem_cfg {
+	float temp_day_min, temp_day_max;
+	float temp_night_min, temp_night_max;
+
 	float humidity_min, humidity_max;
-	float light_min, light_max;
-	float temp_min, temp_max;
+
+	float light_threshold;
+	float light_hours_needed;
+
 	float save_freq;
 } mem_cfg_t;
 

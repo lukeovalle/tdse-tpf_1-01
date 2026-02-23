@@ -1,12 +1,13 @@
 /*
- * task_sensor.h
+ * task_controller.h
  *
- *  Created on: Oct 3, 2025
+ *  Created on: Feb 11, 2026
  *      Author: luke
  */
 
-#ifndef INC_TASK_SENSOR_H_
-#define INC_TASK_SENSOR_H_
+#ifndef INC_TASK_CONTROLLER_H_
+#define INC_TASK_CONTROLLER_H_
+
 
 /********************** CPP guard ********************************************/
 #ifdef __cplusplus
@@ -15,29 +16,25 @@ extern "C" {
 
 
 /********************** inclusions *******************************************/
-#include <stdbool.h>
-#include <stdint.h>
-#include "task_sensor_attribute.h"
 
 /********************** macros ***********************************************/
 
 /********************** typedef **********************************************/
 
 /********************** external data declaration ****************************/
-extern uint32_t g_task_sensor_cnt;
-extern volatile uint32_t g_task_sensor_tick_cnt;
+extern uint32_t g_task_controller_cnt;
+extern volatile uint32_t g_task_controller_tick_cnt;
 
 /********************** external functions declaration ***********************/
-extern void task_sensor_init(void *parameters);
-extern void task_sensor_update(void *parameters);
+extern void task_controller_init(void *parameters);
+extern void task_controller_update(void *parameters);
 
-void sensor_request_measurement(sensor_name_t name, float * data_ptr);
-bool sensor_measurement_ready(sensor_name_t name);
-
+void controller_request_update_config(void);
 
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* INC_TASK_SENSOR_H_ */
+
+#endif /* INC_TASK_CONTROLLER_H_ */

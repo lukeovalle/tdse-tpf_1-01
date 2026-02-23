@@ -285,6 +285,7 @@ static void displayDataBusWrite( uint8_t dataBus )
     displayPinWrite( DISPLAY_PIN_D6, dataBus & 0b01000000 );
     displayPinWrite( DISPLAY_PIN_D5, dataBus & 0b00100000 );
     displayPinWrite( DISPLAY_PIN_D4, dataBus & 0b00010000 );
+
     switch( display.connection ) {
         case DISPLAY_CONNECTION_GPIO_8BITS:
             displayPinWrite( DISPLAY_PIN_D3, dataBus & 0b00001000 );

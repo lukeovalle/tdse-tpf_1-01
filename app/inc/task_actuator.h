@@ -21,7 +21,8 @@ extern "C" {
 /********************** typedef **********************************************/
 typedef enum {
 	ACTUATOR_PUMP = 0,
-	ACTUATOR_FAN
+	ACTUATOR_FAN,
+	ACTUATOR_LIGHT_PANEL
 } actuator_name_t;
 
 /********************** external data declaration ****************************/

@@ -14,10 +14,13 @@
 #include "dwt.h"
 
 /* Application & Tasks includes */
+#include <math.h>
+#include <float.h>
 #include "board.h"
 #include "app.h"
-#include "task_sensor_attribute.h"
 #include "adc.h"
+#include "task_sensor.h"
+#include "utils.h"
 
 /********************** macros and definitions *******************************/
 #define G_TASK_SEN_CNT_INIT           0ul
@@ -33,21 +36,25 @@ volatile uint32_t g_task_sensor_tick_cnt;
 extern ADC_HandleTypeDef hadc1;
 
 /********************** internal data declaration ****************************/
+float light_conversion(float res);
+float temp_conversion(float res);
+float humidity_conversion(float res);
+
 const task_sensor_cfg_t task_sensor_cfg_list[] = {
-	{ .name = SENSOR_LIGHT,		.tick_max = DEL_SEN_TICK_MAX, .min_val = MIN_LIGHT,		.max_val = MAX_LIGHT },
-	{ .name = SENSOR_TEMP,		.tick_max = DEL_SEN_TICK_MAX, .min_val = MIN_TEMP,		.max_val = MAX_TEMP },
-	{ .name = SENSOR_HUMIDITY,	.tick_max = DEL_SEN_TICK_MAX, .min_val = MIN_HUMIDITY,	.max_val = MAX_HUMIDITY }
+	{ .name = SENSOR_LIGHT,		.tick_max = DEL_SEN_TICK_MAX, .r_div = 1.2e3, .resistor_conv_fn = light_conversion },
+	{ .name = SENSOR_TEMP,		.tick_max = DEL_SEN_TICK_MAX, .r_div = 10e3, .resistor_conv_fn = temp_conversion },
+	{ .name = SENSOR_HUMIDITY,	.tick_max = DEL_SEN_TICK_MAX, .r_div = 27e3, .resistor_conv_fn = humidity_conversion }
 };
 
 #define SENSOR_CFG_QTY	(sizeof(task_sensor_cfg_list)/sizeof(task_sensor_cfg_t))
 
 task_sensor_dta_t task_sensor_dta_list[] = {
 	{.tick_cnt = DEL_SEN_TICK_INIT, .state = ST_SENSOR_IDLE, .event = EV_SENSOR_IDLE,
-		.measure = 0.0},
+		.measure = NULL },
 	{.tick_cnt = DEL_SEN_TICK_INIT, .state = ST_SENSOR_IDLE, .event = EV_SENSOR_IDLE,
-		.measure = 0.0},
+		.measure = NULL },
 	{.tick_cnt = DEL_SEN_TICK_INIT, .state = ST_SENSOR_IDLE, .event = EV_SENSOR_IDLE,
-		.measure = 0.0}
+		.measure = NULL }
 };
 
 #define SENSOR_DTA_QTY	(sizeof(task_sensor_dta_list)/sizeof(task_sensor_dta_t))
@@ -55,13 +62,11 @@ task_sensor_dta_t task_sensor_dta_list[] = {
 static volatile uint16_t ADC_vals[SENSOR_DTA_QTY];
 static bool is_ADC_reading = false;
 static bool is_ADC_finished = false;
-static uint16_t adc_counter;
 
 /********************** internal functions declaration ***********************/
 void task_sensor_statechart(shared_data_type * parameters);
 HAL_StatusTypeDef read_sensors(void);
 float take_sensor_value(const task_sensor_cfg_t * cfg);
-void assign_read_value(shared_data_type * parameters, const task_sensor_cfg_t * cfg, task_sensor_dta_t * data);
 
 /********************** internal data definition *****************************/
 const char *p_task_sensor 		= "Task Sensor (Sensor Statechart)";
@@ -118,17 +123,6 @@ void task_sensor_update(void *parameters) {
 		/* Run Task Sensor Statechart */
 		shared_data_type * shared_data = (shared_data_type *) parameters;
 
-		if (shared_data->needs_light_measure)
-			task_sensor_dta_list[SENSOR_LIGHT].event = EV_SENSOR_REQUEST;
-		if (shared_data->needs_temp_measure)
-			task_sensor_dta_list[SENSOR_TEMP].event = EV_SENSOR_REQUEST;
-		if (shared_data->needs_humidity_measure)
-			task_sensor_dta_list[SENSOR_HUMIDITY].event = EV_SENSOR_REQUEST;
-
-		shared_data->needs_light_measure = false;
-		shared_data->needs_temp_measure = false;
-		shared_data->needs_humidity_measure = false;
-
     	task_sensor_statechart(shared_data);
 
     	/* Protect shared resource */
@@ -143,6 +137,17 @@ void task_sensor_update(void *parameters) {
 		__asm("CPSIE i");	/* enable interrupts */
     }
 }
+
+void sensor_request_measurement(sensor_name_t name, float * data_ptr) {
+	task_sensor_dta_list[name].event = EV_SENSOR_REQUEST;
+	task_sensor_dta_list[name].measure = data_ptr;
+
+}
+
+bool sensor_measurement_ready(sensor_name_t name) {
+	return task_sensor_dta_list[name].state == ST_SENSOR_IDLE ? true : false;
+}
+
 
 void task_sensor_statechart(shared_data_type * parameters) {
 	uint32_t index;
@@ -159,20 +164,27 @@ void task_sensor_statechart(shared_data_type * parameters) {
 		case ST_SENSOR_IDLE:
 			if (p_task_sensor_dta->event == EV_SENSOR_IDLE)
 				p_task_sensor_dta->state = ST_SENSOR_IDLE;
-			else if (p_task_sensor_dta->event == EV_SENSOR_REQUEST)
+			else if (p_task_sensor_dta->event == EV_SENSOR_REQUEST) {
 				p_task_sensor_dta->state = ST_SENSOR_REQUEST;
+				p_task_sensor_dta->event = EV_SENSOR_IDLE;
+			}
 
 			break;
 
 		case ST_SENSOR_REQUEST:
-			if (!is_ADC_reading) {
-				if (read_sensors() != HAL_OK) {
-					LOGGER_LOG("Error measuring sensors\n"); // TODO: preguntar como manejar este error
-				} else
-					is_ADC_reading = true;
+			if (is_ADC_reading) {
+				p_task_sensor_dta->state = ST_SENSOR_WAITING;
+			} else {
+				is_ADC_finished = false;
+				is_ADC_reading = true;
+				if (read_sensors() == HAL_OK) {
+					p_task_sensor_dta->state = ST_SENSOR_WAITING;
+				} else {
+					is_ADC_reading = false;
+					LOGGER_LOG("Error measuring sensors, retrying...\n");
+				}
 			}
 
-			p_task_sensor_dta->state = ST_SENSOR_WAITING;
 			break;
 
 		case ST_SENSOR_WAITING:
@@ -182,19 +194,17 @@ void task_sensor_statechart(shared_data_type * parameters) {
 			break;
 
 		case ST_SENSOR_COMPLETED:
-			is_ADC_finished = false;
-			is_ADC_reading = false;
 			p_task_sensor_dta->tick_cnt++;
+			float * measure = p_task_sensor_dta->measure;
 
 			if (p_task_sensor_dta->tick_cnt <= p_task_sensor_cfg->tick_max) {
 				float val = take_sensor_value(p_task_sensor_cfg);
-				p_task_sensor_dta->measure += val;
+				*measure += val;
 				p_task_sensor_dta->state = ST_SENSOR_REQUEST;
 			} else {
-				assign_read_value(parameters, p_task_sensor_cfg, p_task_sensor_dta);
-				p_task_sensor_dta->measure = 0.0;
+				*measure /= (float) p_task_sensor_dta->tick_cnt;
+				*measure = p_task_sensor_cfg->resistor_conv_fn(*measure);
 				p_task_sensor_dta->tick_cnt = DEL_SEN_TICK_INIT;
-				p_task_sensor_dta->event = EV_SENSOR_IDLE;
 				p_task_sensor_dta->state = ST_SENSOR_IDLE;
 			}
 
@@ -204,47 +214,68 @@ void task_sensor_statechart(shared_data_type * parameters) {
 			p_task_sensor_dta->tick_cnt = DEL_SEN_TICK_INIT;
 			p_task_sensor_dta->event = EV_SENSOR_IDLE;
 			p_task_sensor_dta->state = ST_SENSOR_IDLE;
-			p_task_sensor_dta->measure = 0.0;
+			*p_task_sensor_dta->measure = 0.0;
 			break;
 		}
 	}
 }
 
 HAL_StatusTypeDef read_sensors(void) {
-	return HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_vals, SENSOR_DTA_QTY);
+	return HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC_vals, SENSOR_DTA_QTY);
 }
 
+#define V_OUT_IN_BYTES	0xFFF
 float take_sensor_value(const task_sensor_cfg_t * cfg) {
-	uint16_t measure = ADC_vals[cfg->name];
-	float value;
+	/*
+	 * malla: (V_ref) --- R_var --- R_fija --- (GND)
+	 * 							 |
+	 * 							V_out
+	 *
+	 * V_out = V_ref * R_fija / (R_var + R_fija)
+	 * R_var = R_fija * ( V_ref / V_out - 1)
+	 *
+	 * V_ref = 3,3V --> 0xFFF (12 bits completos)
+	 * V_out = lectura en 12 bits (0 a 3,3V)
+	 */
 
-	float aux = (float) measure / (float) 0x0FFF; // 12 bits como máximo
-	value = cfg->min_val * (1.0 - aux) + cfg->max_val * aux;
+	uint16_t measure = (uint16_t) ADC_vals[cfg->name];
 
-	return value;
+	return measure != 0 ? cfg->r_div * ((float)V_OUT_IN_BYTES / (float)measure - 1.0) : FLT_MAX;
 }
 
-void assign_read_value(shared_data_type * parameters, const task_sensor_cfg_t * cfg, task_sensor_dta_t * data) {
-	float val = data->measure / (float) data->tick_cnt;
-	switch (cfg->name) {
-	case SENSOR_LIGHT:
-		parameters->light_measure = val;
-		break;
-	case SENSOR_TEMP:
-		parameters->temp_measure = val;
-		break;
-	case SENSOR_HUMIDITY:
-		parameters->humidity_measure = val;
-		break;
-	default:
-		break;
-	}
-}
-
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
-{
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	is_ADC_finished = true;
+	is_ADC_reading = false;
 }
+
+float light_conversion(float res) {
+
+	// sin luz: 20 kohm
+	// con luz: 500 ohm
+	return res;
+}
+
+#define CELSIUS_IN_KELVIN 273.15
+
+float temp_conversion(float res) {
+	float c1 = 0.001129148, c2 = 0.000234125, c3 = 0.0000000876741; // valores sacados de https://www.alldatasheet.com/datasheet-pdf/view/2045015/AGELECTRONICA/KY-013.html
+
+	float log_r = log(res);
+
+	float aux = c1 + c2 * log_r + c3 * pow(log_r, 3);
+	aux = 1/aux;
+
+	return aux - CELSIUS_IN_KELVIN;
+}
+
+float humidity_conversion(float res) {
+	float r_1 = 5e3, r_2 = 40e3;
+	float hum_1 = 100, hum_2 = 0; // Tomamos humedad de 0% a 100%
+
+	float slope = (hum_2 - hum_1) / (r_2 - r_1);
+
+	return CLAMP(hum_1 + slope * res, hum_2, hum_1);
+}
+
 
 /********************** end of file ******************************************/
-
