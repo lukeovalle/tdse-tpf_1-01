@@ -79,72 +79,31 @@ extern void task_print_update(void *parameters) {
     while (b_time_update_required) {
 		/* Update Task Counter */
 		g_task_print_cnt++;
-
-		if (counter_task < 16)
-			counter_task++;
-
-		if (!first_run && counter_task > 3) {
+/*
+		if (!first_run) {
 			first_run = true;
 
-			float val = 5.0;
-			error = memory_write_config_field(MEM_CFG_LIGHT_MIN, &val);
-			if (error) {
-				LOGGER_LOG("Error %d en la línea %d y archivo %s\n", error, __LINE__, __FILE__);
-			}
-
-			val = 1000.0;
-			error = memory_write_config_field(MEM_CFG_LIGHT_MAX, &val);
-			if (error) {
-				LOGGER_LOG("Error %d en la línea %d y archivo %s\n", error, __LINE__, __FILE__);
-			}
-
-			float h = 69, l = 67, t = 420;
-			error = memory_append_log(&h, &l, &t);
-			if (error) {
-				LOGGER_LOG("Error %d en la línea %d y archivo %s\n", error, __LINE__, __FILE__);
-			}
-
-			LOGGER_LOG("Terminó de escribir? %d\n",	memory_finished_writing());
+			float aux;
+			aux = 20;
+			memory_write_config_field(MEM_CFG_HUMIDITY_MIN, &aux);
+			aux = 80;
+			memory_write_config_field(MEM_CFG_HUMIDITY_MAX, &aux);
+			aux = 15;
+			memory_write_config_field(MEM_CFG_TEMP_DAY_MIN, &aux);
+			aux = 40;
+			memory_write_config_field(MEM_CFG_TEMP_DAY_MAX, &aux);
+			aux = 10;
+			memory_write_config_field(MEM_CFG_TEMP_NIGHT_MIN, &aux);
+			aux = 30;
+			memory_write_config_field(MEM_CFG_TEMP_NIGHT_MAX, &aux);
+			aux = 10000;
+			memory_write_config_field(MEM_CFG_LIGHT_THRESHOLD, &aux);
+			aux = 8;
+			memory_write_config_field(MEM_CFG_LIGHT_HOURS_NEEDED, &aux);
+			aux = 2;
+			memory_write_config_field(MEM_CFG_SAVE_FREQ, &aux);
 		}
-
-
-
-		if (first_run && !read && counter_task > 10) {
-			read = true;
-
-			error = memory_read_config(&config_read);
-			if (error) {
-				LOGGER_LOG("Error %d en la línea %d y archivo %s\n", error, __LINE__, __FILE__);
-			}
-			if (!error) {
-				LOGGER_LOG("Leyó config bien\n");
-			}
-
-			uint16_t log_size = memory_log_size();
-			LOGGER_LOG("log size: %u\n", log_size);
-
-			error = memory_read_log_range(0, log_size, log_leidos);
-			if (error) {
-				LOGGER_LOG("Error %d en la línea %d y archivo %s\n", error, __LINE__, __FILE__);
-			}
-		}
-
-		if (memory_finished_reading() && counter_task < 15) {
-			mem_log_t log = log_leidos[0];
-			LOGGER_LOG("primer log: temp: %0lx\thumedad: %0lx\tluz: %0lx\ttiempo: %lu\n", log.temperature, log.humidity, log.light, log.timestamp);
-		}
-
-		if (counter_task == 15)  {
-			//memory_clear_log();
-			uint16_t log_size = memory_log_size();
-			LOGGER_LOG("log size: %u\n", log_size);
-
-			LOGGER_LOG("Terminó de escribir? %d\n",	memory_finished_writing());
-			LOGGER_LOG("Terminó de leer? %d\n",	memory_finished_reading());
-		}
-
-
-
+*/
 
     	/* Protect shared resource */
 		__asm("CPSID i");	/* disable interrupts */

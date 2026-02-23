@@ -50,10 +50,6 @@ extern "C" {
 
 /********************** typedef **********************************************/
 typedef struct {
-	bool needs_light_measure;
-	bool needs_temp_measure;
-	bool needs_humidity_measure;
-	float light_measure, temp_measure, humidity_measure;
 } shared_data_type;
 
 /********************** external data declaration ****************************/

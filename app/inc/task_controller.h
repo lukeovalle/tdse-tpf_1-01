@@ -1,12 +1,13 @@
 /*
- * task_actuator.h
+ * task_controller.h
  *
- *  Created on: Feb 5, 2026
+ *  Created on: Feb 11, 2026
  *      Author: luke
  */
 
-#ifndef INC_TASK_ACTUATOR_H_
-#define INC_TASK_ACTUATOR_H_
+#ifndef INC_TASK_CONTROLLER_H_
+#define INC_TASK_CONTROLLER_H_
+
 
 /********************** CPP guard ********************************************/
 #ifdef __cplusplus
@@ -15,30 +16,25 @@ extern "C" {
 
 
 /********************** inclusions *******************************************/
-#include <stdint.h>
+
 /********************** macros ***********************************************/
 
 /********************** typedef **********************************************/
-typedef enum {
-	ACTUATOR_PUMP = 0,
-	ACTUATOR_FAN,
-	ACTUATOR_LIGHT_PANEL
-} actuator_name_t;
 
 /********************** external data declaration ****************************/
-extern uint32_t g_task_actuator_cnt;
-extern volatile uint32_t g_task_actuator_tick_cnt;
+extern uint32_t g_task_controller_cnt;
+extern volatile uint32_t g_task_controller_tick_cnt;
 
 /********************** external functions declaration ***********************/
-extern void task_actuator_init(void *parameters);
-extern void task_actuator_update(void *parameters);
+extern void task_controller_init(void *parameters);
+extern void task_controller_update(void *parameters);
 
-void actuator_request_turn_on(actuator_name_t actuator);
-void actuator_request_turn_off(actuator_name_t actuator);
+void controller_request_update_config(void);
 
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* INC_TASK_ACTUATOR_H_ */
+
+#endif /* INC_TASK_CONTROLLER_H_ */

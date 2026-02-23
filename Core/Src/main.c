@@ -216,7 +216,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_71CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -349,8 +349,8 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, DISPLAY_D5_Pin|DISPLAY_D6_Pin|DISPLAY_D7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, DISPLAY_RS_Pin|ACTUATOR_PUMP_Pin|ACTUATOR_FAN_Pin|ROW2_Pin
-                          |ROW3_Pin|ROW1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, ACTUATOR_LIGHT_PANEL_Pin|DISPLAY_RS_Pin|ACTUATOR_PUMP_Pin|ACTUATOR_FAN_Pin
+                          |ROW2_Pin|ROW3_Pin|ROW1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, DISPLAY_D4_Pin|DISPLAY_E_Pin, GPIO_PIN_RESET);
@@ -371,10 +371,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : DISPLAY_RS_Pin ACTUATOR_PUMP_Pin ACTUATOR_FAN_Pin ROW2_Pin
-                           ROW3_Pin ROW1_Pin */
-  GPIO_InitStruct.Pin = DISPLAY_RS_Pin|ACTUATOR_PUMP_Pin|ACTUATOR_FAN_Pin|ROW2_Pin
-                          |ROW3_Pin|ROW1_Pin;
+  /*Configure GPIO pins : ACTUATOR_LIGHT_PANEL_Pin DISPLAY_RS_Pin ACTUATOR_PUMP_Pin ACTUATOR_FAN_Pin
+                           ROW2_Pin ROW3_Pin ROW1_Pin */
+  GPIO_InitStruct.Pin = ACTUATOR_LIGHT_PANEL_Pin|DISPLAY_RS_Pin|ACTUATOR_PUMP_Pin|ACTUATOR_FAN_Pin
+                          |ROW2_Pin|ROW3_Pin|ROW1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

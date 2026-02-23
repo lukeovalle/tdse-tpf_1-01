@@ -29,13 +29,15 @@ volatile uint32_t g_task_actuator_tick_cnt;
 
 /********************** internal data declaration ****************************/
 const task_actuator_cfg_t task_actuator_cfg_list[] = {
-	{ .name = ACTUATOR_PUMP, 	.gpio_port = GPIOC,	.gpio_pin = GPIO_PIN_8 },
-	{ .name = ACTUATOR_FAN,		.gpio_port = GPIOC,	.gpio_pin = GPIO_PIN_9 }
+	{ .name = ACTUATOR_PUMP,	 	.gpio_port = GPIOC,	.gpio_pin = GPIO_PIN_8 },
+	{ .name = ACTUATOR_FAN,			.gpio_port = GPIOC,	.gpio_pin = GPIO_PIN_9 },
+	{ .name = ACTUATOR_LIGHT_PANEL,	.gpio_port = GPIOC,	.gpio_pin = GPIO_PIN_6 },
 };
 
 #define ACTUATOR_CFG_QTY	(sizeof(task_actuator_cfg_list)/sizeof(task_actuator_cfg_t))
 
 task_actuator_dta_t task_actuator_dta_list[] = {
+	{ .state = ST_ACTUATOR_OFF, .event = EV_ACTUATOR_IDLE },
 	{ .state = ST_ACTUATOR_OFF, .event = EV_ACTUATOR_IDLE },
 	{ .state = ST_ACTUATOR_OFF, .event = EV_ACTUATOR_IDLE }
 };
