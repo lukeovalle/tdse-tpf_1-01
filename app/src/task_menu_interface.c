@@ -59,6 +59,7 @@
 /********************** internal functions declaration ***********************/
 
 /********************** internal data definition *****************************/
+//Estructura de cola para eventos que guarda su valor numerico
 struct
 {
 	uint32_t	head;
@@ -112,6 +113,7 @@ task_menu_ev_t get_event_task_menu(uint32_t *key_value)
 	task_menu_ev_t event;
 	queue_task_a.count--;
 	event = queue_task_a.queue[queue_task_a.tail];
+	//Retorna valor de tecla a puntero
 	*key_value = queue_task_a.key_values[queue_task_a.tail];
 	queue_task_a.key_values[queue_task_a.tail] = KEY_VALUE_INVALID;
 	queue_task_a.queue[queue_task_a.tail++] = EVENT_UNDEFINED;
@@ -122,6 +124,7 @@ task_menu_ev_t get_event_task_menu(uint32_t *key_value)
 	return event;
 }
 
+//Verifica cola vacia
 bool any_event_task_menu(void)
 {
   return (queue_task_a.count > 0);

@@ -145,8 +145,8 @@ typedef struct
 extern task_menu_dta_t task_menu_dta;
 
 /********************** external functions declaration ***********************/
+//Funcion de transformacion de boton presionado a valor numerico y evento correspondientes
 void task_menu_push_event(bool btn_pressed, keypad_key_t key);
-uint32_t key_to_event(keypad_key_t key);
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
 }

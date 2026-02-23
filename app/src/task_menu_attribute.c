@@ -23,6 +23,7 @@
 /********************** internal functions declaration ***********************/
 
 /********************** internal data definition *****************************/
+//Estructura de cola para eventos que guarda su valor numerico
 struct
 {
 	uint32_t	head;
@@ -31,10 +32,10 @@ struct
 	task_menu_ev_t	queue[MAX_EVENTS];
 	uint32_t key_values[MAX_EVENTS];
 } queue_task_a;
-
 /********************** external data declaration ****************************/
 
 /********************** external functions definition ************************/
+//Funcion de transformacion de boton presionado a valor numerico y evento correspondientes
 void task_menu_push_event(bool btn_pressed, keypad_key_t key) {
 	 if (!btn_pressed || key == KEY_NONE)
 		 return;
@@ -65,7 +66,7 @@ void task_menu_push_event(bool btn_pressed, keypad_key_t key) {
         default: return;
     }
 
-    put_event_task_menu(event, key_value);
+    put_event_task_menu(event, key_value); //Encolar evento y valor
 }
 
 /********************** end of file ******************************************/
