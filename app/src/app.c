@@ -54,6 +54,7 @@
 #include "task_menu.h"
 #include "task_print.h"
 #include "task_sensor.h"
+#include "task_keypad.h"
 
 /********************** macros and definitions *******************************/
 #define G_APP_CNT_INI		0ul
