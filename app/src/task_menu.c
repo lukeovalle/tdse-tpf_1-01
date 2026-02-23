@@ -51,6 +51,8 @@
 #include "task_keypad.h"
 #include "display.h"
 #include "memory_buffer.h"
+#include "task_clock.h"
+#include "ext_memory.h"
 
 /********************** macros and definitions *******************************/
 #define G_TASK_MEN_CNT_INI			0ul
@@ -132,7 +134,7 @@ void task_menu_init(void *parameters)
 
 	/* Init & Print out: LCD Display */
 	//displayInit( DISPLAY_CONNECTION_GPIO_4BITS );
-/*
+
     displayCharPositionWrite(0, 0);
 	displayStringWrite("TdSE Bienvenidos");
 
@@ -194,6 +196,7 @@ void task_menu_update(void *parameters)
 }
 
 
+//Función de scrolleo para cambiar configuraciones/lecturas en un mismo estado
 void scrolling(task_menu_dta_t *s_task_menu_dta, uint32_t value) {
 	if (s_task_menu_dta->scroll_max == 0) return;
 
@@ -209,7 +212,7 @@ void scrolling(task_menu_dta_t *s_task_menu_dta, uint32_t value) {
     }
 }
 
-
+//Display del estado init modificable por scroll
 void display_init(task_menu_dta_t *p) {
 	if (p->state == ST_INIT && p->event == EV_PRESS_SCROLL) {
 		displayCharPositionWrite(0, 0);
@@ -226,6 +229,7 @@ void display_init(task_menu_dta_t *p) {
 }
 
 /*Falta crear funciones de acciones, guardas y display (condicional cambiar los elif por switch anidados con if para guardas) */
+//Maquina de estados
 void task_menu_statechart(void)
 {
 	task_menu_dta_t *p_task_menu_dta;
@@ -236,6 +240,7 @@ void task_menu_statechart(void)
 	/*Use for numerical values and scroll identification */
 	uint32_t value = KEY_VALUE_INVALID;
 
+	//Desencola evento y recupera boton presionado
 	if (true == any_event_task_menu())
 	{
 		p_task_menu_dta->flag = true;
@@ -243,40 +248,45 @@ void task_menu_statechart(void)
 	}
 	else return;
 
+	//Guardado de estado previo y verificacion de cambio de estado (solo en back y enter)
 	bool change_state = p_task_menu_dta->state == p_task_menu_dta->prev_state;
 	p_task_menu_dta->prev_state = p_task_menu_dta->state;
 
 	/*El flag se vuelve redundante para la maquina de estados*/
 	p_task_menu_dta->flag = false;
 
+	//Elección de estado
 	switch (p_task_menu_dta->state) {
 		case ST_MENU_INIT:
 			if (change_state) {
-				/*Mejorar dysplay para que se altere con cada scroll*/
+				//Inicializa scroll y display
 				display_init(p_task_menu_dta);
 				p_task_menu_dta->scroll_idx = 0;
 				p_task_menu_dta->scroll_max = 2;
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
-	    		/* Selección*/
+	    		/* Selección y display*/
 	    		scrolling(value);
+	    		display_init(p_task_menu_dta);
 	        }
 	        else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
 	        	if (p_task_menu_dta->scroll_idx == 0)
 	        		p_task_menu_dta->state = ST_MENU_CONFIG;
-	            else if (p_task_menu_dta->scroll_idx != 0 && valid_date())
-	                p_task_menu_dta->state = ST_MENU_READ;
+	            else p_task_menu_dta->state = ST_MENU_READ;
 	        }
 	    	break;
 
 		case ST_MENU_CONFIG:
 			if (change_state) {
+				//Inicializa scroll y display
+				display_config(p_task_menu_dta);
 				p_task_menu_dta->scroll_idx = 0;
 				p_task_menu_dta->scroll_max = 4;
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
 	    		scrolling(value);
+	    		display_config(p_task_menu_dta);
 	        }
 	        else if (p_task_menu_dta->event == EV_PRESS_BACK) {
 	                p_task_menu_dta->state = ST_MENU_INIT;
@@ -291,15 +301,17 @@ void task_menu_statechart(void)
 
 		case ST_MENU_CONFIG_TIME:
 			if (change_state) {
-				/*Mejorar dysplay para que se altere con cada scroll*/
+				/*Inicializa scroll y display*/
+				display_cfg_time(p_task_menu_dta);
 				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 3;
-				/*El scroll 0 es configurar fecha el 1 configurar horas y el 2 frecuencia de muestreo*/
+				p_task_menu_dta->scroll_max = 6;
+				/*dia/mes/año/hora/minuto/frecuencia de muestreo*/
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
 	    		scrolling(value);
-	        }
+	    		display_cfg_time(p_task_menu_dta);
+	        }// Guarda cada dato por separado (funciones placeholders)
 	        else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
 	            if (valid_date() &&	p_task_menu_dta->scroll_idx==0) {
 	            	save_date();
@@ -313,22 +325,26 @@ void task_menu_statechart(void)
 	        }
 	        else if (p_task_menu_dta->event == EV_PRESS_BACK) {
 	            p_task_menu_dta->state = ST_MENU_CONFIG;
-	        }
+	            numbers_clear();
+	        }//Guardar cada valor numerico
 	        else if (p_task_menu_dta->event == EV_PRESS_NUM) {
-	        	config_time(value);
+	        	numbers.queue(value);
 	        }
 	        break;
 
 		case ST_MENU_CONFIG_TEMP:
 			if (change_state) {
+				/*Inicializa scroll y display*/
+				display_cfg_temp(p_task_menu_dta);
 				p_task_menu_dta->scroll_idx = 0;
 				p_task_menu_dta->scroll_max = 4;
-				/*El scroll 0 es configurar maxima diurna, 1 minima diurna, 2 maxima nocturna y 3 minima nocturna*
+				/*El scroll 0 es configurar maxima diurna, 1 minima diurna, 2 maxima nocturna y 3 minima nocturna*/
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
 	    		scrolling(value);
-	        }
+	    		display_cfg_temp(p_task_menu_dta);
+	        }// Guarda cada dato por separado (funciones placeholders)
 			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
 	            if (valid_temp_max() &&	p_task_menu_dta->scroll_idx==0) {
 	            	save_day_max();
@@ -345,42 +361,57 @@ void task_menu_statechart(void)
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
 	        	p_task_menu_dta->state = ST_MENU_CONFIG;
-	        }
+	            numbers_clear();
+	        }//Guardar cada valor numerico
 	        else if (p_task_menu_dta->event == EV_PRESS_NUM) {
-	        	config_temp(value);
+	        	numbers.queue(value);
 	        }
 			break;
 
 		case ST_MENU_CONFIG_HUM:
 			if (change_state) {
+				/*Inicializa scroll y display*/
+				display_cfg_hum(p_task_menu_dta);
 				p_task_menu_dta->scroll_idx = 0;
 				p_task_menu_dta->scroll_max = 2;
+				/*El scroll 0 es configurar humedad minima y el 1 configurar humedad maxima*/
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
 	    		scrolling(value);
-	        }
+				display_cfg_temp(p_task_menu_dta);
+	        }// Guarda cada dato por separado (funciones placeholders)
 			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
-	        	if (valid_hum()) save_hum();
+				if (p_task_menu_dta->idx == 0) {
+					memory_write_config_field(MEM_CFG_HUMIDITY_MIN, numbers);
+				}
+				else {
+					memory_write_config_field(MEM_CFG_HUMIDITY_MAX, numbers);
+				}
+
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
 				p_task_menu_dta->state = ST_MENU_CONFIG;
-	        }
+	            numbers_clear();
+	        }//Guardar cada valor numerico
 	        else if (p_task_menu_dta->event == EV_PRESS_NUM) {
-	        	config_hum(value);
+	        	numbers.queue(value);
 	        }
 			break;
 
 		case ST_MENU_CONFIG_LIG:
 			if (change_state) {
+				/*Inicializa scroll y display*/
+				display_cfg_lig(p_task_menu_dta);
 				p_task_menu_dta->scroll_idx = 0;
 				p_task_menu_dta->scroll_max = 2;
-				/*El scroll 0 es configurar luminosida minima y el 1 configurar horas de luz*/
+				/*El scroll 0 es configurar luminosiad minima y el 1 configurar horas de luz*/
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
 	    		scrolling(value);
-	        }
+				display_cfg_lig(p_task_menu_dta);
+	        }// Guarda cada dato por separado (funciones placeholders)
 			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
 	        	if (valid_lig() &&	p_task_menu_dta->scroll_idx==0) {
 	        		save_lig();
@@ -391,9 +422,10 @@ void task_menu_statechart(void)
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
 				p_task_menu_dta->state = ST_MENU_CONFIG;
-	        }
+	            numbers_clear();
+	        }//Guardar cada valor numerico
 	        else if (p_task_menu_dta->event == EV_PRESS_NUM) {
-	        	config_lig(value);
+	        	numbers.queue(value);
 	        }
 			break;
 
