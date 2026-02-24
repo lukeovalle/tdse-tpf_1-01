@@ -69,7 +69,7 @@
 #define SCROLL_UP   0
 #define SCROLL_DOWN 1
 #define SCROLL_VOID 0
-#define DIGIT_BUFFER_SIZE 4
+#define NUM_BUFFER_SIZE 4
 
 /********************** internal data declaration ****************************/
 task_menu_dta_t task_menu_dta =
@@ -214,9 +214,9 @@ void scrolling(task_menu_dta_t *s_task_menu_dta, uint32_t value) {
 	if (s_task_menu_dta->scroll_max == 0) return;
 
     if (value == SCROLL_UP) {
-    	s_task_menu_dta->scroll_idx--;
-        if (s_task_menu_dta->scroll_idx < 0)
+        if (s_task_menu_dta->scroll_idx == 0)
         	s_task_menu_dta->scroll_idx = s_task_menu_dta->scroll_max - 1;
+        else s_task_menu_dta->scroll_idx--;
     }
     else if (value == SCROLL_DOWN) {
     	s_task_menu_dta->scroll_idx++;
@@ -365,12 +365,21 @@ void display_read(uint32_t idx) {
 
 //Falta implementar conversión de uint y enum meses a str
 void display_read_time() {
-	date_time_t clk = clock_get_time();
-	displayCharPositionWrite(0, 0);
-	displayStringWrite();
-	displayCharPositionWrite(0, 1);
-	displayStringWrite();
+    date_time_t clk = clock_get_time();
+    char line1[17];
+    char line2[17];
+
+    snprintf(line1, sizeof(line1), "%02u/%02u/%04u",
+             clk.day, clk.month, clk.year);
+    snprintf(line2, sizeof(line2), "%02u:%02u",
+             clk.hour, clk.minute);
+
+    displayCharPositionWrite(0, 0);
+    displayStringWrite(line1);
+    displayCharPositionWrite(0, 1);
+    displayStringWrite(line2);
 }
+
 
 /*Falta crear funciones de acciones, guardas y display (condicional cambiar los elif por switch anidados con if para guardas) */
 //Maquina de estados
@@ -396,8 +405,9 @@ void task_menu_statechart(void)
 	else return;
 
 	//Guardado de estado previo y verificacion de cambio de estado (solo en back y enter)
-	bool change_state = p_task_menu_dta->state == p_task_menu_dta->prev_state;
+	bool change_state = p_task_menu_dta->state != p_task_menu_dta->prev_state;
 	p_task_menu_dta->prev_state = p_task_menu_dta->state;
+
 
 	/*El flag se vuelve redundante para la maquina de estados*/
 	p_task_menu_dta->flag = false;
@@ -412,7 +422,7 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección y display*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 	    		display_init(p_task_menu_dta->scroll_idx);
 	        }
 	        else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
@@ -430,7 +440,7 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 	    		display_config(p_task_menu_dta->scroll_idx);
 	        }
 	        else if (p_task_menu_dta->event == EV_PRESS_BACK) {
@@ -453,7 +463,7 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 	    		display_cfg_time(p_task_menu_dta->scroll_idx);
 	        }// Guarda cada dato por separado
 	        else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
@@ -489,13 +499,16 @@ void task_menu_statechart(void)
 						break;
 
 					case 5:
-						mem_status_t status = memory_write_config_field(MEM_CFG_SAVE_FREQ, &num_buffer_to_int(p_num_buf));
+						mem_status_t status;
+						uint16_t num = num_buffer_to_int(p_num_buf);
+						status = memory_write_config_field(MEM_CFG_SAVE_FREQ, &num);
 						if (status == ST_MEM_OK) {
 				        	displayCharPositionWrite(0, 1);
 				        	displayStringWrite("OK");
 						}
 						break;
 				}
+				num_buffer_reset(p_num_buf);
 	        }
 	        else if (p_task_menu_dta->event == EV_PRESS_BACK) {
 	            p_task_menu_dta->state = ST_MENU_CONFIG;
@@ -518,13 +531,15 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 	    		display_cfg_temp(p_task_menu_dta->scroll_idx);
 	        }// Guarda cada dato por separado
 			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
+				mem_status_t status;
+				uint16_t num = num_buffer_to_int(p_num_buf);
 				switch (p_task_menu_dta->scroll_idx){
 					case 0:
-						mem_status_t status = memory_write_config_field(MEM_CFG_TEMP_DAY_MIN, &num_buffer_to_int(p_num_buf));
+						status = memory_write_config_field(MEM_CFG_TEMP_DAY_MIN, &num);
 						if (status == ST_MEM_OK) {
 				        	displayCharPositionWrite(0, 1);
 				        	displayStringWrite("OK");
@@ -532,7 +547,7 @@ void task_menu_statechart(void)
 						break;
 
 					case 1:
-						mem_status_t status = memory_write_config_field(MEM_CFG_TEMP_DAY_MAX, &num_buffer_to_int(p_num_buf));
+						status = memory_write_config_field(MEM_CFG_TEMP_DAY_MAX, &num);
 						if (status == ST_MEM_OK) {
 				        	displayCharPositionWrite(0, 1);
 				        	displayStringWrite("OK");
@@ -540,7 +555,7 @@ void task_menu_statechart(void)
 						break;
 
 					case 2:
-						mem_status_t status = memory_write_config_field(MEM_CFG_TEMP_NIGHT_MIN, &num_buffer_to_int(p_num_buf));
+						status = memory_write_config_field(MEM_CFG_TEMP_NIGHT_MIN, &num);
 						if (status == ST_MEM_OK) {
 				        	displayCharPositionWrite(0, 1);
 				        	displayStringWrite("OK");
@@ -548,13 +563,14 @@ void task_menu_statechart(void)
 						break;
 
 					case 3:
-						mem_status_t status = memory_write_config_field(MEM_CFG_TEMP_DAY_MAX, &num_buffer_to_int(p_num_buf));
+						status = memory_write_config_field(MEM_CFG_TEMP_NIGHT_MAX, &num);
 						if (status == ST_MEM_OK) {
 				        	displayCharPositionWrite(0, 1);
 				        	displayStringWrite("OK");
 						}
 						break;
 				}
+				num_buffer_reset(p_num_buf);
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
 	        	p_task_menu_dta->state = ST_MENU_CONFIG;
@@ -577,13 +593,15 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 				display_cfg_hum(p_task_menu_dta->scroll_idx);
 	        }// Guarda cada dato por separado
 			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
+				mem_status_t status;
+				uint16_t num = num_buffer_to_int(p_num_buf);
 				switch (p_task_menu_dta->scroll_idx){
 					case 0:
-						mem_status_t status = memory_write_config_field(MEM_CFG_HUMIDITY_MIN, &num_buffer_to_int(p_num_buf));
+						status = memory_write_config_field(MEM_CFG_HUMIDITY_MIN, &num);
 						if (status == ST_MEM_OK) {
 				        	displayCharPositionWrite(0, 1);
 				        	displayStringWrite("OK");
@@ -591,13 +609,14 @@ void task_menu_statechart(void)
 						break;
 
 					case 1:
-						mem_status_t status = memory_write_config_field(MEM_CFG_HUMIDITY_MAX, &num_buffer_to_int(p_num_buf));
+						status = memory_write_config_field(MEM_CFG_HUMIDITY_MAX, &num);
 						if (status == ST_MEM_OK) {
 				        	displayCharPositionWrite(0, 1);
 				        	displayStringWrite("OK");
 						}
 						break;
 				}
+				num_buffer_reset(p_num_buf);
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
 				p_task_menu_dta->state = ST_MENU_CONFIG;
@@ -620,13 +639,15 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 				display_cfg_lig(p_task_menu_dta->scroll_idx);
 	        }// Guarda cada dato por separado
 			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
+				mem_status_t status;
+				uint16_t num = num_buffer_to_int(p_num_buf);
 				switch (p_task_menu_dta->scroll_idx){
 					case 0:
-						mem_status_t status = memory_write_config_field(MEM_CFG_LIGHT_THRESHOLD, &num_buffer_to_int(p_num_buf));
+						status = memory_write_config_field(MEM_CFG_LIGHT_THRESHOLD, &num);
 						if (status == ST_MEM_OK) {
 				        	displayCharPositionWrite(0, 1);
 				        	displayStringWrite("OK");
@@ -634,13 +655,14 @@ void task_menu_statechart(void)
 						break;
 
 					case 1:
-						mem_status_t status = memory_write_config_field(MEM_CFG_LIGHT_HOURS_NEEDED, &num_buffer_to_int(p_num_buf));
+						status = memory_write_config_field(MEM_CFG_LIGHT_HOURS_NEEDED, &num);
 						if (status == ST_MEM_OK) {
 				        	displayCharPositionWrite(0, 1);
 				        	displayStringWrite("OK");
 						}
 						break;
 				}
+				num_buffer_reset(p_num_buf);
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_BACK) {
 				p_task_menu_dta->state = ST_MENU_CONFIG;
@@ -662,7 +684,7 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 				display_read(p_task_menu_dta->scroll_idx);
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_BACK){
@@ -692,7 +714,7 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 				display_read_temp(p_task_menu_dta->scroll_idx);
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
@@ -713,7 +735,7 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 				display_read_hum(p_task_menu_dta->scroll_idx);
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
@@ -734,7 +756,7 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 				display_read_lig(p_task_menu_dta->scroll_idx);
 	        }
 			else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
@@ -755,7 +777,7 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 	    		display_read_temp_con(p_task_menu_dta->scroll_idx);
 	        }
 			if (p_task_menu_dta->event == EV_PRESS_BACK) {
@@ -770,7 +792,7 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 	    		display_read_temp_samples(p_task_menu_dta->scroll_idx);
 	        }
 			if (p_task_menu_dta->event == EV_PRESS_BACK) {
@@ -787,7 +809,7 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 	    		display_read_hum_con(p_task_menu_dta->scroll_idx);
 	        }
 			if (p_task_menu_dta->event == EV_PRESS_BACK) {
@@ -803,7 +825,7 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 				display_read_hum_samples(p_task_menu_dta->scroll_idx);
 	        }
 			if (p_task_menu_dta->event == EV_PRESS_BACK) {
@@ -820,7 +842,7 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 	    		display_read_lig_con(p_task_menu_dta->scroll_idx);
 	        }
 			if (p_task_menu_dta->event == EV_PRESS_BACK) {
@@ -836,7 +858,7 @@ void task_menu_statechart(void)
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección*/
-	    		scrolling(value);
+	    		scrolling(p_task_menu_dta, value);
 				display_read_lig_samples(p_task_menu_dta->scroll_idx);
 	        }
 			if (p_task_menu_dta->event == EV_PRESS_BACK) {
