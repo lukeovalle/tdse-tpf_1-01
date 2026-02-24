@@ -240,7 +240,7 @@ float take_sensor_value(const task_sensor_cfg_t * cfg) {
 
 	uint16_t measure = (uint16_t) ADC_vals[cfg->name];
 
-	return measure != 0 ? cfg->r_div * ((float)V_OUT_IN_BYTES / (float)measure - 1.0) : FLT_MAX;
+	return measure != 0 ? cfg->r_div * ((float)V_OUT_IN_BYTES / (float)measure - 1.0) : 111e3;
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
@@ -249,10 +249,14 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 }
 
 float light_conversion(float res) {
+	/*
+	 * se tomaron mediciones y se ajustó linealmente la fórmula:
+	 * log(L) = A * log(R) + B
+	 * se obtuvo L = R^A * 10^B
+	 */
+	float A = -1.2, pow_B = 1.74e7;
 
-	// sin luz: 20 kohm
-	// con luz: 500 ohm
-	return res;
+	return pow(res, A) * pow_B;
 }
 
 #define CELSIUS_IN_KELVIN 273.15
