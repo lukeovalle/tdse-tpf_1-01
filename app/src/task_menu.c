@@ -212,6 +212,11 @@ void scrolling(task_menu_dta_t *s_task_menu_dta, uint32_t value) {
     }
 }
 
+void scroll_reset(task_menu_dta_t *s_task_menu_dta, uint32_t max) {
+	s_task_menu_dta->scroll_idx = 0;
+	s_task_menu_dta->scroll_max = max;
+}
+
 //Display del estado init modificable por scroll
 void display_init(uint32_t idx) {
 	if (idx == 1) {
@@ -225,6 +230,123 @@ void display_init(uint32_t idx) {
 		displayStringWrite("Configurar");
 		displayCharPositionWrite(0, 1);
 		displayStringWrite("parametros");
+	}
+}
+
+//Display del estado config modificable por scroll
+void display_config(uint32_t idx) {
+	displayCharPositionWrite(0, 0);
+	displayStringWrite("Configuracion");
+	displayCharPositionWrite(0, 1);
+	switch (idx) {
+		case 0:
+			displayStringWrite("temporal");
+			break;
+		case 1:
+			displayStringWrite("temperatura");
+			break;
+		case 2:
+			displayStringWrite("humedad");
+			break;
+		case 3:
+			displayStringWrite("luminocidad");
+			break;
+	}
+}
+
+//Display del estado config_time modificable por scroll
+void display_config(uint32_t idx) {
+	switch (idx) {
+		case 0:
+			displayCharPositionWrite(0, 0);
+			displayStringWrite("Fijar día");
+			break;
+		case 1:
+			displayCharPositionWrite(0, 0);
+			displayStringWrite("Fijar mes");
+			break;
+		case 2:
+			displayCharPositionWrite(0, 0);
+			displayStringWrite("Fijar año");
+			break;
+		case 3:
+			displayCharPositionWrite(0, 0);
+			displayStringWrite("Fijar hora");
+			break;
+		case 4:
+			displayCharPositionWrite(0, 0);
+			displayStringWrite("Fijar minuto");
+			break;
+		case 5:
+			displayCharPositionWrite(0, 0);
+			displayStringWrite("Freq muestreo");
+			break;
+	}
+}
+
+//Display del estado config_temp modificable por scroll
+void display_cfg_temp(uint32_t idx) {
+	displayCharPositionWrite(0, 0);
+	switch (idx) {
+		case 0:
+			displayStringWrite("Diurna minima");
+			break;
+		case 1:
+			displayStringWrite("Diurna maxima");
+			break;
+		case 2:
+			displayStringWrite("Nocturna minima");
+			break;
+		case 3:
+			displayStringWrite("Nocturna maxima");
+			break;
+	}
+}
+
+//Display del estado config_hum modificable por scroll
+void display_cfg_hum(uint32_t idx) {
+	displayCharPositionWrite(0, 0);
+	switch (idx) {
+		case 0:
+			displayStringWrite("Humedad minima");
+			break;
+		case 1:
+			displayStringWrite("Humedad maxima");
+			break;
+	}
+}
+
+//Display del estado config_lig modificable por scroll
+void display_cfg_lig(uint32_t idx) {
+	displayCharPositionWrite(0, 0);
+	switch (idx) {
+		case 0:
+			displayStringWrite("Luminocidad minima");
+			break;
+		case 1:
+			displayStringWrite("Horas de luz");
+			break;
+	}
+}
+
+//Display del estado read modificable por scroll
+void display_read(uint32_t idx) {
+	displayCharPositionWrite(0, 0);
+	displayStringWrite("Lectura de datos");
+	displayCharPositionWrite(0, 1);
+	switch (idx) {
+		case 0:
+			displayStringWrite("temporales");
+			break;
+		case 1:
+			displayStringWrite("temperatura");
+			break;
+		case 2:
+			displayStringWrite("humedad");
+			break;
+		case 3:
+			displayStringWrite("luminocidad");
+			break;
 	}
 }
 
@@ -260,8 +382,7 @@ void task_menu_statechart(void)
 		case ST_MENU_INIT:
 			if (change_state) {
 				//Inicializa scroll y display
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 2;
+				scroll_reset(p_task_menu_dta, 2);
 				display_init(p_task_menu_dta->scroll_idx);
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
@@ -279,8 +400,7 @@ void task_menu_statechart(void)
 		case ST_MENU_CONFIG:
 			if (change_state) {
 				//Inicializa scroll y display
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 4;
+				scroll_reset(p_task_menu_dta, 4);
 	    		display_config(p_task_menu_dta->scroll_idx);
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
@@ -302,8 +422,7 @@ void task_menu_statechart(void)
 		case ST_MENU_CONFIG_TIME:
 			if (change_state) {
 				/*Inicializa scroll y display*/
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 6;
+				scroll_reset(p_task_menu_dta, 6);
 				/*dia/mes/año/hora/minuto/frecuencia de muestreo*/
 	    		display_cfg_time(p_task_menu_dta->scroll_idx);
 			}
@@ -335,9 +454,8 @@ void task_menu_statechart(void)
 		case ST_MENU_CONFIG_TEMP:
 			if (change_state) {
 				/*Inicializa scroll y display*/
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 4;
-				/*El scroll 0 es configurar maxima diurna, 1 minima diurna, 2 maxima nocturna y 3 minima nocturna*/
+				scroll_reset(p_task_menu_dta, 4);
+				/*El scroll 0 es configurar minima diurna, 1 maxima diurna, 2 minima nocturna y 3 maxima nocturna*/
 				display_cfg_temp(p_task_menu_dta->scroll_idx);
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
@@ -371,8 +489,7 @@ void task_menu_statechart(void)
 		case ST_MENU_CONFIG_HUM:
 			if (change_state) {
 				/*Inicializa scroll y display*/
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 2;
+				scroll_reset(p_task_menu_dta, 2);
 				/*El scroll 0 es configurar humedad minima y el 1 configurar humedad maxima*/
 				display_cfg_hum(p_task_menu_dta->scroll_idx);
 			}
@@ -402,8 +519,7 @@ void task_menu_statechart(void)
 		case ST_MENU_CONFIG_LIG:
 			if (change_state) {
 				/*Inicializa scroll y display*/
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 2;
+				scroll_reset(p_task_menu_dta, 2);
 				/*El scroll 0 es configurar luminosiad minima y el 1 configurar horas de luz*/
 				display_cfg_lig(p_task_menu_dta->scroll_idx);
 			}
@@ -432,8 +548,7 @@ void task_menu_statechart(void)
 		case ST_MENU_READ:
 			if (change_state) {
 				/*Inicializa scroll y display*/
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 4;
+				scroll_reset(p_task_menu_dta, 4);
 				display_read(p_task_menu_dta->scroll_idx);
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
@@ -462,8 +577,7 @@ void task_menu_statechart(void)
 		case ST_MENU_READ_TEMP:
 			if (change_state) {
 				/*Inicializa scroll y display*/
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 2;
+				scroll_reset(p_task_menu_dta, 2);
 				// 0 para lecturas de configuración y 1 para muestras
 				display_read_temp(p_task_menu_dta->scroll_idx);
 			}
@@ -484,8 +598,7 @@ void task_menu_statechart(void)
 		case ST_MENU_READ_HUM:
 			if (change_state) {
 				/*Inicializa scroll y display*/
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 2;
+				scroll_reset(p_task_menu_dta, 2);
 				// 0 para lecturas de configuración y 1 para muestras
 				display_read_hum(p_task_menu_dta->scroll_idx);
 			}
@@ -506,8 +619,7 @@ void task_menu_statechart(void)
 		case ST_MENU_READ_LIG:
 			if (change_state) {
 				/*Inicializa scroll y display*/
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 2;
+				scroll_reset(p_task_menu_dta, 2);
 				// 0 para lecturas de configuración y 1 para muestras
 				display_read_lig(p_task_menu_dta->scroll_idx);
 			}
@@ -528,8 +640,7 @@ void task_menu_statechart(void)
 		case ST_MENU_READ_TEMP_CON:
 			if (change_state) {
 				/*Inicializa scroll y display*/
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 4;
+				scroll_reset(p_task_menu_dta, 4);
 				// 0 para minima diurna, 1 para maxima diurna, 2 para minima nocturna y 3 para maxima nocturna
 				display_read_temp_con(p_task_menu_dta->scroll_idx);
 			}
@@ -545,8 +656,7 @@ void task_menu_statechart(void)
 		//Lectura de muestras de temperatura
 		case ST_MENU_READ_TEMP_HIS:
 			if (change_state) {
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = data_count(); /*Función que devuelve cantidad total de muestras*/
+				scroll_reset(p_task_menu_dta, data_count()); //Función que devuelve cantidad total de muestras
 	    		display_read_temp_samples(p_task_menu_dta->scroll_idx);
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
@@ -561,8 +671,7 @@ void task_menu_statechart(void)
 		//Lectura de configuraciones de humedad
 			if (change_state) {
 				/*Inicializa scroll y display*/
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 2;
+				scroll_reset(p_task_menu_dta, 2);
 				// 0 para minima 1 para maxima
 				display_read_hum_con(p_task_menu_dta->scroll_idx);
 			}
@@ -595,8 +704,7 @@ void task_menu_statechart(void)
 		case ST_MENU_READ_LIG_CON:
 			if (change_state) {
 				/*Inicializa scroll y display*/
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = 2;
+				scroll_reset(p_task_menu_dta, 2);
 				// 0 para minima 1 para horas de luz
 				display_read_lig_con(p_task_menu_dta->scroll_idx);
 			}
