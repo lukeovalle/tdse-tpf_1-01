@@ -5,6 +5,8 @@
  *      Author: Euteo
  */
 
+/********************** inclusions *******************************************/
+#include <stdint.h>
 
 /********************** macros ***********************************************/
 #define NUM_BUFFER_SIZE 4
@@ -13,8 +15,11 @@
 //Budder numerico de 4 digitos para numeros tipeados por usuario
 typedef struct {
     uint8_t buf[NUM_BUFFER_SIZE];
-    uint8_t count = 0;
+    uint8_t count;
 } num_buffer_t;
+
+/********************** external data declaration ****************************/
+extern num_buffer_t num_buff;
 
 /********************** external functions declaration ***********************/
 void num_buffer_reset(num_buffer_t *d);

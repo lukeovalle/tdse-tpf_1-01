@@ -1,4 +1,5 @@
 #include "keypad.h"
+#include "display.h"
 #include "stm32f1xx_hal.h"
 #include "dwt.h"
 
@@ -7,7 +8,7 @@ GPIO_TypeDef* ROW_PORT[4] = {GPIOC,			GPIOC,			GPIOC,			GPIOD};
 uint16_t ROW_PIN[4]       = {GPIO_PIN_12,	GPIO_PIN_10,	GPIO_PIN_11,	GPIO_PIN_2};
 
 GPIO_TypeDef* COL_PORT[4] = {GPIOC,			GPIOC,			GPIOC,			GPIOC};
-uint16_t COL_PIN[4]       = {GPIO_PIN_0,	GPIO_PIN_1,		GPIO_PIN_3,		GPIO_PIN_2};
+uint16_t COL_PIN[4]       = {GPIO_PIN_1,	GPIO_PIN_0,		GPIO_PIN_3,		GPIO_PIN_2};
 /* ============================== */
 
 static const keypad_key_t key_map[4][4] = {
@@ -17,14 +18,6 @@ static const keypad_key_t key_map[4][4] = {
     {KEY_STAR, KEY_0, KEY_HASH, KEY_D}
 };
 
-void display_delay_us(uint32_t delay_us)
-{
-	uint32_t now = cycle_counter_time_us();
-	uint32_t then = delay_us + now;
-
-	while (now < then)
-		now = cycle_counter_time_us();
-}
 
 keypad_key_t keypad_scan(void)
 {

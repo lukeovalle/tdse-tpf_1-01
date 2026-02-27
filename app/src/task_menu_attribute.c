@@ -23,15 +23,6 @@
 /********************** internal functions declaration ***********************/
 
 /********************** internal data definition *****************************/
-//Estructura de cola para eventos que guarda su valor numerico
-struct
-{
-	uint32_t	head;
-	uint32_t	tail;
-	uint32_t	count;
-	task_menu_ev_t	queue[MAX_EVENTS];
-	uint32_t key_values[MAX_EVENTS];
-} queue_task_a;
 /********************** external data declaration ****************************/
 
 /********************** external functions definition ************************/

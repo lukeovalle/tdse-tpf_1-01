@@ -44,7 +44,8 @@ extern "C" {
 #endif
 
 /********************** inclusions *******************************************/
-
+#include <stdint.h>
+#include <stdbool.h>
 /********************** macros ***********************************************/
 
 /********************** typedef **********************************************/
@@ -56,7 +57,7 @@ extern void init_queue_event_task_menu(void);
 //Encola evento y valor
 extern void put_event_task_menu(task_menu_ev_t event, uint32_t key_value);
 //Desencola eento y valor
-extern task_menu_ev_t get_event_task_menu(uint32 *key_value);
+extern task_menu_ev_t get_event_task_menu(uint32_t *key_value);
 //Verifica cola vacia
 extern bool any_event_task_menu(void);
 
