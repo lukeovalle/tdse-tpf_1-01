@@ -19,7 +19,6 @@ typedef struct {
 } num_buffer_t;
 
 /********************** external data declaration ****************************/
-extern num_buffer_t num_buff;
 
 /********************** external functions declaration ***********************/
 void num_buffer_reset(num_buffer_t *d);

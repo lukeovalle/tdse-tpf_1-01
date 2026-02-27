@@ -201,7 +201,8 @@ void task_controller_statechart(shared_data_type * parameters) {
 				LOGGER_LOG("Puntero a tiempo actual nulo. archivo %s, línea %d\n", __FILE__, __LINE__);
 			}
 
-			if (curr_time->minutes == 0 && (curr_time->hours % save_freq) == 0)
+			bool have_to_log = curr_time->hours % save_freq;
+			if (curr_time->minutes == 0 && have_to_log)
 				memory_append_log(&p_task_controller_dta->humidity,
 						&p_task_controller_dta->light,
 						&p_task_controller_dta->temp);

@@ -5,8 +5,9 @@
  *      Author: Euteo
  */
 
-
 #include "num_buffer.h"
+
+num_buffer_t num_buff;
 
 //Reseteo tras cambio de estado
 void num_buffer_reset(num_buffer_t *d) {

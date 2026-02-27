@@ -51,6 +51,7 @@
 #include "task_clock.h"
 #include "task_controller.h"
 #include "task_i2c.h"
+#include "task_keypad.h"
 #include "task_menu.h"
 #include "task_print.h"
 #include "task_sensor.h"
@@ -84,8 +85,9 @@ const task_cfg_t task_cfg_list[]	= {
 		{ .task_init = task_controller_init, .task_update = task_controller_update, .parameters = &shared_data },
 		{ .task_init = task_sensor_init, .task_update = task_sensor_update, .parameters = &shared_data },
 		{ .task_init = task_i2c_init, .task_update = task_i2c_update, .parameters = &shared_data },
-		{ .task_init = task_print_init, .task_update = task_print_update, .parameters = &shared_data },
 		{ .task_init = task_actuator_init, .task_update = task_actuator_update, .parameters = &shared_data },
+		{ .task_init = task_menu_init, .task_update = task_menu_update, .parameters = &shared_data },
+		{ .task_init = task_keypad_init, .task_update = task_keypad_update, .parameters = &shared_data }
 };
 
 #define TASK_QTY	(sizeof(task_cfg_list)/sizeof(task_cfg_t))

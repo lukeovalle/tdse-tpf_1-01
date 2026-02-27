@@ -323,11 +323,11 @@ static void displayDataBusWrite( uint8_t dataBus )
 
 void display_delay_us(uint32_t delay_us)
 {
-	uint32_t now = cycle_counter_time_us();
+	uint32_t now = cycle_counter_get_time_us();
 	uint32_t then = delay_us + now;
 
 	while (now < then)
-		now = cycle_counter_time_us();
+		now = cycle_counter_get_time_us();
 }
 
 /********************** end of file ******************************************/

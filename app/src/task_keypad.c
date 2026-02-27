@@ -22,8 +22,7 @@ volatile uint32_t g_task_keypad_tick_cnt = 0;
 static keypad_ctrl_t keypad_ctrl[TASK_KEYPAD_KEYS_QTY];
 /* ========================================================= */
 
-void task_keypad_init(void *parameters)
-{
+void task_keypad_init(void *parameters) {
     (void) parameters;
 
     for (uint8_t i = 0; i < TASK_KEYPAD_KEYS_QTY; i++) {

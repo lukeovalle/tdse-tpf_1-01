@@ -99,6 +99,8 @@ const char empty_line[]			= "                ";
 uint32_t g_task_menu_cnt;
 volatile uint32_t g_task_menu_tick_cnt;
 
+extern num_buffer_t num_buff;
+
 /********************** external functions definition ************************/
 void task_menu_init(void *parameters)
 {
@@ -144,16 +146,13 @@ void task_menu_init(void *parameters)
 	cycle_counter_reset();
 
 	/* Init & Print out: LCD Display */
-	//displayInit( DISPLAY_CONNECTION_GPIO_4BITS );
+	displayInit( DISPLAY_CONNECTION_GPIO_4BITS );
 
     displayCharPositionWrite(0, 0);
 	displayStringWrite("TdSE Bienvenidos");
 
 	displayCharPositionWrite(0, 1);
 	displayStringWrite("TPF integrador");
-
-	(void) *parameters;
-	task_keypad_init(parameters);
 
 	g_task_menu_tick_cnt = G_TASK_MEN_TICK_CNT_INI;
 }
@@ -203,8 +202,6 @@ void task_menu_update(void *parameters)
 
         p_task_menu_dta->tick = DEL_MEN_XX_MAX;
 
-        (void) *parameters;
-        task_keypad_update(parameters);
         /* Run Task Menu Statechart */
         task_menu_statechart();
 	}
