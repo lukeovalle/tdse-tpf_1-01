@@ -196,6 +196,7 @@ void task_controller_statechart(shared_data_type * parameters) {
 		case ST_CONTROLLER_SAVE_LOG:
 			date_time_t * curr_time = &p_task_controller_dta->curr_time;
 			uint8_t save_freq = (uint8_t) config.save_freq;
+			if (!save_freq) save_freq = 24; // Si no tiene un valor configurado
 
 			if  (!curr_time) {
 				LOGGER_LOG("Puntero a tiempo actual nulo. archivo %s, línea %d\n", __FILE__, __LINE__);

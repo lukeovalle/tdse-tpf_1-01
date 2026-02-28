@@ -154,6 +154,11 @@ void task_menu_init(void *parameters)
 	displayCharPositionWrite(0, 1);
 	displayStringWrite("TPF integrador");
 
+	HAL_Delay(2000);
+
+	scroll_reset(p_task_menu_dta, 2);
+	display_init(p_task_menu_dta->scroll_idx);
+
 	g_task_menu_tick_cnt = G_TASK_MEN_TICK_CNT_INI;
 }
 
@@ -232,8 +237,11 @@ void scroll_reset(task_menu_dta_t *s_task_menu_dta, uint32_t max) {
 	s_task_menu_dta->scroll_max = max;
 }
 
+
 //Display del estado init modificable por scroll
 void display_init(uint32_t idx) {
+	displayClearScreen();
+
 	if (idx == 1) {
 		displayCharPositionWrite(0, 0);
 		displayStringWrite("Lectura de");
@@ -250,6 +258,8 @@ void display_init(uint32_t idx) {
 
 //Display del estado config modificable por scroll
 void display_config(uint32_t idx) {
+	displayClearScreen();
+
 	displayCharPositionWrite(0, 0);
 	displayStringWrite("Configuracion");
 	displayCharPositionWrite(0, 1);
@@ -271,6 +281,8 @@ void display_config(uint32_t idx) {
 
 //Display del estado config_time modificable por scroll
 void display_cfg_time(uint32_t idx) {
+	displayClearScreen();
+
 	switch (idx) {
 		case 0:
 			displayCharPositionWrite(0, 0);
@@ -301,6 +313,8 @@ void display_cfg_time(uint32_t idx) {
 
 //Display del estado config_temp modificable por scroll
 void display_cfg_temp(uint32_t idx) {
+	displayClearScreen();
+
 	displayCharPositionWrite(0, 0);
 	switch (idx) {
 		case 0:
@@ -320,6 +334,8 @@ void display_cfg_temp(uint32_t idx) {
 
 //Display del estado config_hum modificable por scroll
 void display_cfg_hum(uint32_t idx) {
+	displayClearScreen();
+
 	displayCharPositionWrite(0, 0);
 	switch (idx) {
 		case 0:
@@ -333,6 +349,8 @@ void display_cfg_hum(uint32_t idx) {
 
 //Display del estado config_lig modificable por scroll
 void display_cfg_lig(uint32_t idx) {
+	displayClearScreen();
+
 	displayCharPositionWrite(0, 0);
 	switch (idx) {
 		case 0:
@@ -346,6 +364,8 @@ void display_cfg_lig(uint32_t idx) {
 
 //Display del estado read modificable por scroll
 void display_read(uint32_t idx) {
+	displayClearScreen();
+
 	displayCharPositionWrite(0, 0);
 	displayStringWrite("Lectura de datos");
 	displayCharPositionWrite(0, 1);
@@ -367,6 +387,8 @@ void display_read(uint32_t idx) {
 
 //Falta implementar conversión de uint y enum meses a str
 void display_read_time() {
+	displayClearScreen();
+
     date_time_t clk = clock_get_time();
     char line1[17];
     char line2[17];
@@ -399,8 +421,7 @@ void task_menu_statechart(void)
 	uint32_t value = KEY_VALUE_INVALID;
 
 	//Desencola evento y recupera boton presionado
-	if (true == any_event_task_menu())
-	{
+	if (any_event_task_menu()) {
 		p_task_menu_dta->flag = true;
 		p_task_menu_dta->event = get_event_task_menu(&value);
 	}

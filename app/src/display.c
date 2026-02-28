@@ -230,6 +230,11 @@ void displayStringWrite( const char * str )
     }
 }
 
+void displayClearScreen(void) {
+	displayCodeWrite(DISPLAY_RS_INSTRUCTION, DISPLAY_IR_CLEAR_DISPLAY);
+    HAL_Delay(1);
+}
+
 //=====[Implementations of private functions]==================================
 static void displayCodeWrite( bool type, uint8_t dataBus )
 {

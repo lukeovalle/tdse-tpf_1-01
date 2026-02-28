@@ -2,6 +2,7 @@
 #include "task_keypad.h"
 #include "keypad.h"
 #include "task_menu_attribute.h"
+#include "logger.h"
 
 /* ===================== CONFIGURACION ===================== */
 #define TASK_KEYPAD_DEBOUNCE_TICKS   20
@@ -38,20 +39,6 @@ void task_keypad_update(void *parameters)
 
     /* Botonera matricial clásica unibotón */
     keypad_key_t key_read = keypad_scan();
-    for (uint8_t i = 0; i < KEYPAD_SCAN_SAMPLES; i++)
-    {
-    	keypad_key_t key_read_next = keypad_scan();
-    	if (key_read_next == KEY_NONE) break;
-    	key_read = key_read_next;
-    }
-
-    for (uint8_t i = 0; i < KEYPAD_SCAN_SAMPLES; i++) {
-        keypad_key_t key_read_next = keypad_scan();
-        if (key_read_next == KEY_NONE)
-            break;
-
-        key_read = key_read_next;
-    }
 
     g_task_keypad_cnt++;
 
@@ -77,6 +64,7 @@ void task_keypad_update(void *parameters)
                     }
                 } else {
                     s->state = ST_UP;
+                    s->tick = 0;
                 }
                 break;
 
@@ -95,6 +83,7 @@ void task_keypad_update(void *parameters)
                     }
                 } else {
                     s->state = ST_DOWN;
+                    s->tick = 0;
                 }
                 break;
         }
