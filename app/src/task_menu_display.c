@@ -12,22 +12,29 @@
 #include "num_buffer.h"
 #include "task_clock.h"
 
+/********************** macros and definitions *******************************/
+#define NUM_BUFFER_SIZE 4
+
 
 /********************** Functions definition ***********************/
-
 void display_num(num_buffer_t *v_num_buf) {
 	char pushed_num[NUM_BUFFER_SIZE + 1];
+	num_buffer_to_str(v_num_buf, pushed_num);
+
 	displayCharPositionWrite(0, 1);
-	displayStringWrite(num_buffer_to_str(v_num_buf, pushed_num));
+	displayStringWrite(pushed_num);
 }
 
+
 void display_num_OK(num_buffer_t *v_num_buf) {
-	displayClearScreen();
-	char pushed_num[NUM_BUFFER_SIZE + 1];
-	displayCharPositionWrite(0, 0);
-	displayStringWrite(num_buffer_to_str(v_num_buf, pushed_num));
-	displayCharPositionWrite(0, 1);
-	displayStringWrite("OK");
+    char pushed_num[NUM_BUFFER_SIZE + 1];
+    char num_str[NUM_BUFFER_SIZE + 6];
+
+    num_buffer_to_str(v_num_buf, pushed_num);
+    snprintf(num_str, sizeof(num_str), "%s   OK", pushed_num);
+
+    displayCharPositionWrite(0, 1);
+    displayStringWrite(num_str);
 }
 
 //Display del estado init modificable por scroll
