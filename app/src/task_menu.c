@@ -54,6 +54,7 @@
 #include "task_clock.h"
 #include "ext_memory.h"
 #include "num_buffer.h"
+#include "task_menu_display.h"
 
 /********************** macros and definitions *******************************/
 #define G_TASK_MEN_CNT_INI			0ul
@@ -157,7 +158,7 @@ void task_menu_init(void *parameters)
 	HAL_Delay(2000);
 
 	scroll_reset(p_task_menu_dta, 2);
-	display_init(p_task_menu_dta->scroll_idx);
+	display_initial(p_task_menu_dta->scroll_idx);
 
 	g_task_menu_tick_cnt = G_TASK_MEN_TICK_CNT_INI;
 }
@@ -215,7 +216,6 @@ void task_menu_update(void *parameters)
 
 /********************** internal functions definition ***********************/
 
-
 //Función de scrolleo para cambiar configuraciones/lecturas en un mismo estado
 void scrolling(task_menu_dta_t *s_task_menu_dta, uint32_t value) {
 	if (s_task_menu_dta->scroll_max == 0) return;
@@ -232,178 +232,11 @@ void scrolling(task_menu_dta_t *s_task_menu_dta, uint32_t value) {
     }
 }
 
+//Reseteo del scroll dinamico para cada cambio de estado
 void scroll_reset(task_menu_dta_t *s_task_menu_dta, uint32_t max) {
 	s_task_menu_dta->scroll_idx = 0;
 	s_task_menu_dta->scroll_max = max;
 }
-
-
-//Display del estado init modificable por scroll
-void display_init(uint32_t idx) {
-	displayClearScreen();
-
-	if (idx == 1) {
-		displayCharPositionWrite(0, 0);
-		displayStringWrite("Lectura de");
-		displayCharPositionWrite(0, 1);
-		displayStringWrite("datos");
-	}
-	else  {
-		displayCharPositionWrite(0, 0);
-		displayStringWrite("Configurar");
-		displayCharPositionWrite(0, 1);
-		displayStringWrite("parametros");
-	}
-}
-
-//Display del estado config modificable por scroll
-void display_config(uint32_t idx) {
-	displayClearScreen();
-
-	displayCharPositionWrite(0, 0);
-	displayStringWrite("Configuracion");
-	displayCharPositionWrite(0, 1);
-	switch (idx) {
-		case 0:
-			displayStringWrite("temporal");
-			break;
-		case 1:
-			displayStringWrite("temperatura");
-			break;
-		case 2:
-			displayStringWrite("humedad");
-			break;
-		case 3:
-			displayStringWrite("luminocidad");
-			break;
-	}
-}
-
-//Display del estado config_time modificable por scroll
-void display_cfg_time(uint32_t idx) {
-	displayClearScreen();
-
-	switch (idx) {
-		case 0:
-			displayCharPositionWrite(0, 0);
-			displayStringWrite("Fijar día");
-			break;
-		case 1:
-			displayCharPositionWrite(0, 0);
-			displayStringWrite("Fijar mes");
-			break;
-		case 2:
-			displayCharPositionWrite(0, 0);
-			displayStringWrite("Fijar año");
-			break;
-		case 3:
-			displayCharPositionWrite(0, 0);
-			displayStringWrite("Fijar hora");
-			break;
-		case 4:
-			displayCharPositionWrite(0, 0);
-			displayStringWrite("Fijar minuto");
-			break;
-		case 5:
-			displayCharPositionWrite(0, 0);
-			displayStringWrite("Freq muestreo");
-			break;
-	}
-}
-
-//Display del estado config_temp modificable por scroll
-void display_cfg_temp(uint32_t idx) {
-	displayClearScreen();
-
-	displayCharPositionWrite(0, 0);
-	switch (idx) {
-		case 0:
-			displayStringWrite("Diurna minima");
-			break;
-		case 1:
-			displayStringWrite("Diurna maxima");
-			break;
-		case 2:
-			displayStringWrite("Nocturna minima");
-			break;
-		case 3:
-			displayStringWrite("Nocturna maxima");
-			break;
-	}
-}
-
-//Display del estado config_hum modificable por scroll
-void display_cfg_hum(uint32_t idx) {
-	displayClearScreen();
-
-	displayCharPositionWrite(0, 0);
-	switch (idx) {
-		case 0:
-			displayStringWrite("Humedad minima");
-			break;
-		case 1:
-			displayStringWrite("Humedad maxima");
-			break;
-	}
-}
-
-//Display del estado config_lig modificable por scroll
-void display_cfg_lig(uint32_t idx) {
-	displayClearScreen();
-
-	displayCharPositionWrite(0, 0);
-	switch (idx) {
-		case 0:
-			displayStringWrite("Luminocidad minima");
-			break;
-		case 1:
-			displayStringWrite("Horas de luz");
-			break;
-	}
-}
-
-//Display del estado read modificable por scroll
-void display_read(uint32_t idx) {
-	displayClearScreen();
-
-	displayCharPositionWrite(0, 0);
-	displayStringWrite("Lectura de datos");
-	displayCharPositionWrite(0, 1);
-	switch (idx) {
-		case 0:
-			displayStringWrite("temporales");
-			break;
-		case 1:
-			displayStringWrite("temperatura");
-			break;
-		case 2:
-			displayStringWrite("humedad");
-			break;
-		case 3:
-			displayStringWrite("luminocidad");
-			break;
-	}
-}
-
-//Falta implementar conversión de uint y enum meses a str
-void display_read_time() {
-	displayClearScreen();
-
-    date_time_t clk = clock_get_time();
-    char line1[17];
-    char line2[17];
-
-    snprintf(line1, sizeof(line1), "%02u/%02u/%04u",
-             clk.day, clk.month, clk.year);
-    snprintf(line2, sizeof(line2), "%02u:%02u",
-             clk.hours, clk.minutes);
-
-    displayCharPositionWrite(0, 0);
-    displayStringWrite(line1);
-    displayCharPositionWrite(0, 1);
-    displayStringWrite(line2);
-}
-
 
 /*Falta crear funciones de acciones, guardas y display (condicional cambiar los elif por switch anidados con if para guardas) */
 //Maquina de estados
@@ -441,12 +274,12 @@ void task_menu_statechart(void)
 			if (change_state) {
 				//Inicializa scroll y display
 				scroll_reset(p_task_menu_dta, 2);
-				display_init(p_task_menu_dta->scroll_idx);
+				display_initial(p_task_menu_dta->scroll_idx);
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		/* Selección y display*/
 	    		scrolling(p_task_menu_dta, value);
-	    		display_init(p_task_menu_dta->scroll_idx);
+	    		display_initial(p_task_menu_dta->scroll_idx);
 	        }
 	        else if (p_task_menu_dta->event == EV_PRESS_NEXT) {
 	        	if (p_task_menu_dta->scroll_idx == 0)
@@ -493,42 +326,34 @@ void task_menu_statechart(void)
 				switch (p_task_menu_dta->scroll_idx){
 					case 0:
 						clock_config_set_day(num_buffer_to_int(p_num_buf));
-				        displayCharPositionWrite(0, 1);
-				        displayStringWrite("OK");
+						display_num_OK(p_num_buf);
 						break;
 
 					case 1:
 						clock_config_set_month(num_buffer_to_int(p_num_buf));
-				        displayCharPositionWrite(0, 1);
-				        displayStringWrite("OK");
+						display_num_OK(p_num_buf);
 						break;
 
 					case 2:
 						clock_config_set_year(num_buffer_to_int(p_num_buf));
-				        displayCharPositionWrite(0, 1);
-				        displayStringWrite("OK");
+						display_num_OK(p_num_buf);
 						break;
 
 					case 3:
 						clock_config_set_hour(num_buffer_to_int(p_num_buf));
-				        displayCharPositionWrite(0, 1);
-				        displayStringWrite("OK");
+						display_num_OK(p_num_buf);
 						break;
 
 					case 4:
 						clock_config_set_minute(num_buffer_to_int(p_num_buf));
-				        displayCharPositionWrite(0, 1);
-				        displayStringWrite("OK");
+						display_num_OK(p_num_buf);
 						break;
 
 					case 5:
 						mem_status_t status;
 						uint16_t num = num_buffer_to_int(p_num_buf);
 						status = memory_write_config_field(MEM_CFG_SAVE_FREQ, &num);
-						if (status == ST_MEM_OK) {
-				        	displayCharPositionWrite(0, 1);
-				        	displayStringWrite("OK");
-						}
+						if (status == ST_MEM_OK) display_num_OK(p_num_buf);
 						break;
 				}
 				num_buffer_reset(p_num_buf);
@@ -539,9 +364,7 @@ void task_menu_statechart(void)
 	        }//Guardar cada valor numerico
 	        else if (p_task_menu_dta->event == EV_PRESS_NUM) {
 	        	num_buffer_push(p_num_buf, value);
-	        	char pushed_num[NUM_BUFFER_SIZE + 1];
-	        	displayCharPositionWrite(0, 1);
-	        	displayStringWrite(num_buffer_to_str(p_num_buf, pushed_num));
+	        	display_num(p_num_buf);
 	        }
 	        break;
 
@@ -563,34 +386,22 @@ void task_menu_statechart(void)
 				switch (p_task_menu_dta->scroll_idx){
 					case 0:
 						status = memory_write_config_field(MEM_CFG_TEMP_DAY_MIN, &num);
-						if (status == ST_MEM_OK) {
-				        	displayCharPositionWrite(0, 1);
-				        	displayStringWrite("OK");
-						}
+						if (status == ST_MEM_OK) display_num_OK(p_num_buf);
 						break;
 
 					case 1:
 						status = memory_write_config_field(MEM_CFG_TEMP_DAY_MAX, &num);
-						if (status == ST_MEM_OK) {
-				        	displayCharPositionWrite(0, 1);
-				        	displayStringWrite("OK");
-						}
+						if (status == ST_MEM_OK) display_num_OK(p_num_buf);
 						break;
 
 					case 2:
 						status = memory_write_config_field(MEM_CFG_TEMP_NIGHT_MIN, &num);
-						if (status == ST_MEM_OK) {
-				        	displayCharPositionWrite(0, 1);
-				        	displayStringWrite("OK");
-						}
+						if (status == ST_MEM_OK) display_num_OK(p_num_buf);
 						break;
 
 					case 3:
 						status = memory_write_config_field(MEM_CFG_TEMP_NIGHT_MAX, &num);
-						if (status == ST_MEM_OK) {
-				        	displayCharPositionWrite(0, 1);
-				        	displayStringWrite("OK");
-						}
+						if (status == ST_MEM_OK) display_num_OK(p_num_buf);
 						break;
 				}
 				num_buffer_reset(p_num_buf);
@@ -601,9 +412,7 @@ void task_menu_statechart(void)
 	        }//Guardar cada valor numerico
 	        else if (p_task_menu_dta->event == EV_PRESS_NUM) {
 	        	num_buffer_push(p_num_buf, value);
-	        	char pushed_num[NUM_BUFFER_SIZE + 1];
-	        	displayCharPositionWrite(0, 1);
-	        	displayStringWrite(num_buffer_to_str(p_num_buf, pushed_num));
+	        	display_num(p_num_buf);
 	        }
 			break;
 
@@ -625,18 +434,12 @@ void task_menu_statechart(void)
 				switch (p_task_menu_dta->scroll_idx){
 					case 0:
 						status = memory_write_config_field(MEM_CFG_HUMIDITY_MIN, &num);
-						if (status == ST_MEM_OK) {
-				        	displayCharPositionWrite(0, 1);
-				        	displayStringWrite("OK");
-						}
+						if (status == ST_MEM_OK) display_num_OK(p_num_buf);
 						break;
 
 					case 1:
 						status = memory_write_config_field(MEM_CFG_HUMIDITY_MAX, &num);
-						if (status == ST_MEM_OK) {
-				        	displayCharPositionWrite(0, 1);
-				        	displayStringWrite("OK");
-						}
+						if (status == ST_MEM_OK) display_num_OK(p_num_buf);
 						break;
 				}
 				num_buffer_reset(p_num_buf);
@@ -647,9 +450,7 @@ void task_menu_statechart(void)
 	        }//Guardar cada valor numerico
 	        else if (p_task_menu_dta->event == EV_PRESS_NUM) {
 	        	num_buffer_push(p_num_buf, value);
-	        	char pushed_num[NUM_BUFFER_SIZE + 1];
-	        	displayCharPositionWrite(0, 1);
-	        	displayStringWrite(num_buffer_to_str(p_num_buf, pushed_num));
+	        	display_num(p_num_buf);
 	        }
 			break;
 
@@ -671,18 +472,12 @@ void task_menu_statechart(void)
 				switch (p_task_menu_dta->scroll_idx){
 					case 0:
 						status = memory_write_config_field(MEM_CFG_LIGHT_THRESHOLD, &num);
-						if (status == ST_MEM_OK) {
-				        	displayCharPositionWrite(0, 1);
-				        	displayStringWrite("OK");
-						}
+						if (status == ST_MEM_OK) display_num_OK(p_num_buf);
 						break;
 
 					case 1:
 						status = memory_write_config_field(MEM_CFG_LIGHT_HOURS_NEEDED, &num);
-						if (status == ST_MEM_OK) {
-				        	displayCharPositionWrite(0, 1);
-				        	displayStringWrite("OK");
-						}
+						if (status == ST_MEM_OK) display_num_OK(p_num_buf);
 						break;
 				}
 				num_buffer_reset(p_num_buf);
@@ -693,9 +488,7 @@ void task_menu_statechart(void)
 	        }//Guardar cada valor numerico
 	        else if (p_task_menu_dta->event == EV_PRESS_NUM) {
 	        	num_buffer_push(p_num_buf, value);
-	        	char pushed_num[NUM_BUFFER_SIZE + 1];
-	        	displayCharPositionWrite(0, 1);
-	        	displayStringWrite(num_buffer_to_str(p_num_buf, pushed_num));
+	        	display_num(p_num_buf);
 	        }
 			break;
 
