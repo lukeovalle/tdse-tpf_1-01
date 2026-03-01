@@ -205,7 +205,7 @@ mem_status_t memory_get_log_size(log_ring_limits_t * lim) {
 	if (error == ST_MEM_BUF_ERROR_SLICE_SIZE)
 		return ST_MEM_FAIL;
 
-	return ST_MEM_BUSY;
+	return ST_MEM_OK;
 }
 
 mem_buffer_status_t append_to_buffer(uint16_t data_size, uint16_t mem_addr, uint8_t * data_ptr, bool write_mode) {

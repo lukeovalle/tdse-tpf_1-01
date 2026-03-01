@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 //=====[Declaration of public defines]=========================================
-
+#define DISPLAY_CHAR_WIDTH 16
 //=====[Declaration of public data types]======================================
 
 typedef enum {
@@ -25,6 +25,10 @@ void displayInit( displayConnection_t connection );
 void displayCharPositionWrite( uint8_t charPositionX, uint8_t charPositionY );
 
 void displayStringWrite( const char * str );
+
+void displayClearScreen(void);
+
+void display_delay_us(uint32_t delay_us);
 
 //=====[#include guards - end]=================================================
 

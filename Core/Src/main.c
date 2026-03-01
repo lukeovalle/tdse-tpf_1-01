@@ -346,22 +346,22 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, DISPLAY_D5_Pin|DISPLAY_D6_Pin|DISPLAY_D7_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, ROW2_Pin|ROW1_Pin|ROW4_Pin|ROW3_Pin
+                          |ACTUATOR_LIGHT_PANEL_Pin|DISPLAY_RS_Pin|ACTUATOR_PUMP_Pin|ACTUATOR_FAN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, ACTUATOR_LIGHT_PANEL_Pin|DISPLAY_RS_Pin|ACTUATOR_PUMP_Pin|ACTUATOR_FAN_Pin
-                          |ROW2_Pin|ROW3_Pin|ROW1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, DISPLAY_D5_Pin|DISPLAY_D6_Pin|DISPLAY_D7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, DISPLAY_D4_Pin|DISPLAY_E_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(ROW4_GPIO_Port, ROW4_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pins : COL2_Pin COL1_Pin COL4_Pin COL3_Pin */
-  GPIO_InitStruct.Pin = COL2_Pin|COL1_Pin|COL4_Pin|COL3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  /*Configure GPIO pins : ROW2_Pin ROW1_Pin ROW4_Pin ROW3_Pin
+                           ACTUATOR_LIGHT_PANEL_Pin DISPLAY_RS_Pin ACTUATOR_PUMP_Pin ACTUATOR_FAN_Pin */
+  GPIO_InitStruct.Pin = ROW2_Pin|ROW1_Pin|ROW4_Pin|ROW3_Pin
+                          |ACTUATOR_LIGHT_PANEL_Pin|DISPLAY_RS_Pin|ACTUATOR_PUMP_Pin|ACTUATOR_FAN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : DISPLAY_D5_Pin DISPLAY_D6_Pin DISPLAY_D7_Pin */
@@ -371,15 +371,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ACTUATOR_LIGHT_PANEL_Pin DISPLAY_RS_Pin ACTUATOR_PUMP_Pin ACTUATOR_FAN_Pin
-                           ROW2_Pin ROW3_Pin ROW1_Pin */
-  GPIO_InitStruct.Pin = ACTUATOR_LIGHT_PANEL_Pin|DISPLAY_RS_Pin|ACTUATOR_PUMP_Pin|ACTUATOR_FAN_Pin
-                          |ROW2_Pin|ROW3_Pin|ROW1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
   /*Configure GPIO pins : DISPLAY_D4_Pin DISPLAY_E_Pin */
   GPIO_InitStruct.Pin = DISPLAY_D4_Pin|DISPLAY_E_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -387,12 +378,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : ROW4_Pin */
-  GPIO_InitStruct.Pin = ROW4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  /*Configure GPIO pins : COL2_Pin COL3_Pin COL1_Pin */
+  GPIO_InitStruct.Pin = COL2_Pin|COL3_Pin|COL1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(ROW4_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : COL4_Pin */
+  GPIO_InitStruct.Pin = COL4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(COL4_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
   /* USER CODE END MX_GPIO_Init_2 */
