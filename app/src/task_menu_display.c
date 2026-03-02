@@ -11,6 +11,7 @@
 #include "display.h"
 #include "num_buffer.h"
 #include "task_clock.h"
+#include "ext_memory.h"
 
 /********************** macros and definitions *******************************/
 #define NUM_BUFFER_SIZE 4
@@ -192,10 +193,84 @@ void display_read_time() {
     char line1[17];
     char line2[17];
 
-    snprintf(line1, sizeof(line1), "%02u/%02u/%04u",
-             clk.day, clk.month, clk.year);
-    snprintf(line2, sizeof(line2), "%02u:%02u",
-             clk.hours, clk.minutes);
+    snprintf(line1, sizeof(line1), "%02u/%02u/%04u", clk.day, clk.month, clk.year);
+    snprintf(line2, sizeof(line2), "%02u:%02u", clk.hours, clk.minutes);
+
+    displayCharPositionWrite(0, 0);
+    displayStringWrite(line1);
+    displayCharPositionWrite(0, 1);
+    displayStringWrite(line2);
+}
+
+
+void display_read_parameter(uint32_t idx) {
+	displayClearScreen();
+
+    displayCharPositionWrite(0, 0);
+    displayStringWrite("Lectura de ");
+    displayCharPositionWrite(0, 1);
+	if (idx==0)displayStringWrite("Configuraciones");
+	else displayStringWrite("Muestras");
+}
+
+void display_read_con(mem_type_cfg_t mem) {
+	displayClearScreen();
+
+    char line1[17];
+    char line2[17];
+	mem_cfg_t *con;
+	mem_status_t status;
+	status = memory_read_config(con);
+
+	if (status != ST_MEM_OK) return;
+
+	switch (mem) {
+
+		case MEM_CFG_TEMP_DAY_MIN:
+			snprintf(line1, sizeof(line1), "Temp Diurna");
+			snprintf(line1, sizeof(line1), "Minima %02u C", con->temp_day_min);
+			break;
+
+		case MEM_CFG_TEMP_DAY_MAX:
+			snprintf(line1, sizeof(line1), "Temp Diurna");
+			snprintf(line1, sizeof(line1), "Maxima %02u C", con->temp_day_max);
+			break;
+
+		case MEM_CFG_TEMP_NIGHT_MIN:
+			snprintf(line1, sizeof(line1), "Temp Nocturna");
+			snprintf(line1, sizeof(line1), "Minima %02u C", con->temp_night_min);
+			break;
+
+		case MEM_CFG_TEMP_NIGHT_MAX:
+			snprintf(line1, sizeof(line1), "Temp Nocturna");
+			snprintf(line1, sizeof(line1), "Maxima %02u C", con->temp_night_max);
+			break;
+
+		case MEM_CFG_HUMIDITY_MIN:
+			snprintf(line1, sizeof(line1), "Humedad Minima");
+			snprintf(line1, sizeof(line1), "%02u %%", con->humidity_min);
+			break;
+
+		case MEM_CFG_HUMIDITY_MAX:
+			snprintf(line1, sizeof(line1), "Humedad Maxima");
+			snprintf(line1, sizeof(line1), "%02u %%", con->humidity_max);
+			break;
+
+		case MEM_CFG_LIGHT_HOURS_NEEDED:
+			snprintf(line1, sizeof(line1), "Minimo de horas");
+			snprintf(line1, sizeof(line1), "de luz %02u ", con->light_hours_needed);
+			break;
+
+		case MEM_CFG_LIGHT_THRESHOLD:
+			snprintf(line1, sizeof(line1), "Umbral de luz");
+			snprintf(line1, sizeof(line1), "Minimo %04u ", con->light_threshold);
+			break;
+
+		case MEM_CFG_SAVE_FREQ:
+			snprintf(line1, sizeof(line1), "Horas entre toma");
+			snprintf(line1, sizeof(line1), "de muestras %04u", con->save_freq);
+			break;
+	}
 
     displayCharPositionWrite(0, 0);
     displayStringWrite(line1);

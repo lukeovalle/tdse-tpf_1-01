@@ -12,7 +12,7 @@
 #define NUM_BUFFER_SIZE 4
 
 /********************** typedef **********************************************/
-//Budder numerico de 4 digitos para numeros tipeados por usuario
+//Buffer numerico de 4 digitos para numeros tipeados por usuario
 typedef struct {
     uint8_t buf[NUM_BUFFER_SIZE];
     uint8_t count;

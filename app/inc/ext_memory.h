@@ -10,6 +10,8 @@
 
 #define	DEVICE_ADDRESS_8BIT		0xA0 /* AT24C08A 1010 0xxx */
 
+#include <stdbool.h>
+
 typedef enum mem_status {
 	ST_MEM_OK,
 	ST_MEM_FAIL,
