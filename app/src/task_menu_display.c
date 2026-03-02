@@ -43,6 +43,8 @@ void display_num_OK(num_buffer_t *v_num_buf) {
 void display_initial(uint32_t idx) {
 	displayClearScreen();
 
+	HAL_Delay(1);
+
 	if (idx == 1) {
 		displayCharPositionWrite(0, 0);
 		displayStringWrite("Lectura de");
@@ -271,6 +273,9 @@ void display_read_con(mem_type_cfg_t mem) {
 			snprintf(line1, sizeof(line1), "Horas entre toma");
 			snprintf(line2, sizeof(line2), "de muestras %04u", (uint16_t) conf.save_freq);
 			break;
+
+		default:
+			break;
 		}
 
     displayCharPositionWrite(0, 0);
@@ -287,7 +292,7 @@ void display_read_his(mem_type_cfg_t mem, uint32_t idx) {
 	mem_log_t sample;
 	memory_read_log_range(sample_idx, 1, &sample);
 
-	date_time_t date = timestamp_to_datetime(sample.timestamp);
+	date_time_t time = timestamp_to_datetime(sample.timestamp);
 
     char line1[17];
     char line2[17];
@@ -295,36 +300,17 @@ void display_read_his(mem_type_cfg_t mem, uint32_t idx) {
     switch (mem) {
 			case MEM_CFG_TEMP_DAY_MIN:
 				snprintf(line1, sizeof(line1), "Temperatura %02u", (uint16_t) sample.temperature);
-				snprintf(line2, sizeof(line2), "%07u Segundos", date.seconds); //No entiendo eso de cuantos segundos son y como se cuenta para mapearlo a fecha y hora
+				snprintf(line2, sizeof(line2), "%02u/%02u/%04u %02u:%02u", time.day, time.month, time.year, time.hours, time.minutes);
 				break;
 
 			case MEM_CFG_HUMIDITY_MIN:
 				snprintf(line1, sizeof(line1), "Humedad %03u %%", (uint16_t) sample.humidity);
-				snprintf(line2, sizeof(line2), "%07u Segundos", date.seconds); //No entiendo eso de cuantos segundos son y como se cuenta para mapearlo a fecha y hora
+				snprintf(line2, sizeof(line2), "%02u/%02u/%04u %02u:%02u", time.day, time.month, time.year, time.hours, time.minutes);
 				break;
 
 			case MEM_CFG_LIGHT_THRESHOLD:
 				snprintf(line1, sizeof(line1), "Luminocidad %02u", (uint16_t) sample.light);
-				snprintf(line2, sizeof(line2), "%07u Segundos", date.seconds); //No entiendo eso de cuantos segundos son y como se cuenta para mapearlo a fecha y hora
-				break;
-
-
-			case MEM_CFG_TEMP_DAY_MAX:
-				break;
-
-			case MEM_CFG_TEMP_NIGHT_MIN:
-				break;
-
-			case MEM_CFG_TEMP_NIGHT_MAX:
-				break;
-
-			case MEM_CFG_HUMIDITY_MAX:
-				break;
-
-			case MEM_CFG_LIGHT_HOURS_NEEDED:
-				break;
-
-			case MEM_CFG_SAVE_FREQ:
+				snprintf(line2, sizeof(line2), "%02u/%02u/%04u %02u:%02u", time.day, time.month, time.year, time.hours, time.minutes);
 				break;
 
 			default:
