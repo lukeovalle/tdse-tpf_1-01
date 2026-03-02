@@ -218,7 +218,7 @@ void display_read_con(mem_type_cfg_t mem) {
 
     char line1[17];
     char line2[17];
-	mem_cfg_t *con;
+	mem_cfg_t *con; //No se si esto esta bien o como se accede al config* ya que no esta declarado como memoria externa
 	mem_status_t status;
 	status = memory_read_config(con);
 
@@ -228,47 +228,47 @@ void display_read_con(mem_type_cfg_t mem) {
 
 		case MEM_CFG_TEMP_DAY_MIN:
 			snprintf(line1, sizeof(line1), "Temp Diurna");
-			snprintf(line1, sizeof(line1), "Minima %02u C", con->temp_day_min);
+			snprintf(line2, sizeof(line2), "Minima %02u C", con->temp_day_min);
 			break;
 
 		case MEM_CFG_TEMP_DAY_MAX:
 			snprintf(line1, sizeof(line1), "Temp Diurna");
-			snprintf(line1, sizeof(line1), "Maxima %02u C", con->temp_day_max);
+			snprintf(line2, sizeof(line2), "Maxima %02u C", con->temp_day_max);
 			break;
 
 		case MEM_CFG_TEMP_NIGHT_MIN:
 			snprintf(line1, sizeof(line1), "Temp Nocturna");
-			snprintf(line1, sizeof(line1), "Minima %02u C", con->temp_night_min);
+			snprintf(line2, sizeof(line2), "Minima %02u C", con->temp_night_min);
 			break;
 
 		case MEM_CFG_TEMP_NIGHT_MAX:
 			snprintf(line1, sizeof(line1), "Temp Nocturna");
-			snprintf(line1, sizeof(line1), "Maxima %02u C", con->temp_night_max);
+			snprintf(line2, sizeof(line2), "Maxima %02u C", con->temp_night_max);
 			break;
 
 		case MEM_CFG_HUMIDITY_MIN:
 			snprintf(line1, sizeof(line1), "Humedad Minima");
-			snprintf(line1, sizeof(line1), "%02u %%", con->humidity_min);
+			snprintf(line2, sizeof(line2), "%02u %%", con->humidity_min);
 			break;
 
 		case MEM_CFG_HUMIDITY_MAX:
 			snprintf(line1, sizeof(line1), "Humedad Maxima");
-			snprintf(line1, sizeof(line1), "%02u %%", con->humidity_max);
+			snprintf(line2, sizeof(line2), "%02u %%", con->humidity_max);
 			break;
 
 		case MEM_CFG_LIGHT_HOURS_NEEDED:
 			snprintf(line1, sizeof(line1), "Minimo de horas");
-			snprintf(line1, sizeof(line1), "de luz %02u ", con->light_hours_needed);
+			snprintf(line2, sizeof(line2), "de luz %02u ", con->light_hours_needed);
 			break;
 
 		case MEM_CFG_LIGHT_THRESHOLD:
 			snprintf(line1, sizeof(line1), "Umbral de luz");
-			snprintf(line1, sizeof(line1), "Minimo %04u ", con->light_threshold);
+			snprintf(line2, sizeof(line2), "Minimo %04u ", con->light_threshold);
 			break;
 
 		case MEM_CFG_SAVE_FREQ:
 			snprintf(line1, sizeof(line1), "Horas entre toma");
-			snprintf(line1, sizeof(line1), "de muestras %04u", con->save_freq);
+			snprintf(line2, sizeof(line2), "de muestras %04u", con->save_freq);
 			break;
 		}
 
@@ -276,4 +276,34 @@ void display_read_con(mem_type_cfg_t mem) {
     displayStringWrite(line1);
     displayCharPositionWrite(0, 1);
     displayStringWrite(line2);
+}
+
+void display_read_his(mem_type_cfg_t mem, uint32_t idx) {
+	displayClearScreen();
+
+	uint8_t samples_max = memory_log_size();
+	uint32_t sample_idx = (samples_max - 1) - idx;
+	mem_log_t *sample;
+	memory_read_log_range(sample_idx, 1, sample);
+
+    char line1[17];
+    char line2[17];
+
+    switch (mem) {
+
+			case MEM_CFG_TEMP_DAY_MIN:
+				snprintf(line1, sizeof(line1), "Temperatura %02u", sample->temperature);
+				snprintf(line2, sizeof(line2), "%07u Segundos", sample->timestamp); //No entiendo eso de cuantos segundos son y como se cuenta para mapearlo a fecha y hora
+				break;
+
+			case MEM_CFG_HUMIDITY_MIN:
+				snprintf(line1, sizeof(line1), "Humedad %03u %%", sample->humidity);
+				snprintf(line2, sizeof(line2), "%07u Segundos", sample->timestamp); //No entiendo eso de cuantos segundos son y como se cuenta para mapearlo a fecha y hora
+				break;
+
+			case MEM_CFG_LIGHT_THRESHOLD:
+				snprintf(line1, sizeof(line1), "Luminocidad %02u", sample->light);
+				snprintf(line2, sizeof(line2), "%07u Segundos", sample->timestamp); //No entiendo eso de cuantos segundos son y como se cuenta para mapearlo a fecha y hora
+				break;
+	}
 }

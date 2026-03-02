@@ -663,20 +663,20 @@ void task_menu_statechart(void)
 			}
 			break;
 		//Lectura de muestras de temperatura
-		/*case ST_MENU_READ_TEMP_HIS:
+		case ST_MENU_READ_TEMP_HIS:
 			if (change_state) {
-				scroll_reset(p_task_menu_dta, data_count()); //Función que devuelve cantidad total de muestras
-	    		display_read_temp_samples(p_task_menu_dta->scroll_idx);
+				scroll_reset(p_task_menu_dta, memory_log_size());
+				display_read_his(MEM_CFG_TEMP_DAY_MIN, p_task_menu_dta->scroll_idx);
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		// Selección
 	    		scrolling(p_task_menu_dta, value);
-	    		display_read_temp_samples(p_task_menu_dta->scroll_idx);
+	    		display_read_his(MEM_CFG_TEMP_DAY_MIN, p_task_menu_dta->scroll_idx);
 	        }
 			if (p_task_menu_dta->event == EV_PRESS_BACK) {
 				p_task_menu_dta->state = ST_MENU_READ_TEMP;
 			}
-			break;*/
+			break;
 		case ST_MENU_READ_HUM_CON:
 		//Lectura de configuraciones de humedad
 			if (change_state) {
@@ -703,21 +703,19 @@ void task_menu_statechart(void)
 			}
 			break;
 		//Lectura de muestras de humedad
-		/*case ST_MENU_READ_HUM_HIS:
+		case ST_MENU_READ_HUM_HIS:
 			if (change_state) {
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = data_count(); //Función que devuelve cantidad total de muestras
-				display_read_hum_samples(p_task_menu_dta->scroll_idx);
+				scroll_reset(p_task_menu_dta, memory_log_size());
+				display_read_his(MEM_CFG_HUMIDITY_MIN, p_task_menu_dta->scroll_idx);
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
-	    		//Selección
+	    		// Selección
 	    		scrolling(p_task_menu_dta, value);
-				display_read_hum_samples(p_task_menu_dta->scroll_idx);
+	    		display_read_his(MEM_CFG_HUMIDITY_MIN, p_task_menu_dta->scroll_idx);
 	        }
 			if (p_task_menu_dta->event == EV_PRESS_BACK) {
 				p_task_menu_dta->state = ST_MENU_READ_HUM;
 			}
-			break;*/
 		//Lectura de configuraciones de luz
 		case ST_MENU_READ_LIG_CON:
 			if (change_state) {
@@ -744,22 +742,19 @@ void task_menu_statechart(void)
 			}
 			break;
 		//Lectura de muestras de luz
-		/*case ST_MENU_READ_LIG_HIS:
+		case ST_MENU_READ_LIG_HIS:
 			if (change_state) {
-				p_task_menu_dta->scroll_idx = 0;
-				p_task_menu_dta->scroll_max = data_count(); //Función que devuelve cantidad total de muestras
-				display_read_lig_samples(p_task_menu_dta->scroll_idx);
+				scroll_reset(p_task_menu_dta, memory_log_size());
+				display_read_his(MEM_CFG_LIGHT_THRESHOLD, p_task_menu_dta->scroll_idx);
 			}
 	    	if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
 	    		// Selección
 	    		scrolling(p_task_menu_dta, value);
-				display_read_lig_samples(p_task_menu_dta->scroll_idx);
+	    		display_read_his(MEM_CFG_LIGHT_THRESHOLD, p_task_menu_dta->scroll_idx);
 	        }
 			if (p_task_menu_dta->event == EV_PRESS_BACK) {
 				p_task_menu_dta->state = ST_MENU_READ_LIG;
 			}
-			break;
-		*/
 		default:
 			p_task_menu_dta->state = ST_MENU_INIT;
 			p_task_menu_dta->flag  = false;
