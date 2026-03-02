@@ -107,11 +107,14 @@ extern "C" {
  */
 
 /* Events to excite Task Menu */
-typedef enum task_menu_ev {EV_PRESS_BACK,
-						   EV_PRESS_ENTER,
-						   EV_PRESS_NEXT,
-						   EV_PRESS_SCROLL,
-						   EV_PRESS_NUM} task_menu_ev_t;
+typedef enum task_menu_ev {
+	EV_PRESS_NONE,
+	EV_PRESS_BACK,
+	EV_PRESS_ENTER,
+	EV_PRESS_NEXT,
+	EV_PRESS_SCROLL,
+	EV_PRESS_NUM
+} task_menu_ev_t;
 
 /* State of Task Menu */
 typedef enum task_menu_st {ST_MENU_INIT,

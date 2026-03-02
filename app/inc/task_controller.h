@@ -16,7 +16,7 @@ extern "C" {
 
 
 /********************** inclusions *******************************************/
-
+#include "ext_memory.h"
 /********************** macros ***********************************************/
 
 /********************** typedef **********************************************/
@@ -30,6 +30,7 @@ extern void task_controller_init(void *parameters);
 extern void task_controller_update(void *parameters);
 
 void controller_request_update_config(void);
+const mem_cfg_t * controller_get_config(void);
 
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus

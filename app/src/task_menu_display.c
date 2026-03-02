@@ -43,8 +43,6 @@ void display_num_OK(num_buffer_t *v_num_buf) {
 void display_initial(uint32_t idx) {
 	displayClearScreen();
 
-	HAL_Delay(1);
-
 	if (idx == 1) {
 		displayCharPositionWrite(0, 0);
 		displayStringWrite("Lectura de");
@@ -196,7 +194,7 @@ void display_read_time() {
     char line1[17];
     char line2[17];
 
-    snprintf(line1, sizeof(line1), "%02u/%02u/%04u", clk.day, clk.month, clk.year);
+    snprintf(line1, sizeof(line1), "%02u/%02u/%04u", clk.day, clk.month + 1, clk.year);
     snprintf(line2, sizeof(line2), "%02u:%02u", clk.hours, clk.minutes);
 
     displayCharPositionWrite(0, 0);
@@ -212,8 +210,11 @@ void display_read_parameters(uint32_t idx) {
     displayCharPositionWrite(0, 0);
     displayStringWrite("Lectura de ");
     displayCharPositionWrite(0, 1);
-	if (idx==0)displayStringWrite("Configuraciones");
-	else displayStringWrite("Muestras");
+
+	if (idx==0)
+		displayStringWrite("Configuraciones");
+	else
+		displayStringWrite("Muestras");
 }
 
 void display_read_con(mem_type_cfg_t mem) {
@@ -221,57 +222,53 @@ void display_read_con(mem_type_cfg_t mem) {
 
     char line1[17];
     char line2[17];
-	mem_cfg_t conf; //No se si esto esta bien o como se accede al config* ya que no esta declarado como memoria externa
-	mem_status_t status;
-	status = memory_read_config(&conf);
-
-	if (status != ST_MEM_OK) return;
+	mem_cfg_t * conf = controller_get_config();
 
 	switch (mem) {
 
 		case MEM_CFG_TEMP_DAY_MIN:
 			snprintf(line1, sizeof(line1), "Temp Diurna");
-			snprintf(line2, sizeof(line2), "Minima %02u C", (uint16_t) conf.temp_day_min);
+			snprintf(line2, sizeof(line2), "Minima %02u C", (uint16_t) conf->temp_day_min);
 			break;
 
 		case MEM_CFG_TEMP_DAY_MAX:
 			snprintf(line1, sizeof(line1), "Temp Diurna");
-			snprintf(line2, sizeof(line2), "Maxima %02u C", (uint16_t) conf.temp_day_max);
+			snprintf(line2, sizeof(line2), "Maxima %02u C", (uint16_t) conf->temp_day_max);
 			break;
 
 		case MEM_CFG_TEMP_NIGHT_MIN:
 			snprintf(line1, sizeof(line1), "Temp Nocturna");
-			snprintf(line2, sizeof(line2), "Minima %02u C", (uint16_t) conf.temp_night_min);
+			snprintf(line2, sizeof(line2), "Minima %02u C", (uint16_t) conf->temp_night_min);
 			break;
 
 		case MEM_CFG_TEMP_NIGHT_MAX:
 			snprintf(line1, sizeof(line1), "Temp Nocturna");
-			snprintf(line2, sizeof(line2), "Maxima %02u C", (uint16_t) conf.temp_night_max);
+			snprintf(line2, sizeof(line2), "Maxima %02u C", (uint16_t) conf->temp_night_max);
 			break;
 
 		case MEM_CFG_HUMIDITY_MIN:
 			snprintf(line1, sizeof(line1), "Humedad Minima");
-			snprintf(line2, sizeof(line2), "%02u %%", (uint16_t) conf.humidity_min);
+			snprintf(line2, sizeof(line2), "%02u %%", (uint16_t) conf->humidity_min);
 			break;
 
 		case MEM_CFG_HUMIDITY_MAX:
 			snprintf(line1, sizeof(line1), "Humedad Maxima");
-			snprintf(line2, sizeof(line2), "%02u %%", (uint16_t) conf.humidity_max);
+			snprintf(line2, sizeof(line2), "%02u %%", (uint16_t) conf->humidity_max);
 			break;
 
 		case MEM_CFG_LIGHT_HOURS_NEEDED:
 			snprintf(line1, sizeof(line1), "Minimo de horas");
-			snprintf(line2, sizeof(line2), "de luz %02u ", (uint16_t) conf.light_hours_needed);
+			snprintf(line2, sizeof(line2), "de luz %02u ", (uint16_t) conf->light_hours_needed);
 			break;
 
 		case MEM_CFG_LIGHT_THRESHOLD:
 			snprintf(line1, sizeof(line1), "Umbral de luz");
-			snprintf(line2, sizeof(line2), "Minimo %04u ", (uint16_t) conf.light_threshold);
+			snprintf(line2, sizeof(line2), "Minimo %04u ", (uint16_t) conf->light_threshold);
 			break;
 
 		case MEM_CFG_SAVE_FREQ:
 			snprintf(line1, sizeof(line1), "Horas entre toma");
-			snprintf(line2, sizeof(line2), "de muestras %04u", (uint16_t) conf.save_freq);
+			snprintf(line2, sizeof(line2), "de muestras %03u", (uint16_t) conf->save_freq);
 			break;
 
 		default:
@@ -299,7 +296,8 @@ void display_read_his(mem_type_cfg_t mem, uint32_t idx) {
 
     switch (mem) {
 			case MEM_CFG_TEMP_DAY_MIN:
-				snprintf(line1, sizeof(line1), "Temperatura %02u", (uint16_t) sample.temperature);
+				uint16_t temp = (uint16_t) sample.temperature;
+				snprintf(line1, sizeof(line1), "Temperatura %02u", temp);
 				snprintf(line2, sizeof(line2), "%02u/%02u/%04u %02u:%02u", time.day, time.month, time.year, time.hours, time.minutes);
 				break;
 

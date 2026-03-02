@@ -150,6 +150,10 @@ void controller_request_update_config(void) {
 	task_controller_dta_list[0].event = EV_CONTROLLER_UPDATE_CONFIG;
 }
 
+const mem_cfg_t * controller_get_config(void) {
+	return (const *) &config;
+}
+
 /********************** internal functions definition ************************/
 void task_controller_statechart(shared_data_type * parameters) {
 	uint32_t index;
