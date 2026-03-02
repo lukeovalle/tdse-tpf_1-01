@@ -92,6 +92,8 @@ void task_controller_init(void *parameters)
 	{
 		/* Update Task CONTROLLER Data Pointer */
 		p_task_controller_dta = &task_controller_dta_list[index];
+		state = p_task_controller_dta->state;
+		event = p_task_controller_dta->event;
 
 		LOGGER_INFO(" ");
 		LOGGER_INFO("   %s = %lu   %s = %lu   %s = %lu",
@@ -151,12 +153,12 @@ void controller_request_update_config(void) {
 /********************** internal functions definition ************************/
 void task_controller_statechart(shared_data_type * parameters) {
 	uint32_t index;
-	const task_controller_cfg_t * p_task_controller_cfg;
+	//const task_controller_cfg_t * p_task_controller_cfg;
 	task_controller_dta_t * p_task_controller_dta;
 
 	for (index = 0; CONTROLLER_DTA_QTY > index; index++) {
 		/* Update Task CONTROLLER Configuration & Data Pointer */
-		p_task_controller_cfg = &task_controller_cfg_list[index];
+		//p_task_controller_cfg = &task_controller_cfg_list[index];
 		p_task_controller_dta = &task_controller_dta_list[index];
 
 		task_controller_st_t state = p_task_controller_dta->state;

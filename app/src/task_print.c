@@ -65,7 +65,7 @@ extern void task_print_init(void *parameters) {
 extern void task_print_update(void *parameters) {
 	bool b_time_update_required = false;
 
-	mem_status_t error;
+	//mem_status_t error;
 
 	/* Protect shared resource */
 	__asm("CPSID i");	/* disable interrupts */

@@ -46,8 +46,8 @@ task_actuator_dta_t task_actuator_dta_list[] = {
 
 /********************** internal functions declaration ***********************/
 void task_actuator_statechart(shared_data_type * parameters);
-void actuator_on(task_actuator_cfg_t * cfg);
-void actuator_off(task_actuator_cfg_t * cfg);
+void actuator_on(const task_actuator_cfg_t * cfg);
+void actuator_off(const task_actuator_cfg_t * cfg);
 
 /********************** internal data definition *****************************/
 const char *p_task_actuator 		= "Task Actuator (Actuator Statechart)";
@@ -72,6 +72,8 @@ void task_actuator_init(void *parameters) {
 	for (index = 0; ACTUATOR_DTA_QTY > index; index++) {
 		/* Update Task Actuator Data Pointer */
 		p_task_actuator_dta = &task_actuator_dta_list[index];
+		state = p_task_actuator_dta->state;
+		event = p_task_actuator_dta->event;
 
 		LOGGER_INFO(" ");
 		LOGGER_INFO("   %s = %lu   %s = %lu   %s = %lu",
@@ -193,11 +195,11 @@ void task_actuator_statechart(shared_data_type * parameters) {
 	}
 }
 
-void actuator_on(task_actuator_cfg_t * cfg) {
+void actuator_on(const task_actuator_cfg_t * cfg) {
 	HAL_GPIO_WritePin(cfg->gpio_port, cfg->gpio_pin, GPIO_PIN_SET);
 }
 
-void actuator_off(task_actuator_cfg_t * cfg) {
+void actuator_off(const task_actuator_cfg_t * cfg) {
 	HAL_GPIO_WritePin(cfg->gpio_port, cfg->gpio_pin, GPIO_PIN_RESET);
 }
 

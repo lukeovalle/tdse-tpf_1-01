@@ -78,17 +78,12 @@ void task_i2c_init(void *parameters)
 	g_task_i2c_cnt = G_TASK_I2C_CNT_INIT;
 	LOGGER_INFO("   %s = %lu", GET_NAME(g_task_i2c_cnt), g_task_i2c_cnt);
 
-	HAL_StatusTypeDef status = HAL_I2C_IsDeviceReady(&hi2c1, DEVICE_ADDRESS_8BIT, 3, 3);
-	if (status == HAL_OK) {
-		LOGGER_INFO("   I2C preparado");
-	} else {
-		LOGGER_INFO("   Error en I2C");
-	}
-
 	for (index = 0; I2C_DTA_QTY > index; index++)
 	{
 		/* Update Task I2C Data Pointer */
 		p_task_i2c_dta = &task_i2c_dta_list[index];
+		state = p_task_i2c_dta->state;
+		event = p_task_i2c_dta->event;
 
 		LOGGER_INFO(" ");
 		LOGGER_INFO("   %s = %lu   %s = %lu   %s = %lu",
@@ -96,6 +91,14 @@ void task_i2c_init(void *parameters)
 					GET_NAME(state), (uint32_t)state,
 					GET_NAME(event), (uint32_t)event);
 	}
+
+	HAL_StatusTypeDef status = HAL_I2C_IsDeviceReady(&hi2c1, DEVICE_ADDRESS_8BIT, 3, 3);
+	if (status == HAL_OK) {
+		LOGGER_INFO("   I2C preparado");
+	} else {
+		LOGGER_INFO("   Error en I2C");
+	}
+
 }
 
 void task_i2c_update(void *parameters) {
@@ -134,13 +137,13 @@ void task_i2c_update(void *parameters) {
 
 void task_i2c_statechart(shared_data_type * parameters) {
 	uint32_t index;
-	const task_i2c_cfg_t * p_task_i2c_cfg;
+	//const task_i2c_cfg_t * p_task_i2c_cfg;
 	task_i2c_dta_t * p_task_i2c_dta;
 	HAL_StatusTypeDef status;
 
 	for (index = 0; I2C_DTA_QTY > index; index++) {
 		/* Update Task I2C Configuration & Data Pointer */
-		p_task_i2c_cfg = &task_i2c_cfg_list[index];
+		//p_task_i2c_cfg = &task_i2c_cfg_list[index];
 		p_task_i2c_dta = &task_i2c_dta_list[index];
 
 		task_i2c_st_t state = p_task_i2c_dta->state;

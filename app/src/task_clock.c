@@ -108,6 +108,8 @@ void task_clock_init(void *parameters)
 	{
 		/* Update Task CLOCK Data Pointer */
 		p_task_clock_dta = &task_clock_dta_list[index];
+		state = p_task_clock_dta->state;
+		event = p_task_clock_dta->event;
 
 		LOGGER_INFO(" ");
 		LOGGER_INFO("   %s = %lu   %s = %lu   %s = %lu",
@@ -245,12 +247,12 @@ uint32_t datetime_to_timestamp(date_time_t * date) {
 /********************** internal functions definition ************************/
 void task_clock_statechart(shared_data_type * parameters) {
 	uint32_t index;
-	const task_clock_cfg_t * p_task_clock_cfg;
+	//const task_clock_cfg_t * p_task_clock_cfg;
 	task_clock_dta_t * p_task_clock_dta;
 
 	for (index = 0; CLOCK_DTA_QTY > index; index++) {
 		/* Update Task CLOCK Configuration & Data Pointer */
-		p_task_clock_cfg = &task_clock_cfg_list[index];
+		//p_task_clock_cfg = &task_clock_cfg_list[index];
 		p_task_clock_dta = &task_clock_dta_list[index];
 
 		task_clock_st_t state = p_task_clock_dta->state;

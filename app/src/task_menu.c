@@ -105,9 +105,9 @@ extern num_buffer_t num_buff;
 /********************** external functions definition ************************/
 void task_menu_init(void *parameters)
 {
-	char menu_str[DISPLAY_CHAR_WIDTH + 1];
+	//char menu_str[DISPLAY_CHAR_WIDTH + 1];
 	task_menu_dta_t *p_task_menu_dta;
-	num_buffer_t *p_num_buf;
+	//num_buffer_t *p_num_buf;
 	task_menu_st_t	state;
 	task_menu_ev_t	event;
 	bool b_event;
@@ -125,7 +125,7 @@ void task_menu_init(void *parameters)
 
 	/* Update Task Actuator Configuration & Data Pointer */
 	p_task_menu_dta = &task_menu_dta;
-	p_num_buf =	&num_buff;
+	//p_num_buf =	&num_buff;
 
 	/* Init & Print out: Task execution FSM */
 	state = ST_MENU_INIT;
@@ -166,9 +166,9 @@ void task_menu_init(void *parameters)
 void task_menu_update(void *parameters)
 {
 	task_menu_dta_t *p_task_menu_dta;
-	num_buffer_t *p_num_buf;
+	//num_buffer_t *p_num_buf;
 	bool b_time_update_required = false;
-	char menu_str[DISPLAY_CHAR_WIDTH + 1];
+	//char menu_str[DISPLAY_CHAR_WIDTH + 1];
 
 	/* Update Task Menu Counter */
 	g_task_menu_cnt++;
@@ -199,7 +199,7 @@ void task_menu_update(void *parameters)
 
     	/* Update Task Menu Data Pointer */
 		p_task_menu_dta = &task_menu_dta;
-		p_num_buf =	&num_buff;
+		//p_num_buf =	&num_buff;
 
     	if (DEL_MEN_XX_MIN < p_task_menu_dta->tick) {
 			p_task_menu_dta->tick--;
@@ -356,7 +356,7 @@ void task_menu_statechart(void)
 
 					case 5:
 						mem_status_t status;
-						uint16_t num = num_buffer_to_int(p_num_buf);
+						float num = (float) num_buffer_to_int(p_num_buf);
 						status = memory_write_config_field(MEM_CFG_SAVE_FREQ, &num);
 						if (status == ST_MEM_OK) {
 				    		display_cfg_time(p_task_menu_dta->scroll_idx);
@@ -391,7 +391,7 @@ void task_menu_statechart(void)
 	        }// Guarda cada dato por separado
 			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
 				mem_status_t status;
-				uint16_t num = num_buffer_to_int(p_num_buf);
+				float num = (float) num_buffer_to_int(p_num_buf);
 				switch (p_task_menu_dta->scroll_idx){
 					case 0:
 						status = memory_write_config_field(MEM_CFG_TEMP_DAY_MIN, &num);
@@ -452,7 +452,7 @@ void task_menu_statechart(void)
 	        }// Guarda cada dato por separado
 			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
 				mem_status_t status;
-				uint16_t num = num_buffer_to_int(p_num_buf);
+				float num = (float) num_buffer_to_int(p_num_buf);
 				switch (p_task_menu_dta->scroll_idx){
 					case 0:
 						status = memory_write_config_field(MEM_CFG_HUMIDITY_MIN, &num);
@@ -497,7 +497,7 @@ void task_menu_statechart(void)
 	        }// Guarda cada dato por separado
 			else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
 				mem_status_t status;
-				uint16_t num = num_buffer_to_int(p_num_buf);
+				float num = (float) num_buffer_to_int(p_num_buf);
 				switch (p_task_menu_dta->scroll_idx){
 					case 0:
 						status = memory_write_config_field(MEM_CFG_LIGHT_THRESHOLD, &num);

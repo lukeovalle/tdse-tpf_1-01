@@ -95,6 +95,8 @@ void task_sensor_init(void *parameters)
 	{
 		/* Update Task Sensor Data Pointer */
 		p_task_sensor_dta = &task_sensor_dta_list[index];
+		state = p_task_sensor_dta->state;
+		event = p_task_sensor_dta->event;
 
 		LOGGER_INFO(" ");
 		LOGGER_INFO("   %s = %lu   %s = %lu   %s = %lu",
