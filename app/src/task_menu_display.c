@@ -271,4 +271,9 @@ void display_read_con(mem_type_cfg_t mem) {
 			snprintf(line1, sizeof(line1), "de muestras %04u", con->save_freq);
 			break;
 		}
+
+    displayCharPositionWrite(0, 0);
+    displayStringWrite(line1);
+    displayCharPositionWrite(0, 1);
+    displayStringWrite(line2);
 }
