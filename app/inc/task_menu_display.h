@@ -7,8 +7,6 @@
 
 /********************** inclusions *******************************************/
 #include <stdint.h>
-#include "ext_memory.h"
-#include "num_buffer.h"
 
 
 /********************** internal functions declaration ***********************/
@@ -22,5 +20,5 @@ void display_num(num_buffer_t *v_num_buf) ;
 void display_num_OK(num_buffer_t *v_num_buf) ;
 void display_read(uint32_t idx);
 void display_read_time();
-void display_read_parameter(uint32_t idx);
+void display_read_parameters(uint32_t idx);
 void display_read_con(mem_type_cfg_t mem);
