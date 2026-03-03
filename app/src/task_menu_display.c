@@ -12,11 +12,11 @@
 #include "display.h"
 #include "num_buffer.h"
 #include "task_clock.h"
+#include "task_controller.h"
 #include "ext_memory.h"
 
 /********************** macros and definitions *******************************/
 #define NUM_BUFFER_SIZE 4
-
 
 /********************** Functions definition ***********************/
 void display_num(num_buffer_t *v_num_buf) {
@@ -65,18 +65,18 @@ void display_config(uint32_t idx) {
 	displayStringWrite("Configuracion");
 	displayCharPositionWrite(0, 1);
 	switch (idx) {
-		case 0:
-			displayStringWrite("temporal");
-			break;
-		case 1:
-			displayStringWrite("temperatura");
-			break;
-		case 2:
-			displayStringWrite("humedad");
-			break;
-		case 3:
-			displayStringWrite("luminocidad");
-			break;
+	case 0:
+		displayStringWrite("temporal");
+		break;
+	case 1:
+		displayStringWrite("temperatura");
+		break;
+	case 2:
+		displayStringWrite("humedad");
+		break;
+	case 3:
+		displayStringWrite("luminocidad");
+		break;
 	}
 }
 
@@ -85,30 +85,30 @@ void display_cfg_time(uint32_t idx) {
 	displayClearScreen();
 
 	switch (idx) {
-		case 0:
-			displayCharPositionWrite(0, 0);
-			displayStringWrite("Fijar día");
-			break;
-		case 1:
-			displayCharPositionWrite(0, 0);
-			displayStringWrite("Fijar mes");
-			break;
-		case 2:
-			displayCharPositionWrite(0, 0);
-			displayStringWrite("Fijar año");
-			break;
-		case 3:
-			displayCharPositionWrite(0, 0);
-			displayStringWrite("Fijar hora");
-			break;
-		case 4:
-			displayCharPositionWrite(0, 0);
-			displayStringWrite("Fijar minuto");
-			break;
-		case 5:
-			displayCharPositionWrite(0, 0);
-			displayStringWrite("Freq muestreo");
-			break;
+	case 0:
+		displayCharPositionWrite(0, 0);
+		displayStringWrite("Fijar día");
+		break;
+	case 1:
+		displayCharPositionWrite(0, 0);
+		displayStringWrite("Fijar mes");
+		break;
+	case 2:
+		displayCharPositionWrite(0, 0);
+		displayStringWrite("Fijar año");
+		break;
+	case 3:
+		displayCharPositionWrite(0, 0);
+		displayStringWrite("Fijar hora");
+		break;
+	case 4:
+		displayCharPositionWrite(0, 0);
+		displayStringWrite("Fijar minuto");
+		break;
+	case 5:
+		displayCharPositionWrite(0, 0);
+		displayStringWrite("Freq muestreo");
+		break;
 	}
 }
 
@@ -118,18 +118,18 @@ void display_cfg_temp(uint32_t idx) {
 
 	displayCharPositionWrite(0, 0);
 	switch (idx) {
-		case 0:
-			displayStringWrite("Diurna minima");
-			break;
-		case 1:
-			displayStringWrite("Diurna maxima");
-			break;
-		case 2:
-			displayStringWrite("Nocturna minima");
-			break;
-		case 3:
-			displayStringWrite("Nocturna maxima");
-			break;
+	case 0:
+		displayStringWrite("Diurna minima");
+		break;
+	case 1:
+		displayStringWrite("Diurna maxima");
+		break;
+	case 2:
+		displayStringWrite("Nocturna minima");
+		break;
+	case 3:
+		displayStringWrite("Nocturna maxima");
+		break;
 	}
 }
 
@@ -139,12 +139,12 @@ void display_cfg_hum(uint32_t idx) {
 
 	displayCharPositionWrite(0, 0);
 	switch (idx) {
-		case 0:
-			displayStringWrite("Humedad minima");
-			break;
-		case 1:
-			displayStringWrite("Humedad maxima");
-			break;
+	case 0:
+		displayStringWrite("Humedad minima");
+		break;
+	case 1:
+		displayStringWrite("Humedad maxima");
+		break;
 	}
 }
 
@@ -154,12 +154,12 @@ void display_cfg_lig(uint32_t idx) {
 
 	displayCharPositionWrite(0, 0);
 	switch (idx) {
-		case 0:
-			displayStringWrite("Luminocidad minima");
-			break;
-		case 1:
-			displayStringWrite("Horas de luz");
-			break;
+	case 0:
+		displayStringWrite("Luminocidad minima");
+		break;
+	case 1:
+		displayStringWrite("Horas de luz");
+		break;
 	}
 }
 
@@ -171,18 +171,18 @@ void display_read(uint32_t idx) {
 	displayStringWrite("Lectura de datos");
 	displayCharPositionWrite(0, 1);
 	switch (idx) {
-		case 0:
-			displayStringWrite("temporales");
-			break;
-		case 1:
-			displayStringWrite("temperatura");
-			break;
-		case 2:
-			displayStringWrite("humedad");
-			break;
-		case 3:
-			displayStringWrite("luminocidad");
-			break;
+	case 0:
+		displayStringWrite("temporales");
+		break;
+	case 1:
+		displayStringWrite("temperatura");
+		break;
+	case 2:
+		displayStringWrite("humedad");
+		break;
+	case 3:
+		displayStringWrite("luminocidad");
+		break;
 	}
 }
 
@@ -191,8 +191,8 @@ void display_read_time() {
 	displayClearScreen();
 
     date_time_t clk = clock_get_time();
-    char line1[17];
-    char line2[17];
+    char line1[DISPLAY_CHAR_WIDTH + 1];
+    char line2[DISPLAY_CHAR_WIDTH + 1];
 
     snprintf(line1, sizeof(line1), "%02u/%02u/%04u", clk.day, clk.month + 1, clk.year);
     snprintf(line2, sizeof(line2), "%02u:%02u:%02u", clk.hours, clk.minutes, clk.seconds);
@@ -220,60 +220,59 @@ void display_read_parameters(uint32_t idx) {
 void display_read_con(mem_type_cfg_t mem) {
 	displayClearScreen();
 
-    char line1[17];
-    char line2[17];
-	mem_cfg_t * conf = controller_get_config();
+    char line1[DISPLAY_CHAR_WIDTH + 1];
+    char line2[DISPLAY_CHAR_WIDTH + 1];
+	const mem_cfg_t * conf = controller_get_config();
 
 	switch (mem) {
+	case MEM_CFG_TEMP_DAY_MIN:
+		snprintf(line1, sizeof(line1), "Temp Diurna");
+		snprintf(line2, sizeof(line2), "Minima %02u C", (uint16_t) conf->temp_day_min);
+		break;
 
-		case MEM_CFG_TEMP_DAY_MIN:
-			snprintf(line1, sizeof(line1), "Temp Diurna");
-			snprintf(line2, sizeof(line2), "Minima %02u C", (uint16_t) conf->temp_day_min);
-			break;
+	case MEM_CFG_TEMP_DAY_MAX:
+		snprintf(line1, sizeof(line1), "Temp Diurna");
+		snprintf(line2, sizeof(line2), "Maxima %02u C", (uint16_t) conf->temp_day_max);
+		break;
 
-		case MEM_CFG_TEMP_DAY_MAX:
-			snprintf(line1, sizeof(line1), "Temp Diurna");
-			snprintf(line2, sizeof(line2), "Maxima %02u C", (uint16_t) conf->temp_day_max);
-			break;
+	case MEM_CFG_TEMP_NIGHT_MIN:
+		snprintf(line1, sizeof(line1), "Temp Nocturna");
+		snprintf(line2, sizeof(line2), "Minima %02u C", (uint16_t) conf->temp_night_min);
+		break;
 
-		case MEM_CFG_TEMP_NIGHT_MIN:
-			snprintf(line1, sizeof(line1), "Temp Nocturna");
-			snprintf(line2, sizeof(line2), "Minima %02u C", (uint16_t) conf->temp_night_min);
-			break;
+	case MEM_CFG_TEMP_NIGHT_MAX:
+		snprintf(line1, sizeof(line1), "Temp Nocturna");
+		snprintf(line2, sizeof(line2), "Maxima %02u C", (uint16_t) conf->temp_night_max);
+		break;
 
-		case MEM_CFG_TEMP_NIGHT_MAX:
-			snprintf(line1, sizeof(line1), "Temp Nocturna");
-			snprintf(line2, sizeof(line2), "Maxima %02u C", (uint16_t) conf->temp_night_max);
-			break;
+	case MEM_CFG_HUMIDITY_MIN:
+		snprintf(line1, sizeof(line1), "Humedad Minima");
+		snprintf(line2, sizeof(line2), "%02u %%", (uint16_t) conf->humidity_min);
+		break;
 
-		case MEM_CFG_HUMIDITY_MIN:
-			snprintf(line1, sizeof(line1), "Humedad Minima");
-			snprintf(line2, sizeof(line2), "%02u %%", (uint16_t) conf->humidity_min);
-			break;
+	case MEM_CFG_HUMIDITY_MAX:
+		snprintf(line1, sizeof(line1), "Humedad Maxima");
+		snprintf(line2, sizeof(line2), "%02u %%", (uint16_t) conf->humidity_max);
+		break;
 
-		case MEM_CFG_HUMIDITY_MAX:
-			snprintf(line1, sizeof(line1), "Humedad Maxima");
-			snprintf(line2, sizeof(line2), "%02u %%", (uint16_t) conf->humidity_max);
-			break;
+	case MEM_CFG_LIGHT_HOURS_NEEDED:
+		snprintf(line1, sizeof(line1), "Minimo de horas");
+		snprintf(line2, sizeof(line2), "de luz %02u ", (uint16_t) conf->light_hours_needed);
+		break;
 
-		case MEM_CFG_LIGHT_HOURS_NEEDED:
-			snprintf(line1, sizeof(line1), "Minimo de horas");
-			snprintf(line2, sizeof(line2), "de luz %02u ", (uint16_t) conf->light_hours_needed);
-			break;
+	case MEM_CFG_LIGHT_THRESHOLD:
+		snprintf(line1, sizeof(line1), "Umbral de luz");
+		snprintf(line2, sizeof(line2), "Minimo %04u ", (uint16_t) conf->light_threshold);
+		break;
 
-		case MEM_CFG_LIGHT_THRESHOLD:
-			snprintf(line1, sizeof(line1), "Umbral de luz");
-			snprintf(line2, sizeof(line2), "Minimo %04u ", (uint16_t) conf->light_threshold);
-			break;
+	case MEM_CFG_SAVE_FREQ:
+		snprintf(line1, sizeof(line1), "Horas entre toma");
+		snprintf(line2, sizeof(line2), "de muestras %03u", (uint16_t) conf->save_freq);
+		break;
 
-		case MEM_CFG_SAVE_FREQ:
-			snprintf(line1, sizeof(line1), "Horas entre toma");
-			snprintf(line2, sizeof(line2), "de muestras %03u", (uint16_t) conf->save_freq);
-			break;
-
-		default:
-			break;
-		}
+	default:
+		break;
+	}
 
     displayCharPositionWrite(0, 0);
     displayStringWrite(line1);
@@ -296,8 +295,8 @@ void display_read_hist(mem_log_t * curr_log) {
 
 	date_time_t time = timestamp_to_datetime(curr_log->timestamp);
 
-    char line1[17];
-    char line2[17];
+    char line1[DISPLAY_CHAR_WIDTH + 1];
+    char line2[DISPLAY_CHAR_WIDTH + 1];
 
 	snprintf(line1, sizeof(line1), "%02u/%02u/%04u %02u:%02u", time.day, time.month, time.year, time.hours, time.minutes);
 	snprintf(line2, sizeof(line2), "%5uL %02u\xDF" "C %02u%%", // luz, temp, humedad: "xxxxxL yy°C zz%"

@@ -151,7 +151,7 @@ void controller_request_update_config(void) {
 }
 
 const mem_cfg_t * controller_get_config(void) {
-	return (const *) &config;
+	return (const mem_cfg_t *) &config;
 }
 
 /********************** internal functions definition ************************/

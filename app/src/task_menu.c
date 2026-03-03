@@ -569,6 +569,10 @@ void task_menu_statechart(void)
 				scroll_reset(p_task_menu_dta, memory_log_size());
 			}
 			break;
+
+		default: // No debería entrar en este estado
+			p_task_menu_dta->state = ST_MENU_INIT;
+			break;
 		}
 
 	//Hora actual
