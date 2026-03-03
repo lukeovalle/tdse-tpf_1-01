@@ -117,23 +117,22 @@ typedef enum task_menu_ev {
 } task_menu_ev_t;
 
 /* State of Task Menu */
-typedef enum task_menu_st {ST_MENU_INIT,
-						   ST_MENU_CONFIG,
-						   ST_MENU_CONFIG_TIME,
-						   ST_MENU_CONFIG_TEMP,
-						   ST_MENU_CONFIG_HUM,
-						   ST_MENU_CONFIG_LIG,
-						   ST_MENU_READ,
-						   ST_MENU_READ_TIME,
-						   ST_MENU_READ_TEMP,
-						   ST_MENU_READ_TEMP_CON,
-						   ST_MENU_READ_TEMP_HIS,
-						   ST_MENU_READ_HUM,
-						   ST_MENU_READ_HUM_CON,
-						   ST_MENU_READ_HUM_HIS,
-						   ST_MENU_READ_LIG,
-						   ST_MENU_READ_LIG_CON,
-						   ST_MENU_READ_LIG_HIS} task_menu_st_t;
+typedef enum task_menu_st {
+	ST_MENU_INIT,
+	ST_MENU_CONFIG,
+	ST_MENU_CONFIG_TIME,
+	ST_MENU_CONFIG_TEMP,
+	ST_MENU_CONFIG_HUM,
+	ST_MENU_CONFIG_LIG,
+	ST_MENU_READ,
+	ST_MENU_READ_TIME,
+	ST_MENU_READ_TEMP_CONF,
+	ST_MENU_READ_HUM_CONF,
+	ST_MENU_READ_LIG_CONF,
+	ST_MENU_READ_HIST_REQUEST,
+	ST_MENU_READ_HIST_WAIT,
+	ST_MENU_READ_HIST_PRINT,
+} task_menu_st_t;
 
 typedef struct
 {

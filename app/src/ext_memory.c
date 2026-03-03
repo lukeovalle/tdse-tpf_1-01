@@ -35,6 +35,7 @@ typedef struct {
 
 /* External data declaration */
 static log_ring_limits_t limits;
+
 /* Internal function declarations */
 mem_status_t memory_get_log_size(log_ring_limits_t * lim);
 mem_buffer_status_t append_to_buffer(uint16_t data_size, uint16_t mem_addr, uint8_t * data_ptr, bool write_mode);

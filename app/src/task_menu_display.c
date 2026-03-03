@@ -195,7 +195,7 @@ void display_read_time() {
     char line2[17];
 
     snprintf(line1, sizeof(line1), "%02u/%02u/%04u", clk.day, clk.month + 1, clk.year);
-    snprintf(line2, sizeof(line2), "%02u:%02u", clk.hours, clk.minutes);
+    snprintf(line2, sizeof(line2), "%02u:%02u:%02u", clk.hours, clk.minutes, clk.seconds);
 
     displayCharPositionWrite(0, 0);
     displayStringWrite(line1);
@@ -281,37 +281,33 @@ void display_read_con(mem_type_cfg_t mem) {
     displayStringWrite(line2);
 }
 
-void display_read_his(mem_type_cfg_t mem, uint32_t idx) {
-	displayClearScreen();
+void display_request_log(mem_log_t * log, uint32_t idx) {
+	if (!log)
+		return;
 
 	uint8_t samples_max = memory_log_size();
 	uint32_t sample_idx = (samples_max - 1) - idx;
-	mem_log_t sample;
-	memory_read_log_range(sample_idx, 1, &sample);
 
-	date_time_t time = timestamp_to_datetime(sample.timestamp);
+	memory_read_log_range(sample_idx, 1, log);
+}
+
+void display_read_hist(mem_log_t * curr_log) {
+	displayClearScreen();
+
+	date_time_t time = timestamp_to_datetime(curr_log->timestamp);
 
     char line1[17];
     char line2[17];
 
-    switch (mem) {
-			case MEM_CFG_TEMP_DAY_MIN:
-				uint16_t temp = (uint16_t) sample.temperature;
-				snprintf(line1, sizeof(line1), "Temperatura %02u", temp);
-				snprintf(line2, sizeof(line2), "%02u/%02u/%04u %02u:%02u", time.day, time.month, time.year, time.hours, time.minutes);
-				break;
+	snprintf(line1, sizeof(line1), "%02u/%02u/%04u %02u:%02u", time.day, time.month, time.year, time.hours, time.minutes);
+	snprintf(line2, sizeof(line2), "%5uL %02u\xDF" "C %02u%%", // luz, temp, humedad: "xxxxxL yy°C zz%"
+			(uint16_t) curr_log->light,
+			(uint16_t) curr_log->temperature,
+			(uint16_t) curr_log->humidity
+	);
 
-			case MEM_CFG_HUMIDITY_MIN:
-				snprintf(line1, sizeof(line1), "Humedad %03u %%", (uint16_t) sample.humidity);
-				snprintf(line2, sizeof(line2), "%02u/%02u/%04u %02u:%02u", time.day, time.month, time.year, time.hours, time.minutes);
-				break;
-
-			case MEM_CFG_LIGHT_THRESHOLD:
-				snprintf(line1, sizeof(line1), "Luminocidad %02u", (uint16_t) sample.light);
-				snprintf(line2, sizeof(line2), "%02u/%02u/%04u %02u:%02u", time.day, time.month, time.year, time.hours, time.minutes);
-				break;
-
-			default:
-				break;
-	}
+    displayCharPositionWrite(0, 0);
+    displayStringWrite(line1);
+    displayCharPositionWrite(0, 1);
+    displayStringWrite(line2);
 }

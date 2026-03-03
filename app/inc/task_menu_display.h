@@ -22,4 +22,5 @@ void display_read(uint32_t idx);
 void display_read_time();
 void display_read_parameters(uint32_t idx);
 void display_read_con(mem_type_cfg_t mem);
-void display_read_his(mem_type_cfg_t mem, uint32_t idx);
+void display_request_log(mem_log_t * log, uint32_t idx);
+void display_read_hist(mem_log_t * curr_log);
