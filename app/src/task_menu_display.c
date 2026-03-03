@@ -75,7 +75,7 @@ void display_config(uint32_t idx) {
 		displayStringWrite("humedad");
 		break;
 	case 3:
-		displayStringWrite("luminocidad");
+		displayStringWrite("luminosidad");
 		break;
 	case 4:
 		displayStringWrite("Limpiar logs");
@@ -90,7 +90,7 @@ void display_cfg_time(uint32_t idx) {
 	switch (idx) {
 	case 0:
 		displayCharPositionWrite(0, 0);
-		displayStringWrite("Fijar día");
+		displayStringWrite("Fijar anio");
 		break;
 	case 1:
 		displayCharPositionWrite(0, 0);
@@ -98,7 +98,7 @@ void display_cfg_time(uint32_t idx) {
 		break;
 	case 2:
 		displayCharPositionWrite(0, 0);
-		displayStringWrite("Fijar año");
+		displayStringWrite("Fijar dia");
 		break;
 	case 3:
 		displayCharPositionWrite(0, 0);

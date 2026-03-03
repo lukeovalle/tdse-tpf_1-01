@@ -36,7 +36,7 @@
 
 #define PUMP_PULSES_MAX			5
 // en minutos
-#define IRRIGATION_TIME			1
+#define IRRIGATION_TIME			2
 #define IRRIGATION_WAIT_TIME	30
 
 /********************** external data declaration ****************************/
@@ -208,7 +208,7 @@ void task_controller_statechart(shared_data_type * parameters) {
 				LOGGER_LOG("Puntero a tiempo actual nulo. archivo %s, línea %d\n", __FILE__, __LINE__);
 			}
 
-			bool have_to_log = curr_time->hours % save_freq;
+			bool have_to_log = (curr_time->hours % save_freq == 0);
 			if (curr_time->minutes == 0 && have_to_log)
 				memory_append_log(&p_task_controller_dta->humidity,
 						&p_task_controller_dta->light,

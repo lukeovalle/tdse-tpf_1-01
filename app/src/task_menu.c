@@ -151,10 +151,10 @@ void task_menu_init(void *parameters)
 	displayInit( DISPLAY_CONNECTION_GPIO_4BITS );
 
     displayCharPositionWrite(0, 0);
-	displayStringWrite("TdSE Bienvenidos");
+	displayStringWrite("TPF Integrador");
 
 	displayCharPositionWrite(0, 1);
-	displayStringWrite("TPF integrador");
+	displayStringWrite("Invernadero");
 
 	HAL_Delay(2000);
 
@@ -328,7 +328,7 @@ void task_menu_statechart(void)
 		else if (p_task_menu_dta->event == EV_PRESS_ENTER) {
 			switch (p_task_menu_dta->scroll_idx){
 				case 0:
-					clock_config_set_day(num_buffer_to_int(p_num_buf));
+					clock_config_set_year(num_buffer_to_int(p_num_buf));
 					display_cfg_time(p_task_menu_dta->scroll_idx);
 					display_num_OK(p_num_buf);
 					break;
@@ -340,7 +340,7 @@ void task_menu_statechart(void)
 					break;
 
 				case 2:
-					clock_config_set_year(num_buffer_to_int(p_num_buf));
+					clock_config_set_day(num_buffer_to_int(p_num_buf));
 					display_cfg_time(p_task_menu_dta->scroll_idx);
 					display_num_OK(p_num_buf);
 					break;

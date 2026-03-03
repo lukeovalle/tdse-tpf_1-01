@@ -75,7 +75,7 @@ extern "C" {
 	| ST_CONFIG_HUM			| EV_PRESS_ENTER		| Humedad valida								| ST_CONFIG_HUM			| Guarda valores ingresados
 	| ST_CONFIG_HUM			| EV_PRESS_BACK			|												| ST_CONFIG				|
 	| ST_CONFIG_LIG			| EV_PRESS_HASH/ASTK	|												| ST_CONFIG_LIG			| Cambiar entre maxima y minima
-	| ST_CONFIG_LIG			| EV_PRESS_ENTER		| Luminocidad valida							| ST_CONFIG_LIG			| Guarda valores ingresados
+	| ST_CONFIG_LIG			| EV_PRESS_ENTER		| Luminosidad valida							| ST_CONFIG_LIG			| Guarda valores ingresados
 	| ST_CONFIG_LIG			| EV_PRESS_BACK			|												| ST_CONFIG				|
 	| ST_READ				| EV_PRESS_HASH/ASTK	|												| ST_READ				| Seleccionar tiempo, temperatura, humedad o luz
 	| ST_READ				| EV_PRESS_BACK			| 												| ST_INIT				|
@@ -98,7 +98,7 @@ extern "C" {
 	| ST_READ_HUM_HIS		| EV_PRESS_HASH/ASTK	|												| ST_READ_HUM_HIS		| Va cambiando las mediciones mostradas
 	| ST_READ_HUM_HIS		| EV_PRESS_BACK			|												| ST_READ_HUM			|
 	| ST_READ_LIG			| EV_PRESS_HASH/ASTK	|												| ST_READ_LIG			| Cambiar entre configurada e historicas
-	| ST_READ_LIG			| EV_PRESS_NEXT			| Seleccionada configurada						| ST_READ_LIG_CON		| Muestra luminocidades maxima y minima
+	| ST_READ_LIG			| EV_PRESS_NEXT			| Seleccionada configurada						| ST_READ_LIG_CON		| Muestra luminosidades maxima y minima
 	| ST_READ_LIG_CON		| EV_PRESS_BACK			| 												| ST_READ_LIG			|
 	| ST_READ_LIG			| EV_PRESS_NEXT			| Seleccionada historicas						| ST_READ_LIG_HIS 		| Muestra medición más reciente
 	| ST_READ_LIG_HIS		| EV_PRESS_HASH/ASTK	|												| ST_READ_LIG_HIS		| Va cambiando las mediciones mostradas

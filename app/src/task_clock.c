@@ -74,7 +74,7 @@ static date_time_t clock = {
 };
 
 static uint32_t us_counter = 0;	// contador de microsegundos para ver cuándo pasa un segundo
-static uint32_t prev_time = 0;	// última medición del clock del microcontrolador
+static uint32_t prev_cycles = 0;	// última medición del clock del microcontrolador
 
 /********************** internal functions declaration ***********************/
 void task_clock_statechart(shared_data_type * parameters);
@@ -291,17 +291,14 @@ void task_clock_statechart(shared_data_type * parameters) {
 }
 
 bool second_elapsed(void) {
-	uint32_t curr_time = cycle_counter_get_time_us();
-	uint32_t elapsed;
+	uint32_t curr_cycles = DWT->CYCCNT;
+	uint32_t elapsed_cycles = curr_cycles - prev_cycles;
 
-	if (curr_time < prev_time) { // overflow
-		elapsed = UINT32_MAX - prev_time + curr_time + 1;
-	} else {
-		elapsed = curr_time - prev_time;
-	}
-	prev_time = curr_time;
+	prev_cycles = curr_cycles;
 
-	us_counter += elapsed;
+	uint32_t elapsed_us = elapsed_cycles / ( SystemCoreClock / 1000000 );
+
+	us_counter += elapsed_us;
 	if (us_counter < MICROSECONDS_IN_1_SECOND)
 		return false;
 

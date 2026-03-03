@@ -328,11 +328,13 @@ static void displayDataBusWrite( uint8_t dataBus )
 
 void display_delay_us(uint32_t delay_us)
 {
-	uint32_t now = cycle_counter_get_time_us();
-	uint32_t then = delay_us + now;
+	uint32_t cycles_per_us = SystemCoreClock / 1000000;
 
-	while (now < then)
-		now = cycle_counter_get_time_us();
+	uint32_t delay_cycles = cycles_per_us * delay_us;
+
+	uint32_t start_cycles = DWT->CYCCNT;
+
+	while ((DWT->CYCCNT - start_cycles) < delay_cycles);
 }
 
 /********************** end of file ******************************************/
