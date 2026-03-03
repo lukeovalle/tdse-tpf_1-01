@@ -173,19 +173,16 @@ void app_update(void)
 
 		/* Go through the task arrays */
 		for (index = 0; TASK_QTY > index; index++) {
-			uint32_t prev_time = cycle_counter_get_time_us(); // tiempo previo a la tarea
+			uint32_t prev_cycles = DWT->CYCCNT; // tiempo previo a la tarea
 
     		/* Run task_x_update */
 			(*task_cfg_list[index].task_update)(task_cfg_list[index].parameters);
 
-			uint32_t curr_time = cycle_counter_get_time_us(); // tiempo después de la tarea
+			uint32_t curr_cycles = DWT->CYCCNT; // tiempo después de la tarea
 
-			// tiempo de ejecución de la tarea
-			if (curr_time < prev_time)  { // en caso de overflow
-				cycle_counter_time_us =  UINT32_MAX - prev_time + curr_time + 1;
-			} else {
-				cycle_counter_time_us = curr_time - prev_time;
-			}
+			uint32_t elapsed_cycles = curr_cycles - prev_cycles;
+
+			cycle_counter_time_us = elapsed_cycles  / (SystemCoreClock / 1000000);
 
 			/* Update variables */
 			g_app_runtime_us += cycle_counter_time_us;
