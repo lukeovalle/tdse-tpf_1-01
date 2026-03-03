@@ -77,6 +77,9 @@ void display_config(uint32_t idx) {
 	case 3:
 		displayStringWrite("luminocidad");
 		break;
+	case 4:
+		displayStringWrite("Limpiar logs");
+		break;
 	}
 }
 
@@ -163,6 +166,18 @@ void display_cfg_lig(uint32_t idx) {
 	}
 }
 
+void display_cfg_confirm_delete(uint32_t idx) {
+	displayClearScreen();
+	displayCharPositionWrite(0, 0);
+	displayStringWrite("Eliminar logs?");
+
+	char line2[DISPLAY_CHAR_WIDTH + 1];
+	snprintf(line2, sizeof(line2), "%cNo %cSi", idx == 0 ? '>' : ' ', idx == 1 ? '>' : ' ');
+
+	displayCharPositionWrite(0, 1);
+	displayStringWrite(line2);
+}
+
 //Display del estado read modificable por scroll
 void display_read(uint32_t idx) {
 	displayClearScreen();
@@ -172,16 +187,19 @@ void display_read(uint32_t idx) {
 	displayCharPositionWrite(0, 1);
 	switch (idx) {
 	case 0:
-		displayStringWrite("temporales");
+		displayStringWrite("historicos");
 		break;
 	case 1:
-		displayStringWrite("temperatura");
+		displayStringWrite("temporales");
 		break;
 	case 2:
-		displayStringWrite("humedad");
+		displayStringWrite("temperatura");
 		break;
 	case 3:
-		displayStringWrite("luminocidad");
+		displayStringWrite("humedad");
+		break;
+	case 4:
+		displayStringWrite("luminosidad");
 		break;
 	}
 }
@@ -262,12 +280,12 @@ void display_read_con(mem_type_cfg_t mem) {
 
 	case MEM_CFG_LIGHT_THRESHOLD:
 		snprintf(line1, sizeof(line1), "Umbral de luz");
-		snprintf(line2, sizeof(line2), "Minimo %04u ", (uint16_t) conf->light_threshold);
+		snprintf(line2, sizeof(line2), "Minimo %5u ", (uint16_t) conf->light_threshold);
 		break;
 
 	case MEM_CFG_SAVE_FREQ:
 		snprintf(line1, sizeof(line1), "Horas entre toma");
-		snprintf(line2, sizeof(line2), "de muestras %03u", (uint16_t) conf->save_freq);
+		snprintf(line2, sizeof(line2), "de muestras %u", (uint16_t) conf->save_freq);
 		break;
 
 	default:
@@ -298,7 +316,8 @@ void display_read_hist(mem_log_t * curr_log) {
     char line1[DISPLAY_CHAR_WIDTH + 1];
     char line2[DISPLAY_CHAR_WIDTH + 1];
 
-	snprintf(line1, sizeof(line1), "%02u/%02u/%04u %02u:%02u", time.day, time.month, time.year, time.hours, time.minutes);
+	snprintf(line1, sizeof(line1), "%02u/%02u/%04u %02u:%02u",
+			time.day, time.month + 1, time.year, time.hours, time.minutes);
 	snprintf(line2, sizeof(line2), "%5uL %02u\xDF" "C %02u%%", // luz, temp, humedad: "xxxxxL yy°C zz%"
 			(uint16_t) curr_log->light,
 			(uint16_t) curr_log->temperature,

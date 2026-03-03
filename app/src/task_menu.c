@@ -293,7 +293,7 @@ void task_menu_statechart(void)
 	case ST_MENU_CONFIG:
 		if (change_state) {
 			//Inicializa scroll y display
-			scroll_reset(p_task_menu_dta, 4);
+			scroll_reset(p_task_menu_dta, 5);
 			display_config(p_task_menu_dta->scroll_idx);
 		}
 		if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
@@ -309,6 +309,7 @@ void task_menu_statechart(void)
 			else if (p_task_menu_dta->scroll_idx == 1) p_task_menu_dta->state = ST_MENU_CONFIG_TEMP;
 			else if (p_task_menu_dta->scroll_idx == 2)  p_task_menu_dta->state = ST_MENU_CONFIG_HUM;
 			else if (p_task_menu_dta->scroll_idx == 3)  p_task_menu_dta->state = ST_MENU_CONFIG_LIG;
+			else if (p_task_menu_dta->scroll_idx == 4)  p_task_menu_dta->state = ST_MENU_CONFIG_CLEAR_LOGS;
 		}
 		break;
 
@@ -539,6 +540,37 @@ void task_menu_statechart(void)
 		}
 		break;
 
+	case ST_MENU_CONFIG_CLEAR_LOGS:
+		if (change_state) {
+			scroll_reset(p_task_menu_dta, 2);
+		}
+
+		display_cfg_confirm_delete(p_task_menu_dta->scroll_idx);
+
+		switch (p_task_menu_dta->event) {
+		case EV_PRESS_ENTER:
+			if (p_task_menu_dta->scroll_idx == 1)
+				memory_clear_log();
+
+			p_task_menu_dta->state = ST_MENU_CONFIG;
+
+			break;
+
+		case EV_PRESS_BACK:
+			p_task_menu_dta->state = ST_MENU_CONFIG;
+			break;
+
+		case EV_PRESS_SCROLL:
+			scrolling(p_task_menu_dta, value);
+			break;
+
+		default:
+			break;
+		}
+
+
+		break;
+
 	case ST_MENU_READ:
 		if (change_state) {
 			/*Inicializa scroll y display*/
@@ -560,20 +592,22 @@ void task_menu_statechart(void)
 			break;
 
 		case EV_PRESS_NEXT:
-			if (p_task_menu_dta->scroll_idx == 0) p_task_menu_dta->state = ST_MENU_READ_TIME;
-			else if (p_task_menu_dta->scroll_idx == 1) p_task_menu_dta->state = ST_MENU_READ_TEMP_CONF;
-			else if (p_task_menu_dta->scroll_idx == 2) p_task_menu_dta->state = ST_MENU_READ_HUM_CONF;
-			else if (p_task_menu_dta->scroll_idx == 3) p_task_menu_dta->state = ST_MENU_READ_LIG_CONF;
-			else if (p_task_menu_dta->scroll_idx == 4) {
+			if (p_task_menu_dta->scroll_idx == 0) {
 				p_task_menu_dta->state = ST_MENU_READ_HIST_REQUEST;
 				scroll_reset(p_task_menu_dta, memory_log_size());
 			}
+			else if (p_task_menu_dta->scroll_idx == 1) p_task_menu_dta->state = ST_MENU_READ_TIME;
+			else if (p_task_menu_dta->scroll_idx == 2) p_task_menu_dta->state = ST_MENU_READ_TEMP_CONF;
+			else if (p_task_menu_dta->scroll_idx == 3) p_task_menu_dta->state = ST_MENU_READ_HUM_CONF;
+			else if (p_task_menu_dta->scroll_idx == 4) p_task_menu_dta->state = ST_MENU_READ_LIG_CONF;
+
 			break;
 
-		default: // No debería entrar en este estado
-			p_task_menu_dta->state = ST_MENU_INIT;
+		default:
 			break;
 		}
+
+		break;
 
 	//Hora actual
 	case ST_MENU_READ_TIME:
@@ -581,19 +615,18 @@ void task_menu_statechart(void)
 			/*Inicializa scroll y display*/
 			scroll_reset(p_task_menu_dta, 2);
 
-		display_read_time();
+		if (p_task_menu_dta->scroll_idx == 0)
+			display_read_time();
+		else
+			display_read_con(MEM_CFG_SAVE_FREQ);
 
-		if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+		if (p_task_menu_dta->event == EV_PRESS_SCROLL)
 			/* Selección*/
 			scrolling(p_task_menu_dta, value);
-			if (p_task_menu_dta->scroll_idx == 0)
-				display_read_time();
-			else
-				display_read_con(MEM_CFG_SAVE_FREQ);
-		}
-		if (p_task_menu_dta->event == EV_PRESS_BACK) {
+
+		if (p_task_menu_dta->event == EV_PRESS_BACK)
 			p_task_menu_dta->state = ST_MENU_READ;
-		}
+
 		break;
 
 	//Lectura de configuraciones de temperatura
@@ -694,6 +727,14 @@ void task_menu_statechart(void)
 	case ST_MENU_READ_HIST_PRINT:
 		if (change_state)
 			display_read_hist(&current_log);
+
+		if (p_task_menu_dta->event == EV_PRESS_SCROLL) {
+			scrolling(p_task_menu_dta, value);
+			p_task_menu_dta->state = ST_MENU_READ_HIST_REQUEST;
+		}
+
+		if (p_task_menu_dta->event == EV_PRESS_BACK)
+			p_task_menu_dta->state = ST_MENU_READ;
 
 		break;
 	}
