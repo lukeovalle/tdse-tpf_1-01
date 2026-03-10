@@ -9,10 +9,12 @@
 /********************** inclusions *******************************************/
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "display.h"
 #include "num_buffer.h"
 #include "task_clock.h"
 #include "task_controller.h"
+#include "task_display.h"
 #include "ext_memory.h"
 
 /********************** macros and definitions *******************************/
@@ -23,8 +25,8 @@ void display_num(num_buffer_t *v_num_buf) {
 	char pushed_num[NUM_BUFFER_SIZE + 1];
 	num_buffer_to_str(v_num_buf, pushed_num);
 
-	displayCharPositionWrite(0, 1);
-	displayStringWrite(pushed_num);
+	task_display_request_write(NULL, pushed_num);
+
 }
 
 
@@ -35,8 +37,7 @@ void display_num_OK(num_buffer_t *v_num_buf) {
     num_buffer_to_str(v_num_buf, pushed_num);
     snprintf(num_str, sizeof(num_str), "%s   OK", pushed_num);
 
-    displayCharPositionWrite(0, 1);
-    displayStringWrite(num_str);
+    task_display_request_write(NULL, num_str);
 }
 
 //Display del estado init modificable por scroll
@@ -44,164 +45,136 @@ void display_initial(uint32_t idx) {
 	displayClearScreen();
 
 	if (idx == 1) {
-		displayCharPositionWrite(0, 0);
-		displayStringWrite("Lectura de");
-		displayCharPositionWrite(0, 1);
-		displayStringWrite("datos");
+		task_display_request_write("Lectura de", "datos");
+
 	}
 	else  {
-		displayCharPositionWrite(0, 0);
-		displayStringWrite("Configurar");
-		displayCharPositionWrite(0, 1);
-		displayStringWrite("parametros");
+		task_display_request_write("Configurar", "parametros");
 	}
 }
 
 //Display del estado config modificable por scroll
 void display_config(uint32_t idx) {
-	displayClearScreen();
+	char aux[DISPLAY_CHAR_WIDTH + 1];
 
-	displayCharPositionWrite(0, 0);
-	displayStringWrite("Configuracion");
-	displayCharPositionWrite(0, 1);
 	switch (idx) {
 	case 0:
-		displayStringWrite("temporal");
+		strcpy(aux, "temporal");
 		break;
 	case 1:
-		displayStringWrite("temperatura");
+		strcpy(aux, "temperatura");
 		break;
 	case 2:
-		displayStringWrite("humedad");
+		strcpy(aux, "humedad");
 		break;
 	case 3:
-		displayStringWrite("luminosidad");
+		strcpy(aux, "luminosidad");
 		break;
 	case 4:
-		displayStringWrite("Limpiar logs");
+		strcpy(aux, "Limpiar logs");
 		break;
 	}
+
+	task_display_request_write("Configuracion", aux);
 }
 
 //Display del estado config_time modificable por scroll
 void display_cfg_time(uint32_t idx) {
-	displayClearScreen();
-
 	switch (idx) {
 	case 0:
-		displayCharPositionWrite(0, 0);
-		displayStringWrite("Fijar anio");
+		task_display_request_write("Fijar anio", NULL);
 		break;
 	case 1:
-		displayCharPositionWrite(0, 0);
-		displayStringWrite("Fijar mes");
+		task_display_request_write("Fijar mes", NULL);
 		break;
 	case 2:
-		displayCharPositionWrite(0, 0);
-		displayStringWrite("Fijar dia");
+		task_display_request_write("Fijar dia", NULL);
 		break;
 	case 3:
-		displayCharPositionWrite(0, 0);
-		displayStringWrite("Fijar hora");
+		task_display_request_write("Fijar hora", NULL);
 		break;
 	case 4:
-		displayCharPositionWrite(0, 0);
-		displayStringWrite("Fijar minuto");
+		task_display_request_write("Fijar minuto", NULL);
 		break;
 	case 5:
-		displayCharPositionWrite(0, 0);
-		displayStringWrite("Freq muestreo");
+		task_display_request_write("Fijar muestreo", NULL);
 		break;
 	}
 }
 
 //Display del estado config_temp modificable por scroll
 void display_cfg_temp(uint32_t idx) {
-	displayClearScreen();
-
-	displayCharPositionWrite(0, 0);
 	switch (idx) {
 	case 0:
-		displayStringWrite("Diurna minima");
+		task_display_request_write("Diurna minima", NULL);
 		break;
 	case 1:
-		displayStringWrite("Diurna maxima");
+		task_display_request_write("Diurna maxima", NULL);
 		break;
 	case 2:
-		displayStringWrite("Nocturna minima");
+		task_display_request_write("Nocturna minima", NULL);
 		break;
 	case 3:
-		displayStringWrite("Nocturna maxima");
+		task_display_request_write("Nocturna maxima", NULL);
 		break;
 	}
 }
 
 //Display del estado config_hum modificable por scroll
 void display_cfg_hum(uint32_t idx) {
-	displayClearScreen();
-
-	displayCharPositionWrite(0, 0);
 	switch (idx) {
 	case 0:
-		displayStringWrite("Humedad minima");
+		task_display_request_write("Humedad minima", NULL);
 		break;
 	case 1:
-		displayStringWrite("Humedad maxima");
+		task_display_request_write("Humedad maxima", NULL);
 		break;
 	}
 }
 
 //Display del estado config_lig modificable por scroll
 void display_cfg_lig(uint32_t idx) {
-	displayClearScreen();
-
-	displayCharPositionWrite(0, 0);
 	switch (idx) {
 	case 0:
-		displayStringWrite("Luminocidad minima");
+		task_display_request_write("Luminosidad minima", NULL);
 		break;
 	case 1:
-		displayStringWrite("Horas de luz");
+		task_display_request_write("Horas de luz", NULL);
 		break;
 	}
 }
 
 void display_cfg_confirm_delete(uint32_t idx) {
-	displayClearScreen();
-	displayCharPositionWrite(0, 0);
-	displayStringWrite("Eliminar logs?");
-
 	char line2[DISPLAY_CHAR_WIDTH + 1];
 	snprintf(line2, sizeof(line2), "%cNo %cSi", idx == 0 ? '>' : ' ', idx == 1 ? '>' : ' ');
 
-	displayCharPositionWrite(0, 1);
-	displayStringWrite(line2);
+	task_display_request_write("Eliminar logs?", line2);
 }
 
 //Display del estado read modificable por scroll
 void display_read(uint32_t idx) {
-	displayClearScreen();
+	char line2[DISPLAY_CHAR_WIDTH];
 
-	displayCharPositionWrite(0, 0);
-	displayStringWrite("Lectura de datos");
-	displayCharPositionWrite(0, 1);
 	switch (idx) {
 	case 0:
-		displayStringWrite("historicos");
+		strcpy(line2, "historicos");
 		break;
 	case 1:
-		displayStringWrite("temporales");
+		strcpy(line2, "temporales");
 		break;
 	case 2:
-		displayStringWrite("temperatura");
+		strcpy(line2, "temperatura");
 		break;
 	case 3:
-		displayStringWrite("humedad");
+		strcpy(line2, "humedad");
 		break;
 	case 4:
-		displayStringWrite("luminosidad");
+		strcpy(line2, "luminosidad");
 		break;
 	}
+
+	task_display_request_write("Lectura de datos", line2);
+
 }
 
 //Falta implementar conversión de uint y enum meses a str
@@ -215,28 +188,18 @@ void display_read_time() {
     snprintf(line1, sizeof(line1), "%02u/%02u/%04u", clk.day, clk.month + 1, clk.year);
     snprintf(line2, sizeof(line2), "%02u:%02u:%02u", clk.hours, clk.minutes, clk.seconds);
 
-    displayCharPositionWrite(0, 0);
-    displayStringWrite(line1);
-    displayCharPositionWrite(0, 1);
-    displayStringWrite(line2);
+	task_display_request_write(line1, line2);
 }
 
 
 void display_read_parameters(uint32_t idx) {
-	displayClearScreen();
-
-    displayCharPositionWrite(0, 0);
-    displayStringWrite("Lectura de ");
-    displayCharPositionWrite(0, 1);
-
 	if (idx==0)
-		displayStringWrite("Configuraciones");
+		task_display_request_write("Lectura de", "Configuraciones");
 	else
-		displayStringWrite("Muestras");
+		task_display_request_write("Lectura de", "Muestras");
 }
 
 void display_read_con(mem_type_cfg_t mem) {
-	displayClearScreen();
 
     char line1[DISPLAY_CHAR_WIDTH + 1];
     char line2[DISPLAY_CHAR_WIDTH + 1];
@@ -292,10 +255,8 @@ void display_read_con(mem_type_cfg_t mem) {
 		break;
 	}
 
-    displayCharPositionWrite(0, 0);
-    displayStringWrite(line1);
-    displayCharPositionWrite(0, 1);
-    displayStringWrite(line2);
+	task_display_request_write(line1, line2);
+
 }
 
 void display_request_log(mem_log_t * log, uint32_t idx) {
@@ -324,8 +285,5 @@ void display_read_hist(mem_log_t * curr_log) {
 			(uint16_t) curr_log->humidity
 	);
 
-    displayCharPositionWrite(0, 0);
-    displayStringWrite(line1);
-    displayCharPositionWrite(0, 1);
-    displayStringWrite(line2);
+	task_display_request_write(line1, line2);
 }

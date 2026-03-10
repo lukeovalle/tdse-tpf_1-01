@@ -77,8 +77,6 @@
 #define DISPLAY_PIN_D6 13
 #define DISPLAY_PIN_D7 14
 
-#define DISPLAY_DEL_37US	37ul
-#define DISPLAY_DEL_01US	01ul
 
 //=====[Declaration of private data types]=====================================
 
@@ -230,24 +228,24 @@ void displayStringWrite( const char * str )
     }
 }
 
+void displayCharWrite(const char c) {
+	displayCodeWrite(DISPLAY_RS_DATA, c);
+}
+
 void displayClearScreen(void) {
 	displayCodeWrite(DISPLAY_RS_INSTRUCTION, DISPLAY_IR_CLEAR_DISPLAY);
     HAL_Delay(5);
 }
 
 //=====[Implementations of private functions]==================================
-static void displayCodeWrite( bool type, uint8_t dataBus )
-{
-	if ( type == DISPLAY_RS_INSTRUCTION )
-		displayPinWrite( DISPLAY_PIN_RS, DISPLAY_RS_INSTRUCTION );
-	else
-		displayPinWrite( DISPLAY_PIN_RS, DISPLAY_RS_DATA );
-	displayPinWrite( DISPLAY_PIN_RW, DISPLAY_RW_WRITE );
-	displayDataBusWrite( dataBus );
+static void displayCodeWrite(bool type, uint8_t dataBus) {
+	displayPinWrite(DISPLAY_PIN_RS, type); // type = 0 instruction; type = 1 data
+
+	displayPinWrite(DISPLAY_PIN_RW, DISPLAY_RW_WRITE);
+	displayDataBusWrite(dataBus);
 }
 
-static void displayPinWrite( uint8_t pinName, int value )
-{
+static void displayPinWrite(uint8_t pinName, int value) {
     switch( display.connection ) {
     	case DISPLAY_CONNECTION_GPIO_8BITS:
             switch( pinName ) {

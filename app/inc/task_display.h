@@ -1,12 +1,12 @@
 /*
- * task_clock_attribute.h
+ * task_display.h
  *
- *  Created on: Jan 30, 2026
+ *  Created on: Mar 10, 2026
  *      Author: luke
  */
 
-#ifndef INC_TASK_CLOCK_ATTRIBUTE_H_
-#define INC_TASK_CLOCK_ATTRIBUTE_H_
+#ifndef INC_TASK_DISPLAY_H_
+#define INC_TASK_DISPLAY_H_
 
 /********************** CPP guard ********************************************/
 #ifdef __cplusplus
@@ -19,37 +19,19 @@ extern "C" {
 
 /********************** typedef **********************************************/
 
-/* Events to excite Task Light Sensor */
-typedef enum task_clock_ev {
-	EV_CLOCK_IDLE,
-	EV_CLOCK_SECOND_ELAPSED
-} task_clock_ev_t;
-
-/* States of Task Sensor */
-typedef enum task_clock_st {
-	ST_CLOCK_IDLE,
-	ST_CLOCK_INCREASE_SECOND
-} task_clock_st_t;
-
-
-typedef struct {
-} task_clock_cfg_t;
-
-typedef struct {
-	task_clock_st_t	state;
-	task_clock_ev_t	event;
-} task_clock_dta_t;
-
-
 /********************** external data declaration ****************************/
+extern uint32_t g_task_display_cnt;
+extern volatile uint32_t g_task_display_tick_cnt;
 
 /********************** external functions declaration ***********************/
+extern void task_display_init(void *parameters);
+extern void task_display_update(void *parameters);
 
-
+void task_display_request_write(char * row_1, char * row_2);
 
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* INC_TASK_CLOCK_ATTRIBUTE_H_ */
+#endif /* INC_TASK_DISPLAY_H_ */

@@ -1,12 +1,12 @@
 /*
- * task_clock_attribute.h
+ * task_display_attribute.h
  *
- *  Created on: Jan 30, 2026
+ *  Created on: Mar 10, 2026
  *      Author: luke
  */
 
-#ifndef INC_TASK_CLOCK_ATTRIBUTE_H_
-#define INC_TASK_CLOCK_ATTRIBUTE_H_
+#ifndef INC_TASK_DISPLAY_ATTRIBUTE_H_
+#define INC_TASK_DISPLAY_ATTRIBUTE_H_
 
 /********************** CPP guard ********************************************/
 #ifdef __cplusplus
@@ -14,31 +14,34 @@ extern "C" {
 #endif
 
 /********************** inclusions *******************************************/
-
+#include <stdbool.h>
 /********************** macros ***********************************************/
 
 /********************** typedef **********************************************/
 
 /* Events to excite Task Light Sensor */
-typedef enum task_clock_ev {
-	EV_CLOCK_IDLE,
-	EV_CLOCK_SECOND_ELAPSED
-} task_clock_ev_t;
+typedef enum task_display_ev {
+	EV_DISPLAY_IDLE,
+	EV_DISPLAY_WRITE
+} task_display_ev_t;
 
 /* States of Task Sensor */
-typedef enum task_clock_st {
-	ST_CLOCK_IDLE,
-	ST_CLOCK_INCREASE_SECOND
-} task_clock_st_t;
+typedef enum task_display_st {
+	ST_DISPLAY_IDLE,
+	ST_DISPLAY_WRITE_CHAR,
+	ST_DISPLAY_WAIT
+} task_display_st_t;
 
 
 typedef struct {
-} task_clock_cfg_t;
+} task_display_cfg_t;
 
 typedef struct {
-	task_clock_st_t	state;
-	task_clock_ev_t	event;
-} task_clock_dta_t;
+	task_display_st_t	state;
+	task_display_ev_t	event;
+	uint8_t row, col;
+	bool write_row_1, write_row_2;
+} task_display_dta_t;
 
 
 /********************** external data declaration ****************************/
@@ -52,4 +55,4 @@ typedef struct {
 }
 #endif
 
-#endif /* INC_TASK_CLOCK_ATTRIBUTE_H_ */
+#endif /* INC_TASK_DISPLAY_ATTRIBUTE_H_ */

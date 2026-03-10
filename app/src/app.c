@@ -50,12 +50,12 @@
 #include "task_actuator.h"
 #include "task_clock.h"
 #include "task_controller.h"
+#include "task_display.h"
 #include "task_i2c.h"
 #include "task_keypad.h"
 #include "task_menu.h"
 #include "task_print.h"
 #include "task_sensor.h"
-#include "task_keypad.h"
 
 /********************** macros and definitions *******************************/
 #define G_APP_CNT_INI		0ul
@@ -81,13 +81,14 @@ typedef struct {
 shared_data_type shared_data;
 
 const task_cfg_t task_cfg_list[]	= {
+		{ .task_init = task_actuator_init, .task_update = task_actuator_update, .parameters = &shared_data },
 		{ .task_init = task_clock_init, .task_update = task_clock_update, .parameters = &shared_data },
 		{ .task_init = task_controller_init, .task_update = task_controller_update, .parameters = &shared_data },
-		{ .task_init = task_sensor_init, .task_update = task_sensor_update, .parameters = &shared_data },
+		{ .task_init = task_display_init, .task_update = task_display_update, .parameters = &shared_data },
 		{ .task_init = task_i2c_init, .task_update = task_i2c_update, .parameters = &shared_data },
-		{ .task_init = task_actuator_init, .task_update = task_actuator_update, .parameters = &shared_data },
+		{ .task_init = task_keypad_init, .task_update = task_keypad_update, .parameters = &shared_data },
 		{ .task_init = task_menu_init, .task_update = task_menu_update, .parameters = &shared_data },
-		{ .task_init = task_keypad_init, .task_update = task_keypad_update, .parameters = &shared_data }
+		{ .task_init = task_sensor_init, .task_update = task_sensor_update, .parameters = &shared_data }
 };
 
 #define TASK_QTY	(sizeof(task_cfg_list)/sizeof(task_cfg_t))
@@ -212,11 +213,12 @@ void HAL_SYSTICK_Callback(void)
 {
 	/* Update Tick Counter */
 	g_app_tick_cnt++;
-
 	g_task_actuator_tick_cnt++;
 	g_task_clock_tick_cnt++;
 	g_task_controller_tick_cnt++;
+	g_task_display_tick_cnt++;
 	g_task_i2c_tick_cnt++;
+	g_task_keypad_tick_cnt++;
 	g_task_menu_tick_cnt++;
 	g_task_print_tick_cnt++;
 	g_task_sensor_tick_cnt++;
