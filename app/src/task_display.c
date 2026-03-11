@@ -24,6 +24,7 @@
 /********************** macros and definitions *******************************/
 #define G_TASK_DISPLAY_CNT_INIT			0ul
 #define G_TASK_DISPLAY_TICK_CNT_INI		0ul
+#define CYCLES_PER_US (SystemCoreClock / 1000000)
 
 /* Number of ticks for the display measurement and the starting value */
 #define DEL_DISPLAY_TICK_MAX			50ul
@@ -127,15 +128,17 @@ void task_display_request_write(char * row_1, char * row_2) {
 	if (!row_1 && !row_2)
 		return;
 
+	__asm("CPSID i");
+
 	task_display_dta_t * p_task_display_dta = &task_display_dta_list[0];
 	if (row_1) {
-		snprintf(display_buffer[0], DISPLAY_CHAR_WIDTH + 1, "%-16s", row_1);
+		snprintf(display_buffer[0], DISPLAY_CHAR_WIDTH + 1, "%-*s", DISPLAY_CHAR_WIDTH, row_1);
 		p_task_display_dta->write_row_1 = true;
 	} else
 		p_task_display_dta->write_row_1 = false;
 
 	if (row_2) {
-		snprintf(display_buffer[1], DISPLAY_CHAR_WIDTH + 1, "%-16s", row_2);
+		snprintf(display_buffer[1], DISPLAY_CHAR_WIDTH + 1, "%-*s", DISPLAY_CHAR_WIDTH, row_2);
 		p_task_display_dta->write_row_2 = true;
 	} else
 		p_task_display_dta->write_row_2 = false;
@@ -143,6 +146,8 @@ void task_display_request_write(char * row_1, char * row_2) {
 	p_task_display_dta->event = EV_DISPLAY_WRITE;
 	p_task_display_dta->row = 0;
 	p_task_display_dta->col = 0;
+
+	__asm("CPSIE i");
 }
 
 /********************** internal functions definition ************************/
@@ -151,10 +156,20 @@ void task_display_statechart(shared_data_type * parameters) {
 	//const task_display_cfg_t * p_task_display_cfg;
 	task_display_dta_t * p_task_display_dta;
 
+
 	for (index = 0; DISPLAY_DTA_QTY > index; index++) {
 		/* Update Task DISPLAY Configuration & Data Pointer */
 		//p_task_display_cfg = &task_display_cfg_list[index];
 		p_task_display_dta = &task_display_dta_list[index];
+
+		//Inicialización de parametros
+		bool have_to_write = false;
+		uint8_t * p_row = &p_task_display_dta->row;
+		uint8_t * p_col = &p_task_display_dta->col;
+		uint32_t curr_cycles = 0;
+		uint32_t elapsed_cycles = 0;
+		uint32_t elapsed_us = 0;
+
 
 		task_display_st_t state = p_task_display_dta->state;
 		switch (state) {
@@ -173,9 +188,7 @@ void task_display_statechart(shared_data_type * parameters) {
 			break;
 
 		case ST_DISPLAY_WRITE_CHAR:
-			bool have_to_write = true;
-			uint8_t * p_row = &p_task_display_dta->row;
-			uint8_t * p_col = &p_task_display_dta->col;
+			have_to_write = true;
 
 			// Si no tiene que escribir la primer fila
 			if (*p_row == 0 && !p_task_display_dta->write_row_1)
@@ -187,7 +200,7 @@ void task_display_statechart(shared_data_type * parameters) {
 				have_to_write = false;
 			}
 
-			if (p_row == DISPLAY_ROWS - 1 && *p_col == DISPLAY_CHAR_WIDTH) {
+			if (*p_row == DISPLAY_ROWS - 1 && *p_col == DISPLAY_CHAR_WIDTH) {
 				p_task_display_dta->state = ST_DISPLAY_IDLE;
 				have_to_write = false;
 			}
@@ -198,6 +211,12 @@ void task_display_statechart(shared_data_type * parameters) {
 				if (*p_col == DISPLAY_CHAR_WIDTH) {
 					*p_col = 0;
 					(*p_row)++;
+
+				    if (*p_row >= DISPLAY_ROWS) {
+				        p_task_display_dta->state = ST_DISPLAY_IDLE;
+				        have_to_write = false;
+				        break;
+				    }
 				}
 
 				p_task_display_dta->state = ST_DISPLAY_WAIT;
@@ -207,10 +226,10 @@ void task_display_statechart(shared_data_type * parameters) {
 			break;
 
 		case ST_DISPLAY_WAIT:
-			uint32_t curr_cycles = DWT->CYCCNT;
-			uint32_t elapsed_cycles = curr_cycles - starting_cycles;
+			curr_cycles = DWT->CYCCNT;
+			elapsed_cycles = curr_cycles - starting_cycles;
 
-			uint32_t elapsed_us = elapsed_cycles / ( SystemCoreClock / 1000000 );
+			elapsed_us = elapsed_cycles / CYCLES_PER_US;
 
 			if (elapsed_us >= DISPLAY_DEL_37US)
 				p_task_display_dta->state = ST_DISPLAY_WRITE_CHAR;

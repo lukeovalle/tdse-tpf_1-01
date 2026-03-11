@@ -19,13 +19,13 @@ extern "C" {
 
 /********************** typedef **********************************************/
 
-/* Events to excite Task Light Sensor */
+/* Events to excite Task Display */
 typedef enum task_display_ev {
 	EV_DISPLAY_IDLE,
 	EV_DISPLAY_WRITE
 } task_display_ev_t;
 
-/* States of Task Sensor */
+/* States of Task Display */
 typedef enum task_display_st {
 	ST_DISPLAY_IDLE,
 	ST_DISPLAY_WRITE_CHAR,
@@ -39,8 +39,10 @@ typedef struct {
 typedef struct {
 	task_display_st_t	state;
 	task_display_ev_t	event;
-	uint8_t row, col;
-	bool write_row_1, write_row_2;
+	uint8_t row;
+	uint8_t col;
+	bool write_row_1;
+	bool write_row_2;
 } task_display_dta_t;
 
 

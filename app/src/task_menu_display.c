@@ -248,7 +248,7 @@ void display_read_con(mem_type_cfg_t mem) {
 
 	case MEM_CFG_SAVE_FREQ:
 		snprintf(line1, sizeof(line1), "Horas entre toma");
-		snprintf(line2, sizeof(line2), "de muestras %u", (uint16_t) conf->save_freq);
+		snprintf(line2, sizeof(line2), "de muestras %3u", ((uint16_t) conf->save_freq)% 1000);
 		break;
 
 	default:
@@ -278,11 +278,11 @@ void display_read_hist(mem_log_t * curr_log) {
     char line2[DISPLAY_CHAR_WIDTH + 1];
 
 	snprintf(line1, sizeof(line1), "%02u/%02u/%04u %02u:%02u",
-			time.day, time.month + 1, time.year, time.hours, time.minutes);
+			time.day%100, (time.month + 1)%100, time.year%10000, time.hours%100, time.minutes%100);
 	snprintf(line2, sizeof(line2), "%5uL %02u\xDF" "C %02u%%", // luz, temp, humedad: "xxxxxL yy°C zz%"
 			(uint16_t) curr_log->light,
-			(uint16_t) curr_log->temperature,
-			(uint16_t) curr_log->humidity
+			(uint16_t) curr_log->temperature%100,
+			(uint16_t) curr_log->humidity%100
 	);
 
 	task_display_request_write(line1, line2);
