@@ -29,7 +29,8 @@ typedef enum task_display_ev {
 typedef enum task_display_st {
 	ST_DISPLAY_IDLE,
 	ST_DISPLAY_WRITE_CHAR,
-	ST_DISPLAY_WAIT
+	ST_DISPLAY_WAIT,
+	ST_DISPLAY_FIND_NEXT
 } task_display_st_t;
 
 

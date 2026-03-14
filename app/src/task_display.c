@@ -56,7 +56,9 @@ const char *p_task_display 	= "Task Display (Display Statechart)";
 const char *p_task_display_ = "Non-Blocking & Update By Time Code";
 
 static uint32_t starting_cycles = 0;	// Ciclo en el que se empezó a escribir el caracter
-static char display_buffer[DISPLAY_ROWS][DISPLAY_CHAR_WIDTH + 1];
+
+static char display_target[DISPLAY_ROWS][DISPLAY_CHAR_WIDTH]; // Buffer con el contenido que se quiere mostrar en el display
+static char display_shadow[DISPLAY_ROWS][DISPLAY_CHAR_WIDTH]; // Buffer con el contenido que se ha escrito en el display
 
 /********************** external functions definition ************************/
 void task_display_init(void *parameters)
@@ -88,6 +90,14 @@ void task_display_init(void *parameters)
 					GET_NAME(state), (uint32_t)state,
 					GET_NAME(event), (uint32_t)event);
 	}
+
+	// Initialize display buffers
+	for (uint8_t r = 0; r < DISPLAY_ROWS; r++)
+    	for (uint8_t c = 0; c < DISPLAY_CHAR_WIDTH; c++)
+    	{
+        	display_target[r][c] = ' ';
+        	display_shadow[r][c] = ' ';
+    	}	
 }
 
 void task_display_update(void *parameters) {
@@ -125,23 +135,13 @@ void task_display_update(void *parameters) {
 }
 
 void task_display_request_write(char * row_1, char * row_2) {
-	if (!row_1 && !row_2)
-		return;
 
 	__asm("CPSID i");
 
-	task_display_dta_t * p_task_display_dta = &task_display_dta_list[0];
-	if (row_1) {
-		snprintf(display_buffer[0], DISPLAY_CHAR_WIDTH + 1, "%-*s", DISPLAY_CHAR_WIDTH, row_1);
-		p_task_display_dta->write_row_1 = true;
-	} else
-		p_task_display_dta->write_row_1 = false;
+	if (row_1) display_copy_line(display_target[0], row_1);
+    if (row_2) display_copy_line(display_target[1], row_2);
 
-	if (row_2) {
-		snprintf(display_buffer[1], DISPLAY_CHAR_WIDTH + 1, "%-*s", DISPLAY_CHAR_WIDTH, row_2);
-		p_task_display_dta->write_row_2 = true;
-	} else
-		p_task_display_dta->write_row_2 = false;
+	task_display_dta_t * p_task_display_dta = &task_display_dta_list[0];
 
 	p_task_display_dta->event = EV_DISPLAY_WRITE;
 	p_task_display_dta->row = 0;
@@ -151,97 +151,123 @@ void task_display_request_write(char * row_1, char * row_2) {
 }
 
 /********************** internal functions definition ************************/
-void task_display_statechart(shared_data_type * parameters) {
-	uint32_t index;
-	//const task_display_cfg_t * p_task_display_cfg;
-	task_display_dta_t * p_task_display_dta;
+void task_display_statechart(shared_data_type * parameters)
+{
+	task_display_dta_t *p_task_display_dta = &task_display_dta_list[0];
 
+	uint32_t curr_cycles;
+    uint32_t elapsed_cycles;
+    uint32_t elapsed_us;
 
-	for (index = 0; DISPLAY_DTA_QTY > index; index++) {
-		/* Update Task DISPLAY Configuration & Data Pointer */
-		//p_task_display_cfg = &task_display_cfg_list[index];
-		p_task_display_dta = &task_display_dta_list[index];
+	switch (p_task_display_dta->state)
+{
 
-		//Inicialización de parametros
-		bool have_to_write = false;
-		uint8_t * p_row = &p_task_display_dta->row;
-		uint8_t * p_col = &p_task_display_dta->col;
-		uint32_t curr_cycles = 0;
-		uint32_t elapsed_cycles = 0;
-		uint32_t elapsed_us = 0;
-
-
-		task_display_st_t state = p_task_display_dta->state;
-		switch (state) {
 		case ST_DISPLAY_IDLE:
-			switch (p_task_display_dta->event) {
-			case EV_DISPLAY_IDLE:
-				p_task_display_dta->state = ST_DISPLAY_IDLE;
-				break;
-			case EV_DISPLAY_WRITE:
-				p_task_display_dta->state = ST_DISPLAY_WRITE_CHAR;
+
+			if (p_task_display_dta->event == EV_DISPLAY_WRITE)
+			{
 				p_task_display_dta->event = EV_DISPLAY_IDLE;
-				break;
-			default:
-				break;
+
+				if (display_find_dirty(&p_task_display_dta->row, &p_task_display_dta->col))
+				{
+					displayCharPositionWrite(p_task_display_dta->col, p_task_display_dta->row);
+					p_task_display_dta->state = ST_DISPLAY_WRITE_CHAR;
+				}
 			}
-			break;
+
+		break;
 
 		case ST_DISPLAY_WRITE_CHAR:
-			have_to_write = true;
 
-			// Si no tiene que escribir la primer fila
-			if (*p_row == 0 && !p_task_display_dta->write_row_1)
-				(*p_row)++;
+			displayCharWrite(display_target[p_task_display_dta->row][p_task_display_dta->col]);
 
-			// Si no tiene que escribir la segunda fila
-			if (*p_row == 1 && !p_task_display_dta->write_row_2) {
-				p_task_display_dta->state = ST_DISPLAY_IDLE;
-				have_to_write = false;
-			}
+			display_shadow[p_task_display_dta->row][p_task_display_dta->col] = display_target[p_task_display_dta->row][p_task_display_dta->col];
 
-			if (*p_row == DISPLAY_ROWS - 1 && *p_col == DISPLAY_CHAR_WIDTH) {
-				p_task_display_dta->state = ST_DISPLAY_IDLE;
-				have_to_write = false;
-			}
+			bool continue_line = true;
 
-			if (have_to_write) {
-				displayCharWrite(display_buffer[*p_row][(*p_col)++]);
+			p_task_display_dta->col++;
 
-				if (*p_col == DISPLAY_CHAR_WIDTH) {
-					*p_col = 0;
-					(*p_row)++;
+			if (p_task_display_dta->col >= DISPLAY_CHAR_WIDTH || display_target[p_task_display_dta->row][p_task_display_dta->col] != display_shadow[p_task_display_dta->row][p_task_display_dta->col])
+				continue_line = false;
 
-				    if (*p_row >= DISPLAY_ROWS) {
-				        p_task_display_dta->state = ST_DISPLAY_IDLE;
-				        have_to_write = false;
-				        break;
-				    }
-				}
+			starting_cycles = DWT->CYCCNT;
 
+			if (continue_line)
 				p_task_display_dta->state = ST_DISPLAY_WAIT;
-				starting_cycles = DWT->CYCCNT;
-			}
+			else
+				p_task_display_dta->state = ST_DISPLAY_WAIT;
 
-			break;
+		break;
 
 		case ST_DISPLAY_WAIT:
+
 			curr_cycles = DWT->CYCCNT;
 			elapsed_cycles = curr_cycles - starting_cycles;
-
 			elapsed_us = elapsed_cycles / CYCLES_PER_US;
 
 			if (elapsed_us >= DISPLAY_DEL_37US)
-				p_task_display_dta->state = ST_DISPLAY_WRITE_CHAR;
+			{
+				if (p_task_display_dta->col < DISPLAY_CHAR_WIDTH &&
+					display_target[p_task_display_dta->row][p_task_display_dta->col] != display_shadow[p_task_display_dta->row][p_task_display_dta->col])
+				{
+					p_task_display_dta->state = ST_DISPLAY_WRITE_CHAR;
+				}
+				else
+				{
+					p_task_display_dta->state = ST_DISPLAY_FIND_NEXT;
+				}
+			}
 
-			break;
+		break;
+
+		case ST_DISPLAY_FIND_NEXT:
+
+			if (display_find_dirty(&p_task_display_dta->row, &p_task_display_dta->col))
+			{
+				displayCharPositionWrite(p_task_display_dta->col, p_task_display_dta->row);
+				p_task_display_dta->state = ST_DISPLAY_WRITE_CHAR;
+			}
+			else
+			{
+				p_task_display_dta->state = ST_DISPLAY_IDLE;
+			}
+
+		break;
 
 		default:
-			p_task_display_dta->event = EV_DISPLAY_IDLE;
 			p_task_display_dta->state = ST_DISPLAY_IDLE;
-			break;
-		}
-	}
+			p_task_display_dta->event = EV_DISPLAY_IDLE;
+		break;
+    }
+}
+
+static void display_copy_line(char *dst, const char *src)
+{
+    for (uint8_t i = 0; i < DISPLAY_CHAR_WIDTH; i++)
+	{
+        if (src && src[i])
+            dst[i] = src[i];
+        else
+            dst[i] = ' ';
+    }
+}
+
+static bool display_find_dirty(uint8_t *row, uint8_t *col)
+{
+    for (uint8_t r = 0; r < DISPLAY_ROWS; r++)
+    {
+        for (uint8_t c = 0; c < DISPLAY_CHAR_WIDTH; c++)
+        {
+            if (display_target[r][c] != display_shadow[r][c])
+            {
+                *row = r;
+                *col = c;
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 /********************** end of file ******************************************/
