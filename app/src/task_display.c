@@ -50,6 +50,8 @@ task_display_dta_t task_display_dta_list[] = {
 
 /********************** internal functions declaration ***********************/
 void task_display_statechart(shared_data_type * parameters);
+static void display_copy_line(char *dst, const char *src);
+static bool display_find_dirty(uint8_t *row, uint8_t *col);
 
 /********************** internal data definition *****************************/
 const char *p_task_display 	= "Task Display (Display Statechart)";
