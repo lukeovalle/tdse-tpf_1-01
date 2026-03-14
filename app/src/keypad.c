@@ -27,7 +27,7 @@ keypad_key_t keypad_scan(void)
     for (uint8_t row = 0; row < 4; row++)
     {
         HAL_GPIO_WritePin(ROW_PORT[row], ROW_PIN[row], GPIO_PIN_SET);
-        display_delay_us(5);
+        display_delay_us(1);
 
         for (uint8_t col = 0; col < 4; col++)
             if (HAL_GPIO_ReadPin(COL_PORT[col], COL_PIN[col]) == GPIO_PIN_SET)
