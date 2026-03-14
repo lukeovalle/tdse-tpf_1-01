@@ -28,7 +28,7 @@ volatile uint32_t g_task_keypad_tick_cnt = 0;
 const char *p_task_keypad 	= "Task Keypad (Keypad Statechart)";
 const char *p_task_keypad_ 	= "Non-Blocking & Update By Time Code";
 
-static keypad_ctrl_t keypad_ctrl[TASK_KEYPAD_KEYS_QTY];
+static keypad_ctrl_t keypad_ctrl[1];
 /* ========================================================= */
 
 /********************** internal functions declaration ***********************/
@@ -68,7 +68,6 @@ void task_keypad_init(void *parameters) {
 	*/
 
     for (uint8_t i = 0; i < TASK_KEYPAD_KEYS_QTY; i++) {
-        keypad_ctrl[i].key   = keypad_key_map[i];
         keypad_ctrl[i].state = ST_UP;
         keypad_ctrl[i].tick  = 0;
     }
@@ -112,8 +111,7 @@ void task_keypad_statechart(shared_data_type * parameters) {
     /* Botonera matricial clásica unibotón */
     keypad_key_t key_read = keypad_scan();
 
-    for (uint8_t i = 0; i < TASK_KEYPAD_KEYS_QTY; i++)
-    {
+    for (uint8_t i = 0; i < TASK_KEYPAD_KEYS_QTY; i++) {
         keypad_ctrl_t *s = &keypad_ctrl[i];
         uint8_t pressed = (key_read == s->key);
 
@@ -123,6 +121,7 @@ void task_keypad_statechart(shared_data_type * parameters) {
                 if (pressed) {
                     s->state = ST_FALLING;
                     s->tick = 0;
+                    s->key = key_read;
                 }
                 break;
 
@@ -134,7 +133,6 @@ void task_keypad_statechart(shared_data_type * parameters) {
                     }
                 } else {
                     s->state = ST_UP;
-                    s->tick = 0;
                 }
                 break;
 
@@ -153,7 +151,6 @@ void task_keypad_statechart(shared_data_type * parameters) {
                     }
                 } else {
                     s->state = ST_DOWN;
-                    s->tick = 0;
                 }
                 break;
         }
