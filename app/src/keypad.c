@@ -17,6 +17,9 @@ static const keypad_key_t key_map[4][4] = {
     {KEY_STAR, KEY_0, KEY_HASH, KEY_D}
 };
 
+static uint8_t current_row = 0;
+
+/*
 void display_delay_us(uint32_t delay_us)
 {
 	uint32_t now = cycle_counter_time_us();
@@ -25,15 +28,30 @@ void display_delay_us(uint32_t delay_us)
 	while (now < then)
 		now = cycle_counter_time_us();
 }
+*/
 
 keypad_key_t keypad_scan(void)
 {
+    // Desactivar todas las filas
     for (uint8_t i = 0; i < 4; i++) HAL_GPIO_WritePin(ROW_PORT[i], ROW_PIN[i], GPIO_PIN_SET);
 
+    // Activar la fila actual
+    HAL_GPIO_WritePin(ROW_PORT[current_row], ROW_PIN[current_row], GPIO_PIN_RESET);
+
+    for (uint8_t col = 0; col < 4; col++)
+        if (HAL_GPIO_ReadPin(COL_PORT[col], COL_PIN[col]) == GPIO_PIN_RESET)
+            return key_map[row][col];
+
+    current_row = (current_row + 1) & 0x03;
+    
+    /*         
     for (uint8_t row = 0; row < 4; row++)
     {
         HAL_GPIO_WritePin(ROW_PORT[row], ROW_PIN[row], GPIO_PIN_RESET);
-        display_delay_us(5);
+        //display_delay_us(5);
+        // Si no anda sin el delay usar 1 o 2 : __NOP();
+        // definiendo #define KEYPAD_STABILIZATION() __NOP(); __NOP()
+        // KEYPAD_STABILIZATION();
 
         for (uint8_t col = 0; col < 4; col++)
             if (HAL_GPIO_ReadPin(COL_PORT[col], COL_PIN[col]) == GPIO_PIN_RESET)
@@ -41,6 +59,7 @@ keypad_key_t keypad_scan(void)
 
         HAL_GPIO_WritePin(ROW_PORT[row], ROW_PIN[row], GPIO_PIN_SET);
     }
+    */
 
     return KEY_NONE;
 }

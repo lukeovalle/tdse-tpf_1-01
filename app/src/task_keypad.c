@@ -3,9 +3,9 @@
 #include "task_menu.h"
 
 /* ===================== CONFIGURACION ===================== */
-#define TASK_KEYPAD_DEBOUNCE_TICKS   20
+#define TASK_KEYPAD_DEBOUNCE_TICKS   10
 #define TASK_KEYPAD_KEYS_QTY         16
-#define KEYPAD_SCAN_SAMPLES  10
+// #define KEYPAD_SCAN_SAMPLES  10  elimino esto para no hacer un x10 en lecturas ya que tengo filtro con la FSM
 /* ========================================================= */
 
 /* ===================== CONTADORES ======================== */
@@ -58,12 +58,15 @@ void task_keypad_update(void *parameters)
 
     /* Botonera matricial clasica uniboton */
     keypad_key_t key_read = keypad_scan();
+
+    /* No es necesario hacer muchas muestas
     for (uint8_t i = 0; i < KEYPAD_SCAN_SAMPLES; i++)
     {
     	keypad_key_t key_read_next = keypad_scan();
     	if (key_read_next == KEY_NONE) break;
     	key_read = key_read_next;
     }
+    */
 
     g_task_keypad_cnt++;
 
