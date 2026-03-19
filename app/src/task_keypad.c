@@ -21,11 +21,22 @@ typedef enum {
     ST_RISING
 } keypad_state_t;
 
+// Utilizo una sola FSM para toda la botonera, con un array de control para cada tecla, asi no tengo que hacer 16 FSM independientes
+/*
 typedef struct {
     keypad_key_t key;
     keypad_state_t state;
     uint32_t tick;
 } keypad_ctrl_t;
+*/
+
+typedef struct {
+    keypad_key_t key;
+    keypad_state_t state;
+    uint32_t tick;
+} keypad_fsm_t;
+
+static keypad_fsm_t keypad;
 /* ========================================================= */
 
 /* ===================== MAPEO DE TECLAS =================== */
@@ -38,18 +49,24 @@ static const keypad_key_t keypad_key_map[TASK_KEYPAD_KEYS_QTY] = {
 /* ========================================================= */
 
 /* ===================== DATOS PRIVADOS ==================== */
-static keypad_ctrl_t keypad_ctrl[TASK_KEYPAD_KEYS_QTY];
+//static keypad_ctrl_t keypad_ctrl[TASK_KEYPAD_KEYS_QTY];
+static keypad_fsm_t keypad;
 /* ========================================================= */
 
 void task_keypad_init(void *parameters)
 {
     (void) parameters;
-
+    /*
     for (uint8_t i = 0; i < TASK_KEYPAD_KEYS_QTY; i++) {
         keypad_ctrl[i].key   = keypad_key_map[i];
         keypad_ctrl[i].state = ST_UP;
         keypad_ctrl[i].tick  = 0;
     }
+    */
+    keypad.key = KEY_NONE;
+    keypad.state = ST_UP;
+    keypad.tick = 0;
+
 }
 
 void task_keypad_update(void *parameters)
@@ -70,6 +87,53 @@ void task_keypad_update(void *parameters)
 
     g_task_keypad_cnt++;
 
+    switch (keypad.state)
+    {
+    case ST_UP:
+        if (key_read != KEY_NONE) {
+            keypad.state = ST_FALLING;
+            keypad.tick = 0;
+            keypad.key = key_read;
+        }
+        break;
+
+    case ST_FALLING:
+        if (key_read == keypad.key) {
+            if (++keypad.tick >= TASK_KEYPAD_DEBOUNCE_TICKS) {
+                keypad.state = ST_DOWN;
+                task_menu_push_event(MENU_EV_KEY_PRESSED, keypad.key);
+            }
+        } else {
+            keypad.state = ST_UP;
+        }
+        break;
+
+    case ST_DOWN:
+        if (key_read != keypad.key) {
+            keypad.state = ST_RISING;
+            keypad.tick = 0;
+        }
+        break;
+
+    case ST_RISING:
+        if (key_read != keypad.key) {
+            if (++keypad.tick >= TASK_KEYPAD_DEBOUNCE_TICKS) {
+                keypad.state = ST_UP;
+                task_menu_push_event(MENU_EV_KEY_RELEASED, keypad.key);
+            }
+        } else {
+            keypad.state = ST_DOWN;
+        }
+        break;
+
+    default: // Por si por algun motivo quedo en un estado invalido, lo reseteo
+        keypad.state = ST_UP;
+        keypad.tick = 0;
+        keypad.key = KEY_NONE;
+        break;
+    }
+    
+    /*
     for (uint8_t i = 0; i < TASK_KEYPAD_KEYS_QTY; i++)
     {
         keypad_ctrl_t *s = &keypad_ctrl[i];
@@ -114,4 +178,5 @@ void task_keypad_update(void *parameters)
                 break;
         }
     }
+    */
 }
