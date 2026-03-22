@@ -8,9 +8,7 @@
 /* ===================== CONFIGURACION ===================== */
 #define TASK_KEYPAD_DEBOUNCE_TICKS   10
 #define TASK_KEYPAD_KEYS_QTY         16
-<<<<<<< HEAD
 // #define KEYPAD_SCAN_SAMPLES  10  elimino esto para no hacer un x10 en lecturas ya que tengo filtro con la FSM
-=======
 #define KEYPAD_SCAN_SAMPLES  10
 #define MENU_EV_KEY_PRESSED 1
 #define MENU_EV_KEY_RELEASED 0
@@ -18,7 +16,6 @@
 #define G_TASK_KEYPAD_CNT_INIT			0ul
 #define G_TASK_KEYPAD_TICK_CNT_INI		0ul
 
->>>>>>> master
 /* ========================================================= */
 
 /* ===================== CONTADORES ======================== */
@@ -26,14 +23,7 @@ uint32_t g_task_keypad_cnt = 0;
 volatile uint32_t g_task_keypad_tick_cnt = 0;
 /* ========================================================= */
 
-<<<<<<< HEAD
 /* ===================== FSM PRIVADA ======================= */
-typedef enum {
-    ST_UP,
-    ST_FALLING,
-    ST_DOWN,
-    ST_RISING
-} keypad_state_t;
 
 // Utilizo una sola FSM para toda la botonera, con un array de control para cada tecla, asi no tengo que hacer 16 FSM independientes
 /*
@@ -63,17 +53,12 @@ static const keypad_key_t keypad_key_map[TASK_KEYPAD_KEYS_QTY] = {
 /* ========================================================= */
 
 /* ===================== DATOS PRIVADOS ==================== */
-//static keypad_ctrl_t keypad_ctrl[TASK_KEYPAD_KEYS_QTY];
-static keypad_fsm_t keypad;
-=======
-/* ========================================================= */
-
-/* ===================== DATOS PRIVADOS ==================== */
 const char *p_task_keypad 	= "Task Keypad (Keypad Statechart)";
 const char *p_task_keypad_ 	= "Non-Blocking & Update By Time Code";
 
-static keypad_ctrl_t keypad_ctrl[TASK_KEYPAD_KEYS_QTY];
->>>>>>> master
+//static keypad_ctrl_t keypad_ctrl[TASK_KEYPAD_KEYS_QTY];
+static keypad_fsm_t keypad;
+
 /* ========================================================= */
 
 /********************** internal functions declaration ***********************/
@@ -83,9 +68,6 @@ void task_keypad_statechart(shared_data_type * parameters);
 /********************** external functions definition ************************/
 void task_keypad_init(void *parameters) {
     (void) parameters;
-<<<<<<< HEAD
-    /*
-=======
 
 	//uint32_t index;
 	//keypad_state_t state;
@@ -115,13 +97,6 @@ void task_keypad_init(void *parameters) {
 	}
 	*/
 
->>>>>>> master
-    for (uint8_t i = 0; i < TASK_KEYPAD_KEYS_QTY; i++) {
-        keypad_ctrl[i].key   = keypad_key_map[i];
-        keypad_ctrl[i].state = ST_UP;
-        keypad_ctrl[i].tick  = 0;
-    }
-    */
     keypad.key = KEY_NONE;
     keypad.state = ST_UP;
     keypad.tick = 0;
@@ -165,20 +140,8 @@ void task_keypad_update(void *parameters) {
 void task_keypad_statechart(shared_data_type * parameters) {
     /* Botonera matricial clásica unibotón */
     keypad_key_t key_read = keypad_scan();
-<<<<<<< HEAD
-
-    /* No es necesario hacer muchas muestas
-    for (uint8_t i = 0; i < KEYPAD_SCAN_SAMPLES; i++)
-    {
-    	keypad_key_t key_read_next = keypad_scan();
-    	if (key_read_next == KEY_NONE) break;
-    	key_read = key_read_next;
-    }
-    */
 
     g_task_keypad_cnt++;
-=======
->>>>>>> master
 
     switch (keypad.state)
     {
@@ -273,13 +236,6 @@ void task_keypad_statechart(shared_data_type * parameters) {
                 break;
         }
     }
-<<<<<<< HEAD
     */
-=======
-
-
->>>>>>> master
 }
-
-
 

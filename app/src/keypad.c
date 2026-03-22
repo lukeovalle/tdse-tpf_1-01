@@ -42,7 +42,7 @@ keypad_key_t keypad_scan(void)
 
     for (uint8_t col = 0; col < 4; col++)
         if (HAL_GPIO_ReadPin(COL_PORT[col], COL_PIN[col]) == GPIO_PIN_RESET)
-            return key_map[row][col];
+            return key_map[current_row][col];
 
     current_row = (current_row + 1) & 0x03;
     

@@ -61,13 +61,6 @@ typedef struct {
 } keypad_ctrl_t;
 /* ========================================================= */
 
-/* ===================== MAPEO DE TECLAS =================== */
-static const keypad_key_t keypad_key_map[TASK_KEYPAD_KEYS_QTY] = {
-    KEY_1, KEY_2, KEY_3, KEY_A,
-    KEY_4, KEY_5, KEY_6, KEY_B,
-    KEY_7, KEY_8, KEY_9, KEY_C,
-    KEY_STAR, KEY_0, KEY_HASH, KEY_D
-};
 /********************** external data declaration ****************************/
 extern uint32_t g_task_keypad_cnt;
 extern volatile uint32_t g_task_keypad_tick_cnt;
