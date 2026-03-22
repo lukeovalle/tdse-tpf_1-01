@@ -37,6 +37,7 @@
 
 #ifndef TASK_INC_TASK_KEYPAD_H_
 #define TASK_INC_TASK_KEYPAD_H_
+#define TASK_KEYPAD_KEYS_QTY         16
 
 /********************** CPP guard ********************************************/
 #ifdef __cplusplus
@@ -44,11 +45,29 @@ extern "C" {
 #endif
 
 /********************** inclusions *******************************************/
+#include "keypad.h"
+/* ===================== FSM PRIVADA ======================= */
+typedef enum {
+    ST_UP,
+    ST_FALLING,
+    ST_DOWN,
+    ST_RISING
+} keypad_state_t;
 
-/********************** macros ***********************************************/
+typedef struct {
+    keypad_key_t key;
+    keypad_state_t state;
+    uint32_t tick;
+} keypad_ctrl_t;
+/* ========================================================= */
 
-/********************** typedef **********************************************/
-
+/* ===================== MAPEO DE TECLAS =================== */
+static const keypad_key_t keypad_key_map[TASK_KEYPAD_KEYS_QTY] = {
+    KEY_1, KEY_2, KEY_3, KEY_A,
+    KEY_4, KEY_5, KEY_6, KEY_B,
+    KEY_7, KEY_8, KEY_9, KEY_C,
+    KEY_STAR, KEY_0, KEY_HASH, KEY_D
+};
 /********************** external data declaration ****************************/
 extern uint32_t g_task_keypad_cnt;
 extern volatile uint32_t g_task_keypad_tick_cnt;

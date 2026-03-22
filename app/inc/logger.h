@@ -56,13 +56,11 @@ extern "C" {
 #define LOGGER_CONFIG_USE_SEMIHOSTING           (1)
 
 #if 1 == LOGGER_CONFIG_ENABLE
-#define LOGGER_LOG(...)\
-	__asm("CPSID i");	/* disable interrupts*/\
-    {\
-        logger_msg_len = snprintf(logger_msg, (LOGGER_CONFIG_MAXLEN - 1), __VA_ARGS__);\
-        logger_log_print_(logger_msg);\
-    }\
-	__asm("CPSIE i");	/* enable interrupts*/
+#define LOGGER_LOG(...) \
+    __asm("CPSID i"); \
+    logger_msg_len = snprintf(logger_msg, LOGGER_CONFIG_MAXLEN-1, __VA_ARGS__); \
+    logger_log_print_(logger_msg); \
+    __asm("CPSIE i");
 #else
 #define LOGGER_LOG(...)
 #endif

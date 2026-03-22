@@ -52,18 +52,21 @@
 /********************** macros and definitions *******************************/
 #define EVENT_UNDEFINED	(255)
 #define MAX_EVENTS		(16)
+#define KEY_VALUE_INVALID 10
 
 /********************** internal data declaration ****************************/
 
 /********************** internal functions declaration ***********************/
-
+bool any_event_task_menu(void);
 /********************** internal data definition *****************************/
+//Estructura de cola para eventos que guarda su valor numerico
 struct
 {
 	uint32_t	head;
 	uint32_t	tail;
 	uint32_t	count;
 	task_menu_ev_t	queue[MAX_EVENTS];
+	uint32_t key_values[MAX_EVENTS];
 } queue_task_a;
 
 /********************** external data declaration ****************************/
@@ -77,25 +80,42 @@ void init_queue_event_task_menu(void)
 	queue_task_a.tail = 0;
 	queue_task_a.count = 0;
 
-	for (i = 0; i < MAX_EVENTS; i++)
+	for (i = 0; i < MAX_EVENTS; i++) {
 		queue_task_a.queue[i] = EVENT_UNDEFINED;
+		queue_task_a.key_values[i] = KEY_VALUE_INVALID;
+	}
 }
 
-void put_event_task_menu(task_menu_ev_t event)
+void put_event_task_menu(task_menu_ev_t event, uint32_t key_value)
 {
-	queue_task_a.count++;
+	queue_task_a.key_values[queue_task_a.head] = key_value;
 	queue_task_a.queue[queue_task_a.head++] = event;
 
 	if (MAX_EVENTS == queue_task_a.head)
 		queue_task_a.head = 0;
+
+	if (queue_task_a.count == MAX_EVENTS) {
+	    queue_task_a.tail++;
+
+	    if (queue_task_a.tail == MAX_EVENTS)
+	    	queue_task_a.tail = 0;
+	}
+	else
+		queue_task_a.count++;
 }
 
-task_menu_ev_t get_event_task_menu(void)
+task_menu_ev_t get_event_task_menu(uint32_t *key_value)
 {
-	task_menu_ev_t event;
+	/* Void queue early return */
+	if (!any_event_task_menu())
+		return EVENT_UNDEFINED;
 
+	task_menu_ev_t event;
 	queue_task_a.count--;
 	event = queue_task_a.queue[queue_task_a.tail];
+	//Retorna valor de tecla a puntero
+	*key_value = queue_task_a.key_values[queue_task_a.tail];
+	queue_task_a.key_values[queue_task_a.tail] = KEY_VALUE_INVALID;
 	queue_task_a.queue[queue_task_a.tail++] = EVENT_UNDEFINED;
 
 	if (MAX_EVENTS == queue_task_a.tail)
@@ -104,9 +124,10 @@ task_menu_ev_t get_event_task_menu(void)
 	return event;
 }
 
+//Verifica cola vacia
 bool any_event_task_menu(void)
 {
-  return (queue_task_a.head != queue_task_a.tail);
+  return (queue_task_a.count > 0);
 }
 
 /********************** end of file ******************************************/

@@ -148,12 +148,13 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI_DIV2;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL2;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -168,12 +169,12 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
-  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV2;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV6;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -216,7 +217,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_71CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -346,57 +347,49 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, D6_Pin|D5_Pin|D4_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, ROW2_Pin|ROW1_Pin|ROW4_Pin|ROW3_Pin
+                          |ACTUATOR_LIGHT_PANEL_Pin|DISPLAY_RS_Pin|ACTUATOR_PUMP_Pin|ACTUATOR_FAN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, D_EN_Pin|BOTONERA_FILA2_Pin|BOTONERA_FILA3_Pin|BOTONERA_FILA1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, DISPLAY_D5_Pin|DISPLAY_D6_Pin|DISPLAY_D7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, D7_Pin|D_RS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, DISPLAY_D4_Pin|DISPLAY_E_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(BOTONERA_FILA4_GPIO_Port, BOTONERA_FILA4_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pins : BOTONERA_COL1_Pin BOTONERA_COL2_Pin BOTONERA_COL4_Pin BOTONERA_COL3_Pin */
-  GPIO_InitStruct.Pin = BOTONERA_COL1_Pin|BOTONERA_COL2_Pin|BOTONERA_COL4_Pin|BOTONERA_COL3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  /*Configure GPIO pins : ROW2_Pin ROW1_Pin ROW4_Pin ROW3_Pin
+                           ACTUATOR_LIGHT_PANEL_Pin DISPLAY_RS_Pin ACTUATOR_PUMP_Pin ACTUATOR_FAN_Pin */
+  GPIO_InitStruct.Pin = ROW2_Pin|ROW1_Pin|ROW4_Pin|ROW3_Pin
+                          |ACTUATOR_LIGHT_PANEL_Pin|DISPLAY_RS_Pin|ACTUATOR_PUMP_Pin|ACTUATOR_FAN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : D6_Pin D5_Pin D4_Pin */
-  GPIO_InitStruct.Pin = D6_Pin|D5_Pin|D4_Pin;
+  /*Configure GPIO pins : DISPLAY_D5_Pin DISPLAY_D6_Pin DISPLAY_D7_Pin */
+  GPIO_InitStruct.Pin = DISPLAY_D5_Pin|DISPLAY_D6_Pin|DISPLAY_D7_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : D_EN_Pin */
-  GPIO_InitStruct.Pin = D_EN_Pin;
+  /*Configure GPIO pins : DISPLAY_D4_Pin DISPLAY_E_Pin */
+  GPIO_InitStruct.Pin = DISPLAY_D4_Pin|DISPLAY_E_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(D_EN_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : D7_Pin D_RS_Pin */
-  GPIO_InitStruct.Pin = D7_Pin|D_RS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BOTONERA_FILA2_Pin BOTONERA_FILA3_Pin BOTONERA_FILA1_Pin */
-  GPIO_InitStruct.Pin = BOTONERA_FILA2_Pin|BOTONERA_FILA3_Pin|BOTONERA_FILA1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  /*Configure GPIO pins : COL2_Pin COL3_Pin COL1_Pin */
+  GPIO_InitStruct.Pin = COL2_Pin|COL3_Pin|COL1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : BOTONERA_FILA4_Pin */
-  GPIO_InitStruct.Pin = BOTONERA_FILA4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  /*Configure GPIO pin : COL4_Pin */
+  GPIO_InitStruct.Pin = COL4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(BOTONERA_FILA4_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(COL4_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
   /* USER CODE END MX_GPIO_Init_2 */

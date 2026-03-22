@@ -46,12 +46,16 @@
 /* Application & Tasks includes */
 #include "app.h"
 #include "board.h"
+#include "ext_memory.h"
+#include "task_actuator.h"
 #include "task_clock.h"
+#include "task_controller.h"
+#include "task_display.h"
 #include "task_i2c.h"
+#include "task_keypad.h"
 #include "task_menu.h"
 #include "task_print.h"
 #include "task_sensor.h"
-#include "task_keypad.h"
 
 /********************** macros and definitions *******************************/
 #define G_APP_CNT_INI		0ul
@@ -77,10 +81,14 @@ typedef struct {
 shared_data_type shared_data;
 
 const task_cfg_t task_cfg_list[]	= {
+		{ .task_init = task_actuator_init, .task_update = task_actuator_update, .parameters = &shared_data },
 		{ .task_init = task_clock_init, .task_update = task_clock_update, .parameters = &shared_data },
-		{ .task_init = task_sensor_init, .task_update = task_sensor_update, .parameters = &shared_data },
+		{ .task_init = task_controller_init, .task_update = task_controller_update, .parameters = &shared_data },
+		{ .task_init = task_display_init, .task_update = task_display_update, .parameters = &shared_data },
 		{ .task_init = task_i2c_init, .task_update = task_i2c_update, .parameters = &shared_data },
-//		{ .task_init = task_print_init, .task_update = task_print_update, .parameters = &shared_data }
+		{ .task_init = task_keypad_init, .task_update = task_keypad_update, .parameters = &shared_data },
+		{ .task_init = task_menu_init, .task_update = task_menu_update, .parameters = &shared_data },
+		{ .task_init = task_sensor_init, .task_update = task_sensor_update, .parameters = &shared_data }
 };
 
 #define TASK_QTY	(sizeof(task_cfg_list)/sizeof(task_cfg_t))
@@ -114,6 +122,8 @@ void app_init(void)
 	/* Init & Print out: Application execution counter */
 	g_app_cnt = G_APP_CNT_INI;
 	LOGGER_INFO(" %s = %lu", GET_NAME(g_app_cnt), g_app_cnt);
+
+	ext_memory_init();
 
 	/* Init Cycle Counter */
 	cycle_counter_init();
@@ -164,19 +174,16 @@ void app_update(void)
 
 		/* Go through the task arrays */
 		for (index = 0; TASK_QTY > index; index++) {
-			uint32_t prev_time = cycle_counter_get_time_us(); // tiempo previo a la tarea
+			uint32_t prev_cycles = DWT->CYCCNT; // tiempo previo a la tarea
 
     		/* Run task_x_update */
 			(*task_cfg_list[index].task_update)(task_cfg_list[index].parameters);
 
-			uint32_t curr_time = cycle_counter_get_time_us(); // tiempo después de la tarea
+			uint32_t curr_cycles = DWT->CYCCNT; // tiempo después de la tarea
 
-			// tiempo de ejecución de la tarea
-			if (curr_time < prev_time)  { // en caso de overflow
-				cycle_counter_time_us =  UINT32_MAX - prev_time + curr_time + 1;
-			} else {
-				cycle_counter_time_us = curr_time - prev_time;
-			}
+			uint32_t elapsed_cycles = curr_cycles - prev_cycles;
+
+			cycle_counter_time_us = elapsed_cycles  / (SystemCoreClock / 1000000);
 
 			/* Update variables */
 			g_app_runtime_us += cycle_counter_time_us;
@@ -206,11 +213,15 @@ void HAL_SYSTICK_Callback(void)
 {
 	/* Update Tick Counter */
 	g_app_tick_cnt++;
+	g_task_actuator_tick_cnt++;
 	g_task_clock_tick_cnt++;
-	g_task_sensor_tick_cnt++;
-	g_task_print_tick_cnt++;
-	g_task_menu_tick_cnt++;
+	g_task_controller_tick_cnt++;
+	g_task_display_tick_cnt++;
 	g_task_i2c_tick_cnt++;
+	g_task_keypad_tick_cnt++;
+	g_task_menu_tick_cnt++;
+	g_task_print_tick_cnt++;
+	g_task_sensor_tick_cnt++;
 }
 
 /********************** end of file ******************************************/
