@@ -156,7 +156,8 @@ void task_menu_init(void *parameters)
 	displayCharPositionWrite(0, 1);
 	displayStringWrite("Invernadero");
 
-	HAL_Delay(2000);
+	display_delay_us(DISPLAY_DEL_37US);
+
 
 	scroll_reset(p_task_menu_dta, 2);
 	display_initial(p_task_menu_dta->scroll_idx);
@@ -164,8 +165,7 @@ void task_menu_init(void *parameters)
 	g_task_menu_tick_cnt = G_TASK_MEN_TICK_CNT_INI;
 }
 
-void task_menu_update(void *parameters)
-{
+void task_menu_update(void *parameters) {
 	task_menu_dta_t *p_task_menu_dta;
 	//num_buffer_t *p_num_buf;
 	bool b_time_update_required = false;

@@ -85,7 +85,7 @@ const task_cfg_t task_cfg_list[]	= {
 		{ .task_init = task_clock_init, .task_update = task_clock_update, .parameters = &shared_data },
 		{ .task_init = task_controller_init, .task_update = task_controller_update, .parameters = &shared_data },
 		{ .task_init = task_display_init, .task_update = task_display_update, .parameters = &shared_data },
-//		{ .task_init = task_i2c_init, .task_update = task_i2c_update, .parameters = &shared_data },
+		{ .task_init = task_i2c_init, .task_update = task_i2c_update, .parameters = &shared_data },
 		{ .task_init = task_keypad_init, .task_update = task_keypad_update, .parameters = &shared_data },
 		{ .task_init = task_menu_init, .task_update = task_menu_update, .parameters = &shared_data },
 		{ .task_init = task_sensor_init, .task_update = task_sensor_update, .parameters = &shared_data }
@@ -123,8 +123,6 @@ void app_init(void)
 	g_app_cnt = G_APP_CNT_INI;
 	LOGGER_INFO(" %s = %lu", GET_NAME(g_app_cnt), g_app_cnt);
 
-	ext_memory_init();
-
 	/* Init Cycle Counter */
 	cycle_counter_init();
 
@@ -137,6 +135,8 @@ void app_init(void)
 		/* Init variables */
 		task_dta_list[index].WCET = TASK_X_WCET_INI;
 	}
+
+	ext_memory_init();
 
 	/* Protect shared resource */
 	__asm("CPSID i");	/* disable interrupts */
