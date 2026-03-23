@@ -48,17 +48,29 @@ extern "C" {
 #include "keypad.h"
 /* ===================== FSM PRIVADA ======================= */
 typedef enum {
-    ST_UP,
-    ST_FALLING,
-    ST_DOWN,
-    ST_RISING
-} keypad_state_t;
+    ST_KEYPAD_FINDING,
+    ST_KEYPAD_DEBOUNCING,
+    ST_KEYPAD_PRESSED
+} task_keypad_st_t;
+
+typedef enum {
+	EV_KEYPAD_IDLE,
+	EV_KEYPAD_PRESSED,
+	EV_KEYPAD_RELEASED
+} task_keypad_ev_t;
 
 typedef struct {
+	uint32_t max_debounce;
+	uint8_t rows, cols;
+} task_keypad_cfg_t;
+
+typedef struct {
+    task_keypad_st_t state;
+    task_keypad_ev_t event;
+    uint8_t row, col;
     keypad_key_t key;
-    keypad_state_t state;
     uint32_t tick;
-} keypad_ctrl_t;
+} task_keypad_dta_t;
 /* ========================================================= */
 
 /********************** external data declaration ****************************/

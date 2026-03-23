@@ -41,7 +41,7 @@ float temp_conversion(float res);
 float humidity_conversion(float res);
 
 const task_sensor_cfg_t task_sensor_cfg_list[] = {
-	{ .name = SENSOR_LIGHT,		.tick_max = DEL_SEN_TICK_MAX, .r_div = 1.2e3, .resistor_conv_fn = light_conversion },
+	{ .name = SENSOR_LIGHT,		.tick_max = DEL_SEN_TICK_MAX, .r_div = 4.7e3, .resistor_conv_fn = light_conversion },
 	{ .name = SENSOR_TEMP,		.tick_max = DEL_SEN_TICK_MAX, .r_div = 10e3, .resistor_conv_fn = temp_conversion },
 	{ .name = SENSOR_HUMIDITY,	.tick_max = DEL_SEN_TICK_MAX, .r_div = 27e3, .resistor_conv_fn = humidity_conversion }
 };
@@ -75,9 +75,7 @@ const char *p_task_sensor_ 		= "Non-Blocking & Update By Time Code";
 
 
 /********************** external functions definition ************************/
-void task_sensor_init(void *parameters)
-{
-	uint32_t index;
+void task_sensor_init(void *parameters) {
 	task_sensor_dta_t *p_task_sensor_dta;
 	task_sensor_st_t state;
 	task_sensor_ev_t event;
@@ -91,7 +89,7 @@ void task_sensor_init(void *parameters)
 	g_task_sensor_cnt = G_TASK_SEN_CNT_INIT;
 	LOGGER_INFO("   %s = %lu", GET_NAME(g_task_sensor_cnt), g_task_sensor_cnt);
 
-	for (index = 0; SENSOR_DTA_QTY > index; index++)
+	for (uint32_t index = 0; index < SENSOR_DTA_QTY; index++)
 	{
 		/* Update Task Sensor Data Pointer */
 		p_task_sensor_dta = &task_sensor_dta_list[index];

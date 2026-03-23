@@ -324,8 +324,7 @@ static void displayDataBusWrite( uint8_t dataBus )
     display_delay_us(DISPLAY_DEL_37US);
 }
 
-void display_delay_us(uint32_t delay_us)
-{
+void display_delay_us(uint32_t delay_us) {
 	uint32_t cycles_per_us = SystemCoreClock / 1000000;
 
 	uint32_t delay_cycles = cycles_per_us * delay_us;

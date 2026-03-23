@@ -21,16 +21,19 @@ static const keypad_key_t key_map[4][4] = {
 
 static uint8_t current_row = 0;
 
-/*
-void display_delay_us(uint32_t delay_us)
-{
-	uint32_t now = cycle_counter_time_us();
-	uint32_t then = delay_us + now;
+keypad_key_t keypad_read_key(uint8_t row, uint8_t col) {
+	keypad_key_t key;
 
-	while (now < then)
-		now = cycle_counter_time_us();
+	HAL_GPIO_WritePin(ROW_PORT[row], ROW_PIN[row], GPIO_PIN_SET);
+	if (HAL_GPIO_ReadPin(COL_PORT[col], COL_PIN[col]) == GPIO_PIN_SET) {
+		key = key_map[row][col];
+	} else
+		key = KEY_NONE;
+
+	HAL_GPIO_WritePin(ROW_PORT[row], ROW_PIN[row], GPIO_PIN_RESET);
+
+	return key;
 }
-*/
 
 keypad_key_t keypad_scan(void)
 {

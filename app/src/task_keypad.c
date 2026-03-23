@@ -7,8 +7,6 @@
 
 /* ===================== CONFIGURACION ===================== */
 #define TASK_KEYPAD_DEBOUNCE_TICKS   10
-#define TASK_KEYPAD_KEYS_QTY         16
-// #define KEYPAD_SCAN_SAMPLES  10  elimino esto para no hacer un x10 en lecturas ya que tengo filtro con la FSM
 #define KEYPAD_SCAN_SAMPLES  10
 #define MENU_EV_KEY_PRESSED 1
 #define MENU_EV_KEY_RELEASED 0
@@ -23,41 +21,21 @@ uint32_t g_task_keypad_cnt = 0;
 volatile uint32_t g_task_keypad_tick_cnt = 0;
 /* ========================================================= */
 
-/* ===================== FSM PRIVADA ======================= */
-
-// Utilizo una sola FSM para toda la botonera, con un array de control para cada tecla, asi no tengo que hacer 16 FSM independientes
-/*
-typedef struct {
-    keypad_key_t key;
-    keypad_state_t state;
-    uint32_t tick;
-} keypad_ctrl_t;
-*/
-
-typedef struct {
-    keypad_key_t key;
-    keypad_state_t state;
-    uint32_t tick;
-} keypad_fsm_t;
-
-static keypad_fsm_t keypad;
-/* ========================================================= */
-
-/* ===================== MAPEO DE TECLAS =================== */
-static const keypad_key_t keypad_key_map[TASK_KEYPAD_KEYS_QTY] = {
-    KEY_1, KEY_2, KEY_3, KEY_A,
-    KEY_4, KEY_5, KEY_6, KEY_B,
-    KEY_7, KEY_8, KEY_9, KEY_C,
-    KEY_STAR, KEY_0, KEY_HASH, KEY_D
-};
-/* ========================================================= */
-
 /* ===================== DATOS PRIVADOS ==================== */
 const char *p_task_keypad 	= "Task Keypad (Keypad Statechart)";
 const char *p_task_keypad_ 	= "Non-Blocking & Update By Time Code";
 
-//static keypad_ctrl_t keypad_ctrl[TASK_KEYPAD_KEYS_QTY];
-static keypad_fsm_t keypad;
+static task_keypad_cfg_t task_keypad_cfg_list[] = {
+		{ .max_debounce = 4, .rows = 4, .cols = 4 }
+};
+
+#define KEYPAD_CFG_QTY (sizeof(task_keypad_cfg_list) / sizeof(task_keypad_cfg_t))
+
+static task_keypad_dta_t  task_keypad_dta_list[] = {
+		{ .state = ST_KEYPAD_FINDING, .event = EV_KEYPAD_IDLE, .row = 0, .col = 0, .key = KEY_NONE, .tick = 0 }
+};
+
+#define KEYPAD_DTA_QTY (sizeof(task_keypad_dta_list) / sizeof(task_keypad_dta_t))
 
 /* ========================================================= */
 
@@ -69,8 +47,9 @@ void task_keypad_statechart(shared_data_type * parameters);
 void task_keypad_init(void *parameters) {
     (void) parameters;
 
-	//uint32_t index;
-	//keypad_state_t state;
+	task_keypad_dta_t * p_task_keypad_dta;
+	task_keypad_st_t state;
+	task_keypad_ev_t event;
 
 	/* Print out: Task Initialized */
 	LOGGER_INFO(" ");
@@ -81,13 +60,12 @@ void task_keypad_init(void *parameters) {
 	g_task_keypad_cnt = G_TASK_KEYPAD_CNT_INIT;
 	LOGGER_INFO("   %s = %lu", GET_NAME(g_task_keypad_cnt), g_task_keypad_cnt);
 
-	/*
-	for (index = 0; CLOCK_DTA_QTY > index; index++)
-	{
-		* Update Task CLOCK Data Pointer *
-		p_task_clock_dta = &task_clock_dta_list[index];
-		state = p_task_clock_dta->state;
-		event = p_task_clock_dta->event;
+
+	for (uint32_t index = 0; index < KEYPAD_DTA_QTY; index++) 	{
+		/* Update Task KEYPAD Data Pointer */
+		p_task_keypad_dta = &task_keypad_dta_list[index];
+		state = p_task_keypad_dta->state;
+		event = p_task_keypad_dta->event;
 
 		LOGGER_INFO(" ");
 		LOGGER_INFO("   %s = %lu   %s = %lu   %s = %lu",
@@ -95,12 +73,6 @@ void task_keypad_init(void *parameters) {
 					GET_NAME(state), (uint32_t)state,
 					GET_NAME(event), (uint32_t)event);
 	}
-	*/
-
-    keypad.key = KEY_NONE;
-    keypad.state = ST_UP;
-    keypad.tick = 0;
-
 }
 
 void task_keypad_update(void *parameters) {
@@ -138,104 +110,70 @@ void task_keypad_update(void *parameters) {
 }
 
 void task_keypad_statechart(shared_data_type * parameters) {
-    /* Botonera matricial clásica unibotón */
-    keypad_key_t key_read = keypad_scan();
+	const task_keypad_cfg_t * p_task_keypad_cfg;
+	task_keypad_dta_t * p_task_keypad_dta;
 
-    g_task_keypad_cnt++;
+	for (uint32_t index = 0; KEYPAD_DTA_QTY > index; index++) {
+		/* Update Task Sensor Configuration & Data Pointer */
+		p_task_keypad_cfg = &task_keypad_cfg_list[index];
+		p_task_keypad_dta = &task_keypad_dta_list[index];
 
-    switch (keypad.state)
-    {
-    case ST_UP:
-        if (key_read != KEY_NONE) {
-            keypad.state = ST_FALLING;
-            keypad.tick = 0;
-            keypad.key = key_read;
-        }
-        break;
+		/* Leo el botón actual de la botonera */
+		keypad_key_t key_read = keypad_read_key(p_task_keypad_dta->row, p_task_keypad_dta->col);
 
-    case ST_FALLING:
-        if (key_read == keypad.key) {
-            if (++keypad.tick >= TASK_KEYPAD_DEBOUNCE_TICKS) {
-                keypad.state = ST_DOWN;
-                task_menu_push_event(MENU_EV_KEY_PRESSED, keypad.key);
-            }
-        } else {
-            keypad.state = ST_UP;
-        }
-        break;
+		p_task_keypad_dta->event = key_read ? EV_KEYPAD_PRESSED : EV_KEYPAD_RELEASED;
 
-    case ST_DOWN:
-        if (key_read != keypad.key) {
-            keypad.state = ST_RISING;
-            keypad.tick = 0;
-        }
-        break;
+		task_keypad_st_t state = p_task_keypad_dta->state;
+		switch (state) {
+		case ST_KEYPAD_FINDING:
+			if (p_task_keypad_dta->event == EV_KEYPAD_PRESSED) {
+				p_task_keypad_dta->state = ST_KEYPAD_DEBOUNCING;
+				p_task_keypad_dta->key = key_read;
+				p_task_keypad_dta->tick = 1;
+			} else { /* Itero la matriz */
+				p_task_keypad_dta->row = (p_task_keypad_dta->row + 1) % p_task_keypad_cfg->rows;
+				if (p_task_keypad_dta->row == 0)
+					p_task_keypad_dta->col = (p_task_keypad_dta->col + 1) % p_task_keypad_cfg->cols;
+			}
 
-    case ST_RISING:
-        if (key_read != keypad.key) {
-            if (++keypad.tick >= TASK_KEYPAD_DEBOUNCE_TICKS) {
-                keypad.state = ST_UP;
-                task_menu_push_event(MENU_EV_KEY_RELEASED, keypad.key);
-            }
-        } else {
-            keypad.state = ST_DOWN;
-        }
-        break;
+			p_task_keypad_dta->event = EV_KEYPAD_IDLE;
+			break;
+		case ST_KEYPAD_DEBOUNCING:
+			if (p_task_keypad_dta->event == EV_KEYPAD_RELEASED) {
+				p_task_keypad_dta->state = ST_KEYPAD_FINDING;
+				p_task_keypad_dta->event = EV_KEYPAD_IDLE;
+				p_task_keypad_dta->tick = 0;
+				break;
+			}
 
-    default: // Por si por algun motivo quedo en un estado invalido, lo reseteo
-        keypad.state = ST_UP;
-        keypad.tick = 0;
-        keypad.key = KEY_NONE;
-        break;
-    }
-    
-    /*
-    for (uint8_t i = 0; i < TASK_KEYPAD_KEYS_QTY; i++)
-    {
-        keypad_ctrl_t *s = &keypad_ctrl[i];
-        uint8_t pressed = (key_read == s->key);
+			(p_task_keypad_dta->tick)++;
 
-        switch (s->state)
-        {
-            case ST_UP:
-                if (pressed) {
-                    s->state = ST_FALLING;
-                    s->tick = 0;
-                }
-                break;
+			if (p_task_keypad_dta->tick == p_task_keypad_cfg->max_debounce) {
+				p_task_keypad_dta->state = ST_KEYPAD_PRESSED;
+				p_task_keypad_dta->event = EV_KEYPAD_IDLE;
+				p_task_keypad_dta->tick = 0;
 
-            case ST_FALLING:
-                if (pressed) {
-                    if (++s->tick >= TASK_KEYPAD_DEBOUNCE_TICKS) {
-                        s->state = ST_DOWN;
-                        task_menu_push_event(MENU_EV_KEY_PRESSED, s->key);
-                    }
-                } else {
-                    s->state = ST_UP;
-                    s->tick = 0;
-                }
-                break;
+                task_menu_push_event(MENU_EV_KEY_PRESSED, p_task_keypad_dta->key);
+			}
 
-            case ST_DOWN:
-                if (!pressed) {
-                    s->state = ST_RISING;
-                    s->tick = 0;
-                }
-                break;
+			break;
 
-            case ST_RISING:
-                if (!pressed) {
-                    if (++s->tick >= TASK_KEYPAD_DEBOUNCE_TICKS) {
-                        s->state = ST_UP;
-                        task_menu_push_event(MENU_EV_KEY_RELEASED, s->key);
-                    }
-                } else {
-                    s->state = ST_DOWN;
-                    s->tick = 0;
-                }
-                break;
-        }
-    }
-    */
+		case ST_KEYPAD_PRESSED:
+			if (p_task_keypad_dta->event == EV_KEYPAD_RELEASED) {
+				p_task_keypad_dta->state = ST_KEYPAD_FINDING;
+				p_task_keypad_dta->event = EV_KEYPAD_IDLE;
+
+                task_menu_push_event(MENU_EV_KEY_RELEASED, p_task_keypad_dta->key);
+			}
+
+			break;
+
+		default:
+			p_task_keypad_dta->state = ST_KEYPAD_FINDING;
+			p_task_keypad_dta->event = EV_KEYPAD_IDLE;
+
+			break;
+		}
+	}
 }
 
