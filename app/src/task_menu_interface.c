@@ -60,8 +60,7 @@
 bool any_event_task_menu(void);
 /********************** internal data definition *****************************/
 //Estructura de cola para eventos que guarda su valor numerico
-struct
-{
+struct {
 	uint32_t	head;
 	uint32_t	tail;
 	uint32_t	count;

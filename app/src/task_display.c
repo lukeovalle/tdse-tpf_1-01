@@ -128,8 +128,6 @@ void task_display_request_write(char * row_1, char * row_2) {
 	if (!row_1 && !row_2)
 		return;
 
-	__asm("CPSID i");
-
 	task_display_dta_t * p_task_display_dta = &task_display_dta_list[0];
 	if (row_1) {
 		snprintf(display_buffer[0], DISPLAY_CHAR_WIDTH + 1, "%-*s", DISPLAY_CHAR_WIDTH, row_1);
@@ -146,8 +144,6 @@ void task_display_request_write(char * row_1, char * row_2) {
 	p_task_display_dta->event = EV_DISPLAY_WRITE;
 	p_task_display_dta->row = 0;
 	p_task_display_dta->col = 0;
-
-	__asm("CPSIE i");
 }
 
 /********************** internal functions definition ************************/
@@ -211,6 +207,7 @@ void task_display_statechart(shared_data_type * parameters) {
 				if (*p_col == DISPLAY_CHAR_WIDTH) {
 					*p_col = 0;
 					(*p_row)++;
+					displayCharPositionWrite(0, 1);
 
 				    if (*p_row >= DISPLAY_ROWS) {
 				        p_task_display_dta->state = ST_DISPLAY_IDLE;

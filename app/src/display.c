@@ -32,7 +32,9 @@
 #define DISPLAY_IR_CLEAR_DISPLAY   0b00000001
 #define DISPLAY_IR_ENTRY_MODE_SET  0b00000100
 #define DISPLAY_IR_DISPLAY_CONTROL 0b00001000
+#define DISPLAY_IR_DISPLAY_SHIFT   0b00010000
 #define DISPLAY_IR_FUNCTION_SET    0b00100000
+#define DISPLAY_IR_SET_CGRAM_ADDR  0b01000000
 #define DISPLAY_IR_SET_DDRAM_ADDR  0b10000000
 
 #define DISPLAY_IR_ENTRY_MODE_SET_INCREMENT 0b00000010
@@ -54,10 +56,10 @@
 #define DISPLAY_IR_FUNCTION_SET_5x10DOTS 0b00000100
 #define DISPLAY_IR_FUNCTION_SET_5x8DOTS  0b00000000
 
-#define DISPLAY_20x4_LINE1_FIRST_CHARACTER_ADDRESS 0
-#define DISPLAY_20x4_LINE2_FIRST_CHARACTER_ADDRESS 64
-#define DISPLAY_20x4_LINE3_FIRST_CHARACTER_ADDRESS 20
-#define DISPLAY_20x4_LINE4_FIRST_CHARACTER_ADDRESS 84
+#define DISPLAY_20x4_LINE1_FIRST_CHARACTER_ADDRESS 0x00
+#define DISPLAY_20x4_LINE2_FIRST_CHARACTER_ADDRESS 0x40
+#define DISPLAY_20x4_LINE3_FIRST_CHARACTER_ADDRESS 0x14
+#define DISPLAY_20x4_LINE4_FIRST_CHARACTER_ADDRESS 0x54
 
 #define DISPLAY_RS_INSTRUCTION 0
 #define DISPLAY_RS_DATA        1
@@ -115,12 +117,12 @@ void displayInit( displayConnection_t connection )
 
     initial8BitCommunicationIsCompleted = false;
 
-    HAL_Delay(50);
+    HAL_Delay(1);
 
     displayCodeWrite( DISPLAY_RS_INSTRUCTION,
                       DISPLAY_IR_FUNCTION_SET |
                       DISPLAY_IR_FUNCTION_SET_8BITS );
-    HAL_Delay(5);
+    HAL_Delay(1);
 
     displayCodeWrite( DISPLAY_RS_INSTRUCTION,
                       DISPLAY_IR_FUNCTION_SET |
@@ -234,7 +236,27 @@ void displayCharWrite(const char c) {
 
 void displayClearScreen(void) {
 	displayCodeWrite(DISPLAY_RS_INSTRUCTION, DISPLAY_IR_CLEAR_DISPLAY);
-    HAL_Delay(5);
+    display_delay_us(DISPLAY_DEL_37US);
+}
+
+enum rl_shift {
+	RL_SHIFT_LEFT	= 0b00000000,
+	RL_SHIFT_RIGHT	= 0b00000100
+};
+
+enum shift_type {
+	CURSOR_MOVE		= 0b00000000,
+	DISPLAY_SHIFT	= 0b00001000
+};
+
+void displayShift(void) {
+	uint8_t dataBus = DISPLAY_IR_DISPLAY_SHIFT | CURSOR_MOVE | RL_SHIFT_RIGHT;
+	displayCodeWrite(DISPLAY_RS_INSTRUCTION, dataBus);
+}
+
+void moveToSecondLine(void) {
+	uint8_t dataBus = DISPLAY_IR_SET_CGRAM_ADDR | DISPLAY_20x4_LINE2_FIRST_CHARACTER_ADDRESS;
+	displayCodeWrite(DISPLAY_RS_INSTRUCTION, dataBus);
 }
 
 //=====[Implementations of private functions]==================================
@@ -316,11 +338,9 @@ static void displayDataBusWrite( uint8_t dataBus )
 
     }
     displayPinWrite( DISPLAY_PIN_EN, ON );
-    //HAL_Delay(1);
     display_delay_us(DISPLAY_DEL_01US);
 
     displayPinWrite( DISPLAY_PIN_EN, OFF );
-    //HAL_Delay(1);
     display_delay_us(DISPLAY_DEL_37US);
 }
 

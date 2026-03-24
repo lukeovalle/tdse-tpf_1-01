@@ -136,7 +136,7 @@ void display_cfg_hum(uint32_t idx) {
 void display_cfg_lig(uint32_t idx) {
 	switch (idx) {
 	case 0:
-		task_display_request_write("Luminosidad minima", NULL);
+		task_display_request_write("Luminosidad min", NULL);
 		break;
 	case 1:
 		task_display_request_write("Horas de luz", NULL);

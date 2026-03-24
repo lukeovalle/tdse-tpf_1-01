@@ -36,6 +36,10 @@ void displayCharWrite(const char c);
 
 void displayClearScreen(void);
 
+void displayShift(void);
+
+void moveToSecondLine(void);
+
 void display_delay_us(uint32_t delay_us);
 
 //=====[#include guards - end]=================================================

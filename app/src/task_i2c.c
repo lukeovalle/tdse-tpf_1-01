@@ -62,8 +62,7 @@ const char *p_task_i2c_ 	= "Non-Blocking & Update By Time Code";
 
 
 /********************** external functions definition ************************/
-void task_i2c_init(void *parameters)
-{
+void task_i2c_init(void *parameters) {
 	uint32_t index;
 	task_i2c_dta_t *p_task_i2c_dta;
 	task_i2c_st_t state;
@@ -98,7 +97,6 @@ void task_i2c_init(void *parameters)
 	} else {
 		LOGGER_INFO("   Error en I2C");
 	}
-
 }
 
 void task_i2c_update(void *parameters) {

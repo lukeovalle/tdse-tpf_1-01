@@ -104,8 +104,7 @@ volatile uint32_t g_task_menu_tick_cnt;
 extern num_buffer_t num_buff;
 
 /********************** external functions definition ************************/
-void task_menu_init(void *parameters)
-{
+void task_menu_init(void *parameters) {
 	//char menu_str[DISPLAY_CHAR_WIDTH + 1];
 	task_menu_dta_t *p_task_menu_dta;
 	//num_buffer_t *p_num_buf;
@@ -144,20 +143,10 @@ void task_menu_init(void *parameters)
 				 GET_NAME(event), (uint32_t)event,
 				 GET_NAME(b_event), (b_event ? "true" : "false"));
 
-	cycle_counter_init();
-	cycle_counter_reset();
-
 	/* Init & Print out: LCD Display */
 	displayInit( DISPLAY_CONNECTION_GPIO_4BITS );
 
-    displayCharPositionWrite(0, 0);
-	displayStringWrite("TPF Integrador");
-
-	displayCharPositionWrite(0, 1);
-	displayStringWrite("Invernadero");
-
 	display_delay_us(DISPLAY_DEL_37US);
-
 
 	scroll_reset(p_task_menu_dta, 2);
 	display_initial(p_task_menu_dta->scroll_idx);
