@@ -41,9 +41,12 @@ float temp_conversion(float res);
 float humidity_conversion(float res);
 
 const task_sensor_cfg_t task_sensor_cfg_list[] = {
-	{ .name = SENSOR_LIGHT,		.tick_max = DEL_SEN_TICK_MAX, .r_div = 4.7e3, .resistor_conv_fn = light_conversion },
-	{ .name = SENSOR_TEMP,		.tick_max = DEL_SEN_TICK_MAX, .r_div = 10e3, .resistor_conv_fn = temp_conversion },
-	{ .name = SENSOR_HUMIDITY,	.tick_max = DEL_SEN_TICK_MAX, .r_div = 27e3, .resistor_conv_fn = humidity_conversion }
+	{ .name = SENSOR_LIGHT, .tick_max = DEL_SEN_TICK_MAX,
+			.r_div = 4.7e3, .r_max = 560e3, .resistor_conv_fn = light_conversion },
+	{ .name = SENSOR_TEMP, .tick_max = DEL_SEN_TICK_MAX,
+			.r_div = 10e3, .r_max = 560e3, .resistor_conv_fn = temp_conversion },
+	{ .name = SENSOR_HUMIDITY, .tick_max = DEL_SEN_TICK_MAX,
+			.r_div = 27e3, .r_max = 560e3, .resistor_conv_fn = humidity_conversion }
 };
 
 #define SENSOR_CFG_QTY	(sizeof(task_sensor_cfg_list)/sizeof(task_sensor_cfg_t))
@@ -240,7 +243,7 @@ float take_sensor_value(const task_sensor_cfg_t * cfg) {
 
 	uint16_t measure = (uint16_t) ADC_vals[cfg->name];
 
-	return measure != 0 ? cfg->r_div * ((float)V_OUT_IN_BYTES / (float)measure - 1.0) : 111e3;
+	return measure != 0 ? cfg->r_div * ((float)V_OUT_IN_BYTES / (float)measure - 1.0) : cfg->r_max;
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {

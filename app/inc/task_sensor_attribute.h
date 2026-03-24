@@ -55,6 +55,7 @@ typedef struct {
 	sensor_name_t		name;
 	uint32_t			tick_max;
 	float				r_div; // Resistencia del divisor resistivo del sensor
+	float				r_max; // Resistencia en paralelo con el sensor
 	resistor_conv_fn_t	resistor_conv_fn; // Función de conversión de resistencia a valores representativos
 } task_sensor_cfg_t;
 
