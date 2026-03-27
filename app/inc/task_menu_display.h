@@ -25,3 +25,4 @@ void display_read_parameters(uint32_t idx);
 void display_read_con(mem_type_cfg_t mem);
 void display_request_log(mem_log_t * log, uint32_t idx);
 void display_read_hist(mem_log_t * curr_log);
+void display_reading_data(void);

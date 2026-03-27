@@ -700,9 +700,7 @@ void task_menu_statechart(void)
 		display_request_log(&current_log, p_task_menu_dta->scroll_idx);
 		p_task_menu_dta->state = ST_MENU_READ_HIST_WAIT;
 
-		displayClearScreen();
-		displayCharPositionWrite(0, 0);
-		displayStringWrite("Leyendo datos...");
+		display_reading_data();
 
 		break;
 

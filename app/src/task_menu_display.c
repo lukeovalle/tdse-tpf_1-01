@@ -37,6 +37,7 @@ void display_num_OK(num_buffer_t *v_num_buf) {
     num_buffer_to_str(v_num_buf, pushed_num);
     snprintf(num_str, sizeof(num_str), "%s   OK", pushed_num);
 
+    displayClearScreen();
     task_display_request_write(NULL, num_str);
 }
 
@@ -75,11 +76,13 @@ void display_config(uint32_t idx) {
 		break;
 	}
 
+	displayClearScreen();
 	task_display_request_write("Configuracion", aux);
 }
 
 //Display del estado config_time modificable por scroll
 void display_cfg_time(uint32_t idx) {
+	displayClearScreen();
 	switch (idx) {
 	case 0:
 		task_display_request_write("Fijar anio", NULL);
@@ -104,6 +107,7 @@ void display_cfg_time(uint32_t idx) {
 
 //Display del estado config_temp modificable por scroll
 void display_cfg_temp(uint32_t idx) {
+	displayClearScreen();
 	switch (idx) {
 	case 0:
 		task_display_request_write("Diurna minima", NULL);
@@ -134,6 +138,7 @@ void display_cfg_hum(uint32_t idx) {
 
 //Display del estado config_lig modificable por scroll
 void display_cfg_lig(uint32_t idx) {
+	displayClearScreen();
 	switch (idx) {
 	case 0:
 		task_display_request_write("Luminosidad min", NULL);
@@ -148,6 +153,7 @@ void display_cfg_confirm_delete(uint32_t idx) {
 	char line2[DISPLAY_CHAR_WIDTH + 1];
 	snprintf(line2, sizeof(line2), "%cNo %cSi", idx == 0 ? '>' : ' ', idx == 1 ? '>' : ' ');
 
+	displayClearScreen();
 	task_display_request_write("Eliminar logs?", line2);
 }
 
@@ -173,6 +179,7 @@ void display_read(uint32_t idx) {
 		break;
 	}
 
+	displayClearScreen();
 	task_display_request_write("Lectura de datos", line2);
 
 }
@@ -193,6 +200,7 @@ void display_read_time() {
 
 
 void display_read_parameters(uint32_t idx) {
+	displayClearScreen();
 	if (idx==0)
 		task_display_request_write("Lectura de", "Configuraciones");
 	else
@@ -200,7 +208,6 @@ void display_read_parameters(uint32_t idx) {
 }
 
 void display_read_con(mem_type_cfg_t mem) {
-
     char line1[DISPLAY_CHAR_WIDTH + 1];
     char line2[DISPLAY_CHAR_WIDTH + 1];
 	const mem_cfg_t * conf = controller_get_config();
@@ -255,8 +262,8 @@ void display_read_con(mem_type_cfg_t mem) {
 		break;
 	}
 
+	displayClearScreen();
 	task_display_request_write(line1, line2);
-
 }
 
 void display_request_log(mem_log_t * log, uint32_t idx) {
@@ -286,4 +293,10 @@ void display_read_hist(mem_log_t * curr_log) {
 	);
 
 	task_display_request_write(line1, line2);
+}
+
+void display_reading_data(void) {
+	displayClearScreen();
+
+	task_display_request_write("Leyendo...", NULL);
 }
