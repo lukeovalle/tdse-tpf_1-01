@@ -71,7 +71,6 @@
 #define SCROLL_UP   0
 #define SCROLL_DOWN 1
 #define SCROLL_VOID 0
-#define NUM_BUFFER_SIZE 4
 
 /********************** internal data declaration ****************************/
 task_menu_dta_t task_menu_dta =

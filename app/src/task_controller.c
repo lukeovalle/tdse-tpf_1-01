@@ -37,7 +37,9 @@
 #define PUMP_PULSES_MAX			5
 // en minutos
 #define IRRIGATION_TIME			2
-#define IRRIGATION_WAIT_TIME	30
+#define IRRIGATION_WAIT_TIME	2
+// macro IRRIGATION_WAIT_TIME valía 30 minutos y la bajamos para
+// demostrar el funcionamiento más rápido
 
 /********************** external data declaration ****************************/
 uint32_t g_task_controller_cnt;

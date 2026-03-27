@@ -9,7 +9,7 @@
 #include <stdint.h>
 
 /********************** macros ***********************************************/
-#define NUM_BUFFER_SIZE 4
+#define NUM_BUFFER_SIZE 5
 
 /********************** typedef **********************************************/
 //Buffer numerico de 4 digitos para numeros tipeados por usuario

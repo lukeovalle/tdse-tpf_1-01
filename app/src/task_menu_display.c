@@ -18,7 +18,6 @@
 #include "ext_memory.h"
 
 /********************** macros and definitions *******************************/
-#define NUM_BUFFER_SIZE 4
 
 /********************** Functions definition ***********************/
 void display_num(num_buffer_t *v_num_buf) {
@@ -126,6 +125,8 @@ void display_cfg_temp(uint32_t idx) {
 
 //Display del estado config_hum modificable por scroll
 void display_cfg_hum(uint32_t idx) {
+	displayClearScreen();
+
 	switch (idx) {
 	case 0:
 		task_display_request_write("Humedad minima", NULL);
